@@ -115,6 +115,25 @@ const Index = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState("");
+  const [swipedKey, setSwipedKey] = useState<string | null>(null);
+  const [deletedOccs, setDeletedOccs] = useState<Set<string>>(new Set());
+  const swipeStart = useRef<{ x: number; y: number; key: string } | null>(null);
+  const [swipeDx, setSwipeDx] = useState(0);
+
+  const deleteOccurrence = (task: { id: number; occKey: string; isOccurrence: boolean }) => {
+    if (task.isOccurrence) {
+      setDeletedOccs((s) => {
+        const n = new Set(s);
+        n.add(task.occKey);
+        return n;
+      });
+    } else {
+      setTasks((t) => t.filter((x) => x.id !== task.id));
+      setSettled((s) => s.filter((x) => x.id !== task.id));
+    }
+    setSwipedKey(null);
+    setSwipeDx(0);
+  };
 
   // Profile state
   const [profile, setProfile] = useState({
