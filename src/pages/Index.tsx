@@ -17,7 +17,7 @@ type Task = {
   repeat?: string;
 };
 
-type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
+type Settled = { id: string; emoji: string; x: number; y: number; rot: number };
 type Drop = { key: string; emoji: string; x: number; delay: number; rot: number };
 
 const todayStr = () => {
@@ -60,21 +60,33 @@ const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [active, setActive] = useState("home");
+  // Per-occurrence completion: keys like `${taskId}|${YYYY-MM-DD}`
+  const [completed, setCompleted] = useState<Set<string>>(() => {
+    const s = new Set<string>();
+    for (const t of initialTasks) if (t.done) s.add(`${t.id}|${t.dueDate}`);
+    return s;
+  });
   const [settled, setSettled] = useState<Settled[]>(() =>
     initialTasks
       .filter((t) => t.done)
-      .map((t) => ({ id: t.id, emoji: t.emoji, x: rand(8, 78), y: rand(45, 70), rot: rand(-18, 18) }))
+      .map((t) => ({
+        id: `${t.id}|${t.dueDate}`,
+        emoji: t.emoji,
+        x: rand(8, 78),
+        y: rand(45, 70),
+        rot: rand(-18, 18),
+      }))
   );
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
   const nextId = useRef(initialTasks.length + 1);
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
-  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const startDrag = (e: React.PointerEvent, id: number) => {
+  const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
     const el = progressRef.current;
@@ -126,11 +138,18 @@ const Index = () => {
   });
   const [editingProfile, setEditingProfile] = useState(false);
 
-  const toggle = (id: number) => {
-    const task = tasks.find((t) => t.id === id);
+  const toggle = (taskId: number, dueIso: string) => {
+    const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
-    const becomingDone = !task.done;
-    setTasks((t) => t.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
+    const occKey = `${taskId}|${dueIso}`;
+    const becomingDone = !completed.has(occKey);
+
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      if (becomingDone) next.add(occKey);
+      else next.delete(occKey);
+      return next;
+    });
 
     if (becomingDone) {
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
@@ -142,28 +161,34 @@ const Index = () => {
       }));
       setDrops((d) => [...d, ...newDrops]);
 
-      const settledId = id;
       const newSettled: Settled = {
-        id: settledId,
+        id: occKey,
         emoji: task.emoji,
         x: rand(6, 82),
         y: rand(38, 72),
         rot: rand(-20, 20),
       };
       window.setTimeout(() => {
-        setSettled((s) => [...s.filter((x) => x.id !== settledId), newSettled]);
+        setSettled((s) => [...s.filter((x) => x.id !== occKey), newSettled]);
       }, 1000);
       window.setTimeout(() => {
         setDrops((d) => d.filter((dd) => !newDrops.some((n) => n.key === dd.key)));
       }, 1700);
     } else {
-      setSettled((s) => s.filter((x) => x.id !== id));
+      setSettled((s) => s.filter((x) => x.id !== occKey));
     }
   };
 
   const deleteTask = (id: number) => {
     setTasks((t) => t.filter((x) => x.id !== id));
-    setSettled((s) => s.filter((x) => x.id !== id));
+    setCompleted((prev) => {
+      const next = new Set<string>();
+      prev.forEach((k) => {
+        if (!k.startsWith(`${id}|`)) next.add(k);
+      });
+      return next;
+    });
+    setSettled((s) => s.filter((x) => !x.id.startsWith(`${id}|`)));
     toast("Task removed");
   };
 
@@ -235,14 +260,12 @@ const Index = () => {
     setActive("home");
   };
 
-  const todayTasks = tasks.filter((t) => t.dueDate === todayStr());
-  const remaining = todayTasks.filter((t) => !t.done).length;
-  const pct = todayTasks.length === 0 ? 0 : Math.round(((todayTasks.length - remaining) / todayTasks.length) * 100);
+  const todayIso = todayStr();
 
   // Sort: by date asc, then priority desc, then createdAt asc
   // Also limit to today + 6 upcoming days, and expand recurring tasks
   const sortedTasks = useMemo(() => {
-    const today = new Date(todayStr());
+    const today = new Date(todayIso);
     const startMs = today.getTime();
     const maxMs = startMs + 6 * 86400000;
     const fmt = (d: Date) =>
@@ -253,7 +276,6 @@ const Index = () => {
 
     for (const t of tasks) {
       const base = new Date(t.dueDate);
-      // generate occurrences within window
       const occurrences: string[] = [];
       const pushIfInWindow = (d: Date) => {
         const ms = d.getTime();
@@ -262,8 +284,7 @@ const Index = () => {
       pushIfInWindow(base);
 
       if (t.repeat) {
-        // step forward from base until past window
-        const cap = 400; // safety
+        const cap = 400;
         let i = 0;
         const next = new Date(base);
         while (i++ < cap) {
@@ -279,10 +300,12 @@ const Index = () => {
       }
 
       for (const iso of occurrences) {
+        const occKey = `${t.id}|${iso}`;
         out.push({
           ...t,
           dueDate: iso,
-          occKey: `${t.id}|${iso}`,
+          done: completed.has(occKey),
+          occKey,
           isOccurrence: iso !== t.dueDate,
         });
       }
@@ -293,7 +316,11 @@ const Index = () => {
       if (a.priority !== b.priority) return b.priority - a.priority;
       return a.createdAt - b.createdAt;
     });
-  }, [tasks]);
+  }, [tasks, completed, todayIso]);
+
+  const todayTasks = sortedTasks.filter((t) => t.dueDate === todayIso);
+  const remaining = todayTasks.filter((t) => !t.done).length;
+  const pct = todayTasks.length === 0 ? 0 : Math.round(((todayTasks.length - remaining) / todayTasks.length) * 100);
 
   // Expand all tasks (incl. recurring) across the whole year for calendar
   const yearOccurrences = useMemo(() => {
@@ -307,8 +334,12 @@ const Index = () => {
     for (const t of tasks) {
       const base = new Date(t.dueDate);
       const baseMs = base.getTime();
+      const pushOcc = (iso: string) => {
+        const occKey = `${t.id}|${iso}`;
+        out.push({ ...t, dueDate: iso, done: completed.has(occKey), occKey });
+      };
       if (baseMs >= startMs && baseMs <= endMs) {
-        out.push({ ...t, occKey: `${t.id}|${fmt(base)}` });
+        pushOcc(fmt(base));
       }
       if (t.repeat) {
         const cap = 800;
@@ -323,12 +354,12 @@ const Index = () => {
           else break;
           if (next.getTime() > endMs) break;
           if (next.getTime() < startMs) continue;
-          out.push({ ...t, dueDate: fmt(new Date(next)), occKey: `${t.id}|${fmt(new Date(next))}` });
+          pushOcc(fmt(new Date(next)));
         }
       }
     }
     return out;
-  }, [tasks]);
+  }, [tasks, completed]);
 
   const calendarByDate = useMemo(() => {
     const map = new Map<string, CalendarTaskInfo>();
@@ -501,7 +532,7 @@ const Index = () => {
                             </button>
                             <article
                               onPointerDown={(e) => startSwipe(e, task.occKey)}
-                              onClick={() => toggle(task.id)}
+                              onClick={() => toggle(task.id, task.dueDate)}
                               style={{
                                 animationDelay: `${i * 60}ms`,
                                 transform: `translateX(${offset}px)`,
@@ -931,7 +962,7 @@ const Index = () => {
                 </button>
                 <article
                   onPointerDown={(e) => startSwipe(e, task.occKey)}
-                  onClick={() => toggle(task.id)}
+                  onClick={() => toggle(task.id, task.dueDate)}
                   style={{
                     animationDelay: `${i * 60}ms`,
                     transform: `translateX(${offset}px)`,
