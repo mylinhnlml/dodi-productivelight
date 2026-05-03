@@ -335,8 +335,8 @@ const Index = () => {
     for (const o of yearOccurrences) {
       const cur = map.get(o.dueDate) ?? { due: 0, done: 0, doneEmojis: [], hasIncomplete: false };
       cur.due += 1;
-      // A task occurrence is "done" only when the base task is done AND the occurrence date <= today
-      if (o.done && o.dueDate <= todayStr()) {
+      // Completion is always counted on the due date, even if completed early
+      if (o.done) {
         cur.done += 1;
         cur.doneEmojis.push(o.emoji);
       } else {
