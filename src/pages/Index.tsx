@@ -1,4 +1,4 @@
-import { Bell, Plus, Search, Calendar, Settings, Check } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil } from "lucide-react";
 import { useRef, useState } from "react";
 import CalendarView from "@/components/CalendarView";
 
@@ -22,6 +22,8 @@ const initialTasks: Task[] = [
   { id: 5, title: "Bake cinnamon rolls", time: "Tomorrow • 10 AM", emoji: "🧁", done: false, tag: "Tomorrow" },
 ];
 
+const EMOJI_CHOICES = ["🌸","☎️","🪴","📖","🧁","☕","💌","🍵","🌿","🧘‍♀️","🛁","🎀","✨","🍰","🌙","📚"];
+
 const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
 const Index = () => {
@@ -34,6 +36,20 @@ const Index = () => {
   );
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
+  const nextId = useRef(initialTasks.length + 1);
+
+  // Add-form state
+  const [newTitle, setNewTitle] = useState("");
+  const [newEmoji, setNewEmoji] = useState("🌸");
+  const [newTime, setNewTime] = useState("");
+
+  // Profile state
+  const [profile, setProfile] = useState({
+    name: "Mira",
+    slogan: "Soft days, gentle wins ✨",
+    avatar: "🌷",
+  });
+  const [editingProfile, setEditingProfile] = useState(false);
 
   const toggle = (id: number) => {
     const task = tasks.find((t) => t.id === id);
@@ -42,7 +58,6 @@ const Index = () => {
     setTasks((t) => t.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
 
     if (becomingDone) {
-      // Spawn rain of similar emojis
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
         emoji: task.emoji,
@@ -52,7 +67,6 @@ const Index = () => {
       }));
       setDrops((d) => [...d, ...newDrops]);
 
-      // After rain, settle one emoji at a random spot
       const settledId = id;
       const newSettled: Settled = {
         id: settledId,
@@ -72,8 +86,36 @@ const Index = () => {
     }
   };
 
+  const submitNew = () => {
+    if (!newTitle.trim()) return;
+    const id = nextId.current++;
+    const time = newTime
+      ? new Date(`2000-01-01T${newTime}`).toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+        })
+      : "Anytime";
+    setTasks((t) => [
+      ...t,
+      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag: "Today" },
+    ]);
+    setNewTitle("");
+    setNewTime("");
+    setNewEmoji("🌸");
+    setActive("home");
+  };
+
   const remaining = tasks.filter((t) => !t.done).length;
   const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
+
+  const headerSubtitle =
+    active === "calendar" ? "Your year at a glance"
+    : active === "add" ? "Plant a new intention"
+    : `Good morning, ${profile.name}`;
+  const headerTitle =
+    active === "calendar" ? "Calendar"
+    : active === "add" ? "New Reminder"
+    : "Upcoming Tasks";
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 md:p-8">
@@ -93,10 +135,10 @@ const Index = () => {
           <header className="px-6 pt-4 pb-3 flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground font-semibold tracking-wide">
-                {active === "calendar" ? "Your year at a glance" : "Good morning, Mira"}
+                {headerSubtitle}
               </p>
               <h1 className="text-2xl font-extrabold text-foreground mt-0.5 leading-tight">
-                {active === "calendar" ? "Calendar" : "Upcoming Tasks"}
+                {headerTitle}
               </h1>
             </div>
             <button
@@ -108,10 +150,120 @@ const Index = () => {
           </header>
 
           {active === "calendar" ? (
-            <CalendarView />
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Profile card */}
+              <div className="px-5 pb-3">
+                <div className="rounded-3xl neu-surface-sm p-3 flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl neu-inset flex items-center justify-center text-2xl shrink-0">
+                    {profile.avatar}
+                  </div>
+                  {editingProfile ? (
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <div className="flex gap-1 flex-wrap">
+                        {["🌷","🌼","🐰","🦊","🐻","🌸","☕","🌙"].map((e) => (
+                          <button
+                            key={e}
+                            onClick={() => setProfile((p) => ({ ...p, avatar: e }))}
+                            className={`w-6 h-6 rounded-md text-sm flex items-center justify-center ${
+                              profile.avatar === e ? "neu-pressed" : "neu-surface-sm"
+                            }`}
+                          >
+                            {e}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        value={profile.name}
+                        onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))}
+                        placeholder="Name"
+                        className="w-full text-sm font-bold bg-transparent neu-inset rounded-lg px-2.5 py-1 outline-none"
+                      />
+                      <input
+                        value={profile.slogan}
+                        onChange={(e) => setProfile((p) => ({ ...p, slogan: e.target.value }))}
+                        placeholder="Slogan"
+                        className="w-full text-xs font-semibold bg-transparent neu-inset rounded-lg px-2.5 py-1 outline-none"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-extrabold text-foreground truncate">{profile.name}</p>
+                      <p className="text-xs text-muted-foreground font-semibold truncate">
+                        {profile.slogan}
+                      </p>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setEditingProfile((v) => !v)}
+                    aria-label="Edit profile"
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                      editingProfile ? "neu-pressed" : "neu-surface-sm"
+                    }`}
+                  >
+                    {editingProfile ? (
+                      <Check className="w-4 h-4 text-primary" strokeWidth={2.6} />
+                    ) : (
+                      <Pencil className="w-4 h-4 text-primary" strokeWidth={2.4} />
+                    )}
+                  </button>
+                </div>
+              </div>
+              <CalendarView />
+            </div>
+          ) : active === "add" ? (
+            <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Reminder name</label>
+                <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
+                  <input
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="e.g. Sip warm tea"
+                    className="w-full text-sm font-bold bg-transparent outline-none placeholder:text-muted-foreground/70"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Pick an icon</label>
+                <div className="neu-surface-sm rounded-2xl mt-1.5 p-3 grid grid-cols-8 gap-1.5">
+                  {EMOJI_CHOICES.map((e) => (
+                    <button
+                      key={e}
+                      onClick={() => setNewEmoji(e)}
+                      className={`aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
+                        newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-105"
+                      }`}
+                    >
+                      {e}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Time</label>
+                <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
+                  <input
+                    type="time"
+                    value={newTime}
+                    onChange={(e) => setNewTime(e.target.value)}
+                    className="w-full text-sm font-bold bg-transparent outline-none"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={submitNew}
+                disabled={!newTitle.trim()}
+                className="w-full rounded-2xl neu-surface-sm py-3.5 text-sm font-extrabold text-primary-foreground transition-all hover:scale-[1.02] active:neu-pressed disabled:opacity-50"
+                style={{ background: "hsl(var(--primary))" }}
+              >
+                Add Reminder {newEmoji}
+              </button>
+            </section>
           ) : (
           <>
-
           {/* Search */}
           <div className="px-6 pb-3">
             <div className="neu-inset rounded-2xl flex items-center gap-3 px-4 py-3">
@@ -147,7 +299,6 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Settled emojis */}
               {settled.map((s) => (
                 <span
                   key={`s-${s.id}`}
@@ -163,7 +314,6 @@ const Index = () => {
                 </span>
               ))}
 
-              {/* Rain drops */}
               {drops.map((d) => (
                 <span
                   key={d.key}
@@ -222,14 +372,12 @@ const Index = () => {
           </>
           )}
 
-
-          {/* Bottom nav */}
-          <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-3 py-2.5 flex items-center justify-between">
+          {/* Bottom nav — 3 tabs */}
+          <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-6 py-2.5 flex items-center justify-between">
             {[
-              { id: "home", icon: Bell, label: "Today" },
-              { id: "calendar", icon: Calendar, label: "Calendar" },
+              { id: "home", icon: Bell, label: "Reminder" },
               { id: "add", icon: Plus, label: "Add", primary: true },
-              { id: "settings", icon: Settings, label: "Settings" },
+              { id: "calendar", icon: Calendar, label: "Calendar" },
             ].map(({ id, icon: Icon, primary }) => {
               const isActive = active === id;
               if (primary) {
@@ -249,6 +397,7 @@ const Index = () => {
                 <button
                   key={id}
                   onClick={() => setActive(id)}
+                  aria-label={id}
                   className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${
                     isActive ? "neu-pressed" : ""
                   }`}
