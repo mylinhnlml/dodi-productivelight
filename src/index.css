@@ -4,40 +4,40 @@
 
 @layer base {
   :root {
-    /* Minimal unisex neutral palette */
-    --background: 0 0% 97%;
-    --foreground: 220 10% 20%;
+    /* Sage green palette — calming, focus & mood boosting */
+    --background: 140 30% 97%;
+    --foreground: 160 20% 20%;
 
-    --card: 0 0% 98%;
-    --card-foreground: 220 10% 20%;
+    --card: 140 30% 98%;
+    --card-foreground: 160 20% 20%;
 
-    --popover: 0 0% 98%;
-    --popover-foreground: 220 10% 20%;
+    --popover: 140 30% 98%;
+    --popover-foreground: 160 20% 20%;
 
-    --primary: 220 12% 35%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 155 35% 42%;
+    --primary-foreground: 140 30% 98%;
 
-    --secondary: 220 10% 92%;
-    --secondary-foreground: 220 10% 20%;
+    --secondary: 145 25% 90%;
+    --secondary-foreground: 160 20% 20%;
 
-    --muted: 220 10% 90%;
-    --muted-foreground: 220 8% 45%;
+    --muted: 145 22% 88%;
+    --muted-foreground: 160 12% 42%;
 
-    --accent: 220 15% 80%;
-    --accent-foreground: 220 12% 25%;
+    --accent: 150 40% 78%;
+    --accent-foreground: 160 25% 22%;
 
     --destructive: 0 65% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 10% 88%;
-    --input: 220 10% 88%;
-    --ring: 220 12% 35%;
+    --border: 145 20% 86%;
+    --input: 145 20% 86%;
+    --ring: 155 35% 42%;
 
     --radius: 1.75rem;
 
     /* Neumorphic shadow tokens */
-    --neu-light: 0 0% 100%;
-    --neu-dark: 220 15% 75%;
+    --neu-light: 140 40% 100%;
+    --neu-dark: 155 25% 72%;
 
     --shadow-neu:
       8px 8px 20px hsl(var(--neu-dark) / 0.55),
@@ -52,7 +52,7 @@
       inset 3px 3px 6px hsl(var(--neu-dark) / 0.45),
       inset -3px -3px 6px hsl(var(--neu-light) / 0.85);
 
-    --gradient-bg: linear-gradient(145deg, hsl(0 0% 98%), hsl(220 10% 95%));
+    --gradient-bg: linear-gradient(145deg, hsl(140 35% 98%), hsl(150 28% 93%));
   }
 }
 
