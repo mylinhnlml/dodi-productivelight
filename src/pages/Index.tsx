@@ -302,7 +302,7 @@ const Index = () => {
               {settled.map((s) => (
                 <span
                   key={`s-${s.id}`}
-                  className="absolute text-xl select-none pointer-events-none animate-settle-pop"
+                  className="absolute text-3xl select-none pointer-events-none animate-settle-pop"
                   style={{
                     left: `${s.x}%`,
                     top: `${s.y}%`,
@@ -317,7 +317,7 @@ const Index = () => {
               {drops.map((d) => (
                 <span
                   key={d.key}
-                  className="absolute -top-6 text-xl select-none pointer-events-none animate-emoji-rain"
+                  className="absolute -top-6 text-3xl select-none pointer-events-none animate-emoji-rain"
                   style={{
                     left: `${d.x}%`,
                     animationDelay: `${d.delay}s`,
