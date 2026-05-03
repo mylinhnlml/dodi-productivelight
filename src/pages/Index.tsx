@@ -468,17 +468,26 @@ const Index = () => {
               <div>
                 <label className="text-xs font-bold text-muted-foreground px-1">Priority</label>
                 <div className="grid grid-cols-4 gap-2 mt-1.5">
-                  {PRIORITY_LABELS.map((label, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setNewPriority(i as Priority)}
-                      className={`rounded-2xl py-2.5 text-xs font-extrabold transition-all ${
-                        newPriority === i ? "neu-pressed text-primary" : "neu-surface-sm text-muted-foreground"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                  {PRIORITY_LABELS.map((label, i) => {
+                    const yellowStyles = [
+                      "bg-[hsl(45,90%,96%)] text-[hsl(45,20%,60%)]",
+                      "bg-[hsl(45,90%,82%)] text-[hsl(45,50%,30%)]",
+                      "bg-[hsl(43,95%,62%)] text-[hsl(40,60%,18%)]",
+                      "bg-[hsl(40,100%,48%)] text-[hsl(40,80%,10%)]",
+                    ];
+                    const selected = newPriority === i;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setNewPriority(i as Priority)}
+                        className={`rounded-2xl py-2.5 text-xs font-extrabold transition-all ${yellowStyles[i]} ${
+                          selected ? "neu-pressed scale-95" : "neu-surface-sm"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
