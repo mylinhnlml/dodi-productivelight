@@ -4,40 +4,40 @@
 
 @layer base {
   :root {
-    /* Unisex soft sage/stone palette */
-    --background: 150 12% 92%;
-    --foreground: 200 15% 25%;
+    /* Soft peach monochromatic palette */
+    --background: 24 60% 94%;
+    --foreground: 18 25% 28%;
 
-    --card: 150 12% 94%;
-    --card-foreground: 200 15% 25%;
+    --card: 24 55% 95%;
+    --card-foreground: 18 25% 28%;
 
-    --popover: 150 12% 94%;
-    --popover-foreground: 200 15% 25%;
+    --popover: 24 55% 95%;
+    --popover-foreground: 18 25% 28%;
 
-    --primary: 190 35% 50%;
-    --primary-foreground: 150 20% 97%;
+    --primary: 18 70% 65%;
+    --primary-foreground: 24 60% 97%;
 
-    --secondary: 150 10% 88%;
-    --secondary-foreground: 200 15% 25%;
+    --secondary: 24 45% 90%;
+    --secondary-foreground: 18 25% 28%;
 
-    --muted: 150 8% 86%;
-    --muted-foreground: 200 10% 45%;
+    --muted: 24 40% 88%;
+    --muted-foreground: 18 15% 50%;
 
-    --accent: 190 30% 70%;
-    --accent-foreground: 200 25% 22%;
+    --accent: 18 80% 78%;
+    --accent-foreground: 18 30% 25%;
 
-    --destructive: 0 55% 60%;
+    --destructive: 0 65% 65%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 150 10% 84%;
-    --input: 150 10% 84%;
-    --ring: 190 35% 50%;
+    --border: 24 40% 88%;
+    --input: 24 40% 88%;
+    --ring: 18 70% 65%;
 
     --radius: 1.75rem;
 
     /* Neumorphic shadow tokens */
-    --neu-light: 150 25% 98%;
-    --neu-dark: 200 15% 72%;
+    --neu-light: 24 80% 99%;
+    --neu-dark: 18 35% 78%;
 
     --shadow-neu:
       8px 8px 20px hsl(var(--neu-dark) / 0.55),
@@ -52,7 +52,7 @@
       inset 3px 3px 6px hsl(var(--neu-dark) / 0.45),
       inset -3px -3px 6px hsl(var(--neu-light) / 0.85);
 
-    --gradient-bg: linear-gradient(145deg, hsl(150 15% 93%), hsl(200 18% 89%));
+    --gradient-bg: linear-gradient(145deg, hsl(24 65% 95%), hsl(20 55% 91%));
   }
 }
 
