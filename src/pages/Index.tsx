@@ -356,6 +356,8 @@ const Index = () => {
         return a.createdAt - b.createdAt;
       });
   }, [yearOccurrences, selectedDate]);
+
+  const timelineTag = (iso: string) => {
     if (iso === todayStr()) return { label: "Today", cls: "bg-[hsl(40,100%,55%)] text-[hsl(40,80%,12%)]" };
     if (iso === tomorrowStr()) return { label: "Tomorrow", cls: "bg-[hsl(45,90%,75%)] text-[hsl(45,50%,25%)]" };
     return { label: "Coming soon", cls: "bg-[hsl(45,80%,92%)] text-[hsl(45,40%,40%)]" };
