@@ -69,18 +69,24 @@ const Index = () => {
   const [settled, setSettled] = useState<Settled[]>(() =>
     initialTasks
       .filter((t) => t.done)
-      .map((t) => ({ id: t.id, emoji: t.emoji, x: rand(8, 78), y: rand(45, 70), rot: rand(-18, 18) }))
+      .map((t) => ({
+        id: `${t.id}|${t.dueDate}`,
+        emoji: t.emoji,
+        x: rand(8, 78),
+        y: rand(45, 70),
+        rot: rand(-18, 18),
+      }))
   );
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
   const nextId = useRef(initialTasks.length + 1);
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
-  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const startDrag = (e: React.PointerEvent, id: number) => {
+  const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
     const el = progressRef.current;
