@@ -74,6 +74,9 @@ const Index = () => {
   const [newTitle, setNewTitle] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
   const [newTime, setNewTime] = useState("");
+  const [newDateOpt, setNewDateOpt] = useState<"today" | "tomorrow" | "other">("today");
+  const [newOtherDate, setNewOtherDate] = useState("");
+  const [newPriority, setNewPriority] = useState<0 | 1 | 2 | 3>(0);
 
   // Profile state
   const [profile, setProfile] = useState({
