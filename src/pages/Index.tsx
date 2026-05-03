@@ -1139,6 +1139,7 @@ const Index = () => {
                   <Trash2 className="w-5 h-5 text-destructive-foreground" strokeWidth={2.4} />
                 </button>
                 <article
+                  ref={attachSwipeTouch(task.occKey)}
                   onPointerDown={(e) => startSwipe(e, task.occKey)}
                   onClick={() => { if (justSwipedRef.current.has(task.occKey)) return; toggle(task.id, task.dueDate); }}
                   style={{
