@@ -60,6 +60,12 @@ const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [active, setActive] = useState("home");
+  // Per-occurrence completion: keys like `${taskId}|${YYYY-MM-DD}`
+  const [completed, setCompleted] = useState<Set<string>>(() => {
+    const s = new Set<string>();
+    for (const t of initialTasks) if (t.done) s.add(`${t.id}|${t.dueDate}`);
+    return s;
+  });
   const [settled, setSettled] = useState<Settled[]>(() =>
     initialTasks
       .filter((t) => t.done)
@@ -70,7 +76,7 @@ const Index = () => {
   const nextId = useRef(initialTasks.length + 1);
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
-  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
   const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
