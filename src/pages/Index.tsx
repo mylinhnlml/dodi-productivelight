@@ -392,7 +392,7 @@ const Index = () => {
     setRepeat("Never");
     setShowRepeat(false);
     setShowStickers(false);
-    setActive("home");
+    toast.success("Added successfully", { icon: <Bell className="w-4 h-4" /> });
   };
 
   const todayIso = todayStr();
