@@ -75,11 +75,27 @@ const Month = ({
             else tint = { bg: "8 75% 84%", fg: "8 50% 32%" }; // dusty coral
           }
 
+          // Distribute finished-task emojis along the cell border (neat, jittered)
+          const emojis = info?.doneEmojis ?? [];
+          const seed = iso.split("-").reduce((a, s) => a + parseInt(s, 10), 0);
+          const rand = (k: number) => {
+            const x = Math.sin(seed * 9301 + k * 49297) * 233280;
+            return x - Math.floor(x);
+          };
+          const perimPos = (t: number) => {
+            const p = ((t % 1) + 1) % 1;
+            if (p < 0.25) return { left: `${(p / 0.25) * 100}%`, top: `0%` };
+            if (p < 0.5) return { left: `100%`, top: `${((p - 0.25) / 0.25) * 100}%` };
+            if (p < 0.75) return { left: `${100 - ((p - 0.5) / 0.25) * 100}%`, top: `100%` };
+            return { left: `0%`, top: `${100 - ((p - 0.75) / 0.25) * 100}%` };
+          };
+          const N = emojis.length;
+
           return (
             <button
               key={i}
               onClick={() => onSelectDate(iso)}
-              className={`relative aspect-square rounded-xl flex flex-col items-center justify-start p-1 transition-all hover:scale-[1.04] active:scale-95 ${
+              className={`relative aspect-square rounded-xl flex flex-col items-center justify-center transition-all hover:scale-[1.04] active:scale-95 ${
                 isToday ? "neu-surface-sm" : tint ? "" : "neu-inset"
               }`}
               style={
@@ -93,18 +109,34 @@ const Month = ({
                   : undefined
               }
             >
-              {/* Top row: bold date + completion count */}
-              <div
-                className="flex items-center justify-center gap-0.5 leading-none w-full"
+              {/* Border-arranged finished-task icons */}
+              {emojis.map((e, k) => {
+                const t = (k + 0.5) / N + (rand(k) - 0.5) * (0.7 / N);
+                const { left, top } = perimPos(t);
+                return (
+                  <span
+                    key={k}
+                    className="absolute text-[9px] leading-none pointer-events-none select-none"
+                    style={{
+                      left,
+                      top,
+                      transform: "translate(-50%, -50%)",
+                    }}
+                  >
+                    {e}
+                  </span>
+                );
+              })}
+
+              {/* Date number — centered, no wrapping box */}
+              <span
+                className="text-[12px] font-extrabold leading-none"
                 style={tint ? { color: `hsl(${tint.fg})` } : undefined}
               >
-                <span className="text-[10px] font-extrabold">{d}</span>
-                {info && info.done > 0 && (
-                  <span className="text-[8px] font-extrabold opacity-80">·{info.done}</span>
-                )}
-              </div>
+                {d}
+              </span>
 
-              {/* Percentage */}
+              {/* Percentage — right under date */}
               {pct !== null && (
                 <span
                   className="text-[8px] font-bold leading-none mt-0.5 opacity-85"
@@ -112,17 +144,6 @@ const Month = ({
                 >
                   {pct}%
                 </span>
-              )}
-
-              {/* Stickers row(s) */}
-              {info && info.doneEmojis.length > 0 && (
-                <div className="mt-0.5 flex flex-wrap justify-center gap-[1px] leading-none overflow-hidden">
-                  {info.doneEmojis.slice(0, 3).map((e, k) => (
-                    <span key={k} className="text-[8px]">
-                      {e}
-                    </span>
-                  ))}
-                </div>
               )}
 
               {/* Red dot — incomplete due task reminder */}
