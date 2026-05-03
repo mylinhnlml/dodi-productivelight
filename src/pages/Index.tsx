@@ -183,6 +183,8 @@ const Index = () => {
     setNewTime("");
     setNewEmoji("🌸");
     setNewPriority(0);
+    setNewRepeat("Never");
+    setShowRepeatOptions(false);
     setDateMode("today");
     setCustomDate(todayStr());
     setShowStickers(false);
