@@ -387,7 +387,7 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {tasks.map((task, i) => (
+            {sortedTasks.map((task, i) => (
               <article
                 key={task.id}
                 style={{ animationDelay: `${i * 60}ms` }}
@@ -418,9 +418,11 @@ const Index = () => {
                     {task.time}
                   </p>
                 </div>
-                <span className="text-[10px] font-bold text-primary px-2.5 py-1 rounded-full neu-inset">
-                  {task.tag}
-                </span>
+                {task.priority > 0 && (
+                  <span className="text-[11px] font-extrabold text-primary px-2.5 py-1 rounded-full neu-inset tracking-wider">
+                    {"!".repeat(task.priority)}
+                  </span>
+                )}
               </article>
             ))}
           </section>
