@@ -93,10 +93,10 @@ const Index = () => {
           <header className="px-6 pt-4 pb-3 flex items-center justify-between">
             <div>
               <p className="text-xs text-muted-foreground font-semibold tracking-wide">
-                Good morning, Mira
+                {active === "calendar" ? "Your year at a glance" : "Good morning, Mira"}
               </p>
               <h1 className="text-2xl font-extrabold text-foreground mt-0.5 leading-tight">
-                Upcoming Tasks
+                {active === "calendar" ? "Calendar" : "Upcoming Tasks"}
               </h1>
             </div>
             <button
@@ -106,6 +106,11 @@ const Index = () => {
               <Bell className="w-5 h-5 text-primary" strokeWidth={2.2} />
             </button>
           </header>
+
+          {active === "calendar" ? (
+            <CalendarView />
+          ) : (
+          <>
 
           {/* Search */}
           <div className="px-6 pb-3">
