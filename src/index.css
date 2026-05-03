@@ -4,55 +4,55 @@
 
 @layer base {
   :root {
-    /* Soft peach monochromatic palette */
-    --background: 24 60% 94%;
-    --foreground: 18 25% 28%;
+    /* Clean white + warm mustard yellow palette */
+    --background: 0 0% 100%;
+    --foreground: 45 25% 15%;
 
-    --card: 24 55% 95%;
-    --card-foreground: 18 25% 28%;
+    --card: 0 0% 100%;
+    --card-foreground: 45 25% 15%;
 
-    --popover: 24 55% 95%;
-    --popover-foreground: 18 25% 28%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 45 25% 15%;
 
-    --primary: 18 70% 65%;
-    --primary-foreground: 24 60% 97%;
+    --primary: 45 95% 58%;
+    --primary-foreground: 45 40% 12%;
 
-    --secondary: 24 45% 90%;
-    --secondary-foreground: 18 25% 28%;
+    --secondary: 48 60% 94%;
+    --secondary-foreground: 45 25% 20%;
 
-    --muted: 24 40% 88%;
-    --muted-foreground: 18 15% 50%;
+    --muted: 45 30% 95%;
+    --muted-foreground: 45 10% 45%;
 
-    --accent: 18 80% 78%;
-    --accent-foreground: 18 30% 25%;
+    --accent: 45 100% 75%;
+    --accent-foreground: 45 40% 15%;
 
-    --destructive: 0 65% 65%;
+    --destructive: 0 65% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 24 40% 88%;
-    --input: 24 40% 88%;
-    --ring: 18 70% 65%;
+    --border: 45 25% 90%;
+    --input: 45 25% 90%;
+    --ring: 45 95% 58%;
 
     --radius: 1.75rem;
 
-    /* Neumorphic shadow tokens */
-    --neu-light: 24 80% 99%;
-    --neu-dark: 18 35% 78%;
+    /* Neumorphic shadow tokens (white surface) */
+    --neu-light: 0 0% 100%;
+    --neu-dark: 45 20% 80%;
 
     --shadow-neu:
       8px 8px 20px hsl(var(--neu-dark) / 0.55),
-      -8px -8px 20px hsl(var(--neu-light) / 0.9);
+      -8px -8px 20px hsl(var(--neu-light) / 0.95);
     --shadow-neu-sm:
       4px 4px 10px hsl(var(--neu-dark) / 0.5),
-      -4px -4px 10px hsl(var(--neu-light) / 0.85);
+      -4px -4px 10px hsl(var(--neu-light) / 0.9);
     --shadow-neu-inset:
       inset 5px 5px 12px hsl(var(--neu-dark) / 0.5),
-      inset -5px -5px 12px hsl(var(--neu-light) / 0.9);
+      inset -5px -5px 12px hsl(var(--neu-light) / 0.95);
     --shadow-neu-pressed:
       inset 3px 3px 6px hsl(var(--neu-dark) / 0.45),
-      inset -3px -3px 6px hsl(var(--neu-light) / 0.85);
+      inset -3px -3px 6px hsl(var(--neu-light) / 0.9);
 
-    --gradient-bg: linear-gradient(145deg, hsl(24 65% 95%), hsl(20 55% 91%));
+    --gradient-bg: linear-gradient(145deg, hsl(0 0% 100%), hsl(48 50% 96%));
   }
 }
 
