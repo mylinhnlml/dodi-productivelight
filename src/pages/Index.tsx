@@ -37,6 +37,37 @@ const Index = () => {
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
   const nextId = useRef(initialTasks.length + 1);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+
+  const startDrag = (e: React.PointerEvent, id: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = progressRef.current;
+    if (!el) return;
+    setDraggingId(id);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    const move = (ev: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const x = ((ev.clientX - rect.left) / rect.width) * 100;
+      const y = ((ev.clientY - rect.top) / rect.height) * 100;
+      setSettled((s) =>
+        s.map((it) =>
+          it.id === id
+            ? { ...it, x: Math.max(2, Math.min(92, x)), y: Math.max(10, Math.min(85, y)) }
+            : it
+        )
+      );
+    };
+    const up = () => {
+      setDraggingId(null);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+  const nextId = useRef(initialTasks.length + 1);
 
   // Add-form state
   const [newTitle, setNewTitle] = useState("");
