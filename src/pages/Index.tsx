@@ -1,5 +1,5 @@
 import { Bell, Plus, Search, Calendar, Settings, Check } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 type Task = {
   id: number;
@@ -10,6 +10,9 @@ type Task = {
   tag: string;
 };
 
+type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
+type Drop = { key: string; emoji: string; x: number; delay: number; rot: number };
+
 const initialTasks: Task[] = [
   { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, tag: "Today" },
   { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, tag: "Today" },
@@ -18,18 +21,61 @@ const initialTasks: Task[] = [
   { id: 5, title: "Bake cinnamon rolls", time: "Tomorrow • 10 AM", emoji: "🧁", done: false, tag: "Tomorrow" },
 ];
 
+const rand = (min: number, max: number) => Math.random() * (max - min) + min;
+
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [active, setActive] = useState("home");
+  const [settled, setSettled] = useState<Settled[]>(() =>
+    initialTasks
+      .filter((t) => t.done)
+      .map((t) => ({ id: t.id, emoji: t.emoji, x: rand(8, 78), y: rand(45, 70), rot: rand(-18, 18) }))
+  );
+  const [drops, setDrops] = useState<Drop[]>([]);
+  const dropKey = useRef(0);
 
-  const toggle = (id: number) =>
+  const toggle = (id: number) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    const becomingDone = !task.done;
     setTasks((t) => t.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
 
+    if (becomingDone) {
+      // Spawn rain of similar emojis
+      const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
+        key: `d${dropKey.current++}`,
+        emoji: task.emoji,
+        x: rand(4, 86),
+        delay: rand(0, 0.45),
+        rot: rand(-40, 40),
+      }));
+      setDrops((d) => [...d, ...newDrops]);
+
+      // After rain, settle one emoji at a random spot
+      const settledId = id;
+      const newSettled: Settled = {
+        id: settledId,
+        emoji: task.emoji,
+        x: rand(6, 82),
+        y: rand(38, 72),
+        rot: rand(-20, 20),
+      };
+      window.setTimeout(() => {
+        setSettled((s) => [...s.filter((x) => x.id !== settledId), newSettled]);
+      }, 1000);
+      window.setTimeout(() => {
+        setDrops((d) => d.filter((dd) => !newDrops.some((n) => n.key === dd.key)));
+      }, 1700);
+    } else {
+      setSettled((s) => s.filter((x) => x.id !== id));
+    }
+  };
+
   const remaining = tasks.filter((t) => !t.done).length;
+  const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 md:p-8">
-      {/* Phone frame */}
       <div className="relative w-full max-w-[400px] aspect-[9/19] rounded-[3rem] neu-surface p-3">
         <div className="w-full h-full rounded-[2.5rem] neu-inset overflow-hidden flex flex-col">
           {/* Status bar */}
@@ -70,31 +116,61 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Summary card */}
+          {/* Progress card with rain + settled emojis */}
           <div className="px-6 pb-4">
-            <div className="rounded-3xl neu-surface-sm p-5 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold text-muted-foreground">Today's progress</p>
-                <p className="text-3xl font-extrabold text-foreground mt-1">
-                  {remaining}<span className="text-base text-muted-foreground font-bold"> left ✨</span>
-                </p>
-              </div>
-              <div className="relative w-14 h-14 rounded-full neu-inset flex items-center justify-center">
-                <div
-                  className="absolute inset-1 rounded-full"
-                  style={{
-                    background: `conic-gradient(hsl(var(--primary)) ${
-                      ((tasks.length - remaining) / tasks.length) * 360
-                    }deg, transparent 0)`,
-                    opacity: 0.85,
-                  }}
-                />
-                <div className="relative w-9 h-9 rounded-full neu-surface-sm flex items-center justify-center">
-                  <span className="text-xs font-extrabold text-foreground">
-                    {Math.round(((tasks.length - remaining) / tasks.length) * 100)}%
-                  </span>
+            <div className="relative rounded-3xl neu-surface-sm p-5 h-32 overflow-hidden">
+              <div className="flex items-start justify-between relative z-10">
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground">Today's progress</p>
+                  <p className="text-3xl font-extrabold text-foreground mt-1">
+                    {remaining}
+                    <span className="text-base text-muted-foreground font-bold"> left ✨</span>
+                  </p>
+                </div>
+                <div className="relative w-14 h-14 rounded-full neu-inset flex items-center justify-center">
+                  <div
+                    className="absolute inset-1 rounded-full"
+                    style={{
+                      background: `conic-gradient(hsl(var(--primary)) ${(pct / 100) * 360}deg, transparent 0)`,
+                      opacity: 0.85,
+                    }}
+                  />
+                  <div className="relative w-9 h-9 rounded-full neu-surface-sm flex items-center justify-center">
+                    <span className="text-xs font-extrabold text-foreground">{pct}%</span>
+                  </div>
                 </div>
               </div>
+
+              {/* Settled emojis */}
+              {settled.map((s) => (
+                <span
+                  key={`s-${s.id}`}
+                  className="absolute text-xl select-none pointer-events-none animate-settle-pop"
+                  style={{
+                    left: `${s.x}%`,
+                    top: `${s.y}%`,
+                    ["--settle-rot" as any]: `${s.rot}deg`,
+                    filter: "drop-shadow(2px 2px 3px hsl(var(--neu-dark) / 0.4))",
+                  }}
+                >
+                  {s.emoji}
+                </span>
+              ))}
+
+              {/* Rain drops */}
+              {drops.map((d) => (
+                <span
+                  key={d.key}
+                  className="absolute -top-6 text-xl select-none pointer-events-none animate-emoji-rain"
+                  style={{
+                    left: `${d.x}%`,
+                    animationDelay: `${d.delay}s`,
+                    ["--rain-rot" as any]: `${d.rot}deg`,
+                  }}
+                >
+                  {d.emoji}
+                </span>
+              ))}
             </div>
           </div>
 
