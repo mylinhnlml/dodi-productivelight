@@ -185,6 +185,8 @@ const Index = () => {
     setNewPriority(0);
     setDateMode("today");
     setCustomDate(todayStr());
+    setRepeat("Never");
+    setShowRepeat(false);
     setShowStickers(false);
     setActive("home");
   };
