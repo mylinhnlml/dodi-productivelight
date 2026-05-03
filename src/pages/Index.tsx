@@ -17,7 +17,7 @@ type Task = {
   repeat?: string;
 };
 
-type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
+type Settled = { id: string; emoji: string; x: number; y: number; rot: number };
 type Drop = { key: string; emoji: string; x: number; delay: number; rot: number };
 
 const todayStr = () => {
