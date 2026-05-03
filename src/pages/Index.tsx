@@ -392,7 +392,11 @@ const Index = () => {
     setRepeat("Never");
     setShowRepeat(false);
     setShowStickers(false);
-    toast.success("Added successfully", { icon: <Bell className="w-4 h-4" /> });
+    toast.success(
+      <span className="flex items-center gap-1.5">
+        Added successfully in <Bell className="w-4 h-4" />
+      </span>
+    );
   };
 
   const todayIso = todayStr();
