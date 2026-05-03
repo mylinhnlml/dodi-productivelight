@@ -1,5 +1,6 @@
 import { Bell, Plus, Search, Calendar, Settings, Check } from "lucide-react";
 import { useRef, useState } from "react";
+import CalendarView from "@/components/CalendarView";
 
 type Task = {
   id: number;
@@ -88,6 +89,10 @@ const Index = () => {
             </div>
           </div>
 
+          {active === "calendar" ? (
+            <CalendarView />
+          ) : (
+          <>
           {/* Header */}
           <header className="px-6 pt-4 pb-3 flex items-center justify-between">
             <div>
@@ -213,6 +218,8 @@ const Index = () => {
               </article>
             ))}
           </section>
+          </>
+          )}
 
           {/* Bottom nav */}
           <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-3 py-2.5 flex items-center justify-between">
