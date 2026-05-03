@@ -334,8 +334,12 @@ const Index = () => {
     for (const t of tasks) {
       const base = new Date(t.dueDate);
       const baseMs = base.getTime();
+      const pushOcc = (iso: string) => {
+        const occKey = `${t.id}|${iso}`;
+        out.push({ ...t, dueDate: iso, done: completed.has(occKey), occKey });
+      };
       if (baseMs >= startMs && baseMs <= endMs) {
-        out.push({ ...t, occKey: `${t.id}|${fmt(base)}` });
+        pushOcc(fmt(base));
       }
       if (t.repeat) {
         const cap = 800;
@@ -350,12 +354,12 @@ const Index = () => {
           else break;
           if (next.getTime() > endMs) break;
           if (next.getTime() < startMs) continue;
-          out.push({ ...t, dueDate: fmt(new Date(next)), occKey: `${t.id}|${fmt(new Date(next))}` });
+          pushOcc(fmt(new Date(next)));
         }
       }
     }
     return out;
-  }, [tasks]);
+  }, [tasks, completed]);
 
   const calendarByDate = useMemo(() => {
     const map = new Map<string, CalendarTaskInfo>();
