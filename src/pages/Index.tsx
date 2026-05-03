@@ -927,6 +927,24 @@ const Index = () => {
                   </p>
                 </div>
                 <div className="relative w-14 h-14 rounded-full neu-inset flex items-center justify-center">
+                  {/* triangular sun rays */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="absolute left-1/2 top-1/2"
+                        style={{
+                          width: 0,
+                          height: 0,
+                          borderLeft: "3px solid transparent",
+                          borderRight: "3px solid transparent",
+                          borderBottom: "6px solid hsl(40, 100%, 55%)",
+                          transform: `translate(-50%, -50%) rotate(${i * 30}deg) translateY(-32px)`,
+                          filter: "drop-shadow(0 0 1px hsl(40, 100%, 60%))",
+                        }}
+                      />
+                    ))}
+                  </div>
                   <div
                     className="absolute inset-1 rounded-full"
                     style={{
