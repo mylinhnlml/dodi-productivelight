@@ -1,28 +1,57 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil } from "lucide-react";
-import { useRef, useState } from "react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile } from "lucide-react";
+import { useRef, useState, useMemo } from "react";
 import CalendarView from "@/components/CalendarView";
+
+type Priority = 0 | 1 | 2 | 3;
 
 type Task = {
   id: number;
   title: string;
-  time: string;
+  time: string; // display
   emoji: string;
   done: boolean;
-  tag: string;
+  dueDate: string; // YYYY-MM-DD
+  priority: Priority;
+  createdAt: number;
 };
 
 type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
 type Drop = { key: string; emoji: string; x: number; delay: number; rot: number };
 
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+const tomorrowStr = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+const formatDateLabel = (iso: string) => {
+  if (iso === todayStr()) return "Today";
+  if (iso === tomorrowStr()) return "Tomorrow";
+  const d = new Date(iso);
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+};
+
 const initialTasks: Task[] = [
-  { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, tag: "Today" },
-  { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, tag: "Today" },
-  { id: 3, title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, tag: "Today" },
-  { id: 4, title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, tag: "Tonight" },
-  { id: 5, title: "Bake cinnamon rolls", time: "Tomorrow • 10 AM", emoji: "🧁", done: false, tag: "Tomorrow" },
+  { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, dueDate: todayStr(), priority: 2, createdAt: 1 },
+  { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, dueDate: todayStr(), priority: 1, createdAt: 2 },
+  { id: 3, title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, dueDate: todayStr(), priority: 0, createdAt: 3 },
+  { id: 4, title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, dueDate: todayStr(), priority: 0, createdAt: 4 },
+  { id: 5, title: "Bake cinnamon rolls", time: "10:00 AM", emoji: "🧁", done: false, dueDate: tomorrowStr(), priority: 3, createdAt: 5 },
 ];
 
-const EMOJI_CHOICES = ["🌸","☎️","🪴","📖","🧁","☕","💌","🍵","🌿","🧘‍♀️","🛁","🎀","✨","🍰","🌙","📚"];
+const EMOJI_BASIC = ["🌸","☎️","🪴","📖","🧁","☕","💌","🍵","🌿","🧘‍♀️","🛁","🎀","✨","🍰","🌙","📚"];
+const EMOJI_STICKERS = [
+  "🌷","🌼","🌻","🌺","🌹","💐","🍓","🍑","🍒","🍋","🍯","🥐",
+  "🐰","🦊","🐻","🐱","🐶","🐼","🐨","🦋","🐝","🐞",
+  "☁️","⭐","🌈","💫","🔮","🕯️","🎐","🧸","🪞","💝","💖","🪷",
+  "📝","✏️","🖋️","📎","📌","🗓️","⏰","🎧","🎵","🎬","🛍️","🎁",
+];
+
+const PRIORITY_LABELS = ["None", "!", "!!", "!!!"];
 
 const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -37,6 +66,7 @@ const Index = () => {
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
   const nextId = useRef(initialTasks.length + 1);
+  const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
 
@@ -72,6 +102,10 @@ const Index = () => {
   const [newTitle, setNewTitle] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
   const [newTime, setNewTime] = useState("");
+  const [showStickers, setShowStickers] = useState(false);
+  const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
+  const [customDate, setCustomDate] = useState(todayStr());
+  const [newPriority, setNewPriority] = useState<Priority>(0);
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -124,19 +158,45 @@ const Index = () => {
           hour: "numeric",
           minute: "2-digit",
         })
-      : "Anytime";
+      : "";
+    const dueDate =
+      dateMode === "today" ? todayStr() : dateMode === "tomorrow" ? tomorrowStr() : customDate;
     setTasks((t) => [
       ...t,
-      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag: "Today" },
+      {
+        id,
+        title: newTitle.trim(),
+        time,
+        emoji: newEmoji,
+        done: false,
+        dueDate,
+        priority: newPriority,
+        createdAt: createdSeq.current++,
+      },
     ]);
     setNewTitle("");
     setNewTime("");
     setNewEmoji("🌸");
+    setNewPriority(0);
+    setDateMode("today");
+    setCustomDate(todayStr());
+    setShowStickers(false);
     setActive("home");
   };
 
   const remaining = tasks.filter((t) => !t.done).length;
   const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
+
+  // Sort: by date asc, then priority desc, then createdAt asc
+  const sortedTasks = useMemo(
+    () =>
+      [...tasks].sort((a, b) => {
+        if (a.dueDate !== b.dueDate) return a.dueDate < b.dueDate ? -1 : 1;
+        if (a.priority !== b.priority) return b.priority - a.priority;
+        return a.createdAt - b.createdAt;
+      }),
+    [tasks]
+  );
 
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
@@ -242,22 +302,38 @@ const Index = () => {
             </div>
           ) : active === "add" ? (
             <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
+              {/* Reminder name with chosen icon box */}
               <div>
                 <label className="text-xs font-bold text-muted-foreground px-1">Reminder name</label>
-                <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
+                <div className="neu-inset rounded-2xl mt-1.5 px-3 py-2.5 flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl neu-surface-sm flex items-center justify-center text-xl shrink-0">
+                    {newEmoji}
+                  </div>
                   <input
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="e.g. Sip warm tea"
-                    className="w-full text-sm font-bold bg-transparent outline-none placeholder:text-muted-foreground/70"
+                    className="flex-1 text-sm font-bold bg-transparent outline-none placeholder:text-muted-foreground/70"
                   />
                 </div>
               </div>
 
+              {/* Icon box with sticker toggle */}
               <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">Pick an icon</label>
-                <div className="neu-surface-sm rounded-2xl mt-1.5 p-3 grid grid-cols-8 gap-1.5">
-                  {EMOJI_CHOICES.map((e) => (
+                <div className="flex items-center justify-between px-1">
+                  <label className="text-xs font-bold text-muted-foreground">Pick an icon</label>
+                  <button
+                    onClick={() => setShowStickers((v) => !v)}
+                    className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full transition-all ${
+                      showStickers ? "neu-pressed text-primary" : "neu-surface-sm text-muted-foreground"
+                    }`}
+                  >
+                    <Smile className="w-3 h-3" strokeWidth={2.4} />
+                    Stickers
+                  </button>
+                </div>
+                <div className="neu-surface-sm rounded-2xl mt-1.5 p-3 grid grid-cols-8 gap-1.5 max-h-44 overflow-y-auto">
+                  {(showStickers ? [...EMOJI_BASIC, ...EMOJI_STICKERS] : EMOJI_BASIC).map((e) => (
                     <button
                       key={e}
                       onClick={() => setNewEmoji(e)}
@@ -271,8 +347,60 @@ const Index = () => {
                 </div>
               </div>
 
+              {/* Date — 3 quick options */}
               <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">Time</label>
+                <label className="text-xs font-bold text-muted-foreground px-1">Date</label>
+                <div className="grid grid-cols-3 gap-2 mt-1.5">
+                  {([
+                    { id: "today", label: "Today" },
+                    { id: "tomorrow", label: "Tomorrow" },
+                    { id: "other", label: "Other day" },
+                  ] as const).map((opt) => (
+                    <button
+                      key={opt.id}
+                      onClick={() => setDateMode(opt.id)}
+                      className={`rounded-2xl py-2.5 text-xs font-extrabold transition-all ${
+                        dateMode === opt.id ? "neu-pressed text-primary" : "neu-surface-sm text-muted-foreground"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+                {dateMode === "other" && (
+                  <div className="neu-inset rounded-2xl mt-2 px-4 py-3">
+                    <input
+                      type="date"
+                      value={customDate}
+                      min={todayStr()}
+                      onChange={(e) => setCustomDate(e.target.value)}
+                      className="w-full text-sm font-bold bg-transparent outline-none"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Priority</label>
+                <div className="grid grid-cols-4 gap-2 mt-1.5">
+                  {PRIORITY_LABELS.map((label, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setNewPriority(i as Priority)}
+                      className={`rounded-2xl py-2.5 text-xs font-extrabold transition-all ${
+                        newPriority === i ? "neu-pressed text-primary" : "neu-surface-sm text-muted-foreground"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Time (optional) */}
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Time (optional)</label>
                 <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
                   <input
                     type="time"
@@ -283,14 +411,18 @@ const Index = () => {
                 </div>
               </div>
 
-              <button
-                onClick={submitNew}
-                disabled={!newTitle.trim()}
-                className="w-full rounded-2xl neu-surface-sm py-3.5 text-sm font-extrabold text-primary-foreground transition-all hover:scale-[1.02] active:neu-pressed disabled:opacity-50"
-                style={{ background: "hsl(var(--primary))" }}
-              >
-                Add Reminder {newEmoji}
-              </button>
+              {/* Big circular Add button */}
+              <div className="flex justify-center pt-2 pb-1">
+                <button
+                  onClick={submitNew}
+                  disabled={!newTitle.trim()}
+                  aria-label="Add reminder"
+                  className="w-20 h-20 rounded-full flex items-center justify-center neu-surface active:neu-pressed transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                  style={{ background: "hsl(var(--primary))" }}
+                >
+                  <Plus className="w-9 h-9 text-primary-foreground" strokeWidth={3} />
+                </button>
+              </div>
             </section>
           ) : (
           <>
@@ -369,7 +501,7 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {tasks.map((task, i) => (
+            {sortedTasks.map((task, i) => (
               <article
                 key={task.id}
                 style={{ animationDelay: `${i * 60}ms` }}
@@ -395,14 +527,17 @@ const Index = () => {
                     }`}
                   >
                     {task.title}
+                    {task.priority > 0 && (
+                      <span className="ml-1.5 text-primary font-extrabold">
+                        {PRIORITY_LABELS[task.priority]}
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                    {task.time}
+                    {formatDateLabel(task.dueDate)}
+                    {task.time ? ` • ${task.time}` : ""}
                   </p>
                 </div>
-                <span className="text-[10px] font-bold text-primary px-2.5 py-1 rounded-full neu-inset">
-                  {task.tag}
-                </span>
               </article>
             ))}
           </section>
