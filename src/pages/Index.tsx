@@ -70,14 +70,6 @@ const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [active, setActive] = useState("home");
-  const [showSwipeHint, setShowSwipeHint] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("dodi.swipeHintDismissed") !== "1";
-  });
-  const dismissSwipeHint = () => {
-    setShowSwipeHint(false);
-    try { localStorage.setItem("dodi.swipeHintDismissed", "1"); } catch {}
-  };
   // Per-occurrence completion: keys like `${taskId}|${YYYY-MM-DD}`
   const [completed, setCompleted] = useState<Set<string>>(() => {
     const s = new Set<string>();
@@ -1147,21 +1139,8 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {showSwipeHint && sortedTasks.length > 0 && (
-              <div className="flex items-center justify-between gap-2 rounded-full neu-inset px-3.5 py-2 text-[11px] font-bold text-muted-foreground animate-[fade-in_0.4s_ease-out_both]">
-                <span className="flex items-center gap-1.5">
-                  <span aria-hidden>👈</span>
-                  Swipe left on a task to delete
-                </span>
-                <button
-                  onClick={dismissSwipeHint}
-                  aria-label="Dismiss hint"
-                  className="shrink-0 w-5 h-5 rounded-full neu-surface-sm flex items-center justify-center text-foreground hover:opacity-80"
-                >
-                  ×
-                </button>
-              </div>
-            )}
+            
+
             {sortedTasks.filter((t) => t.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).map((task, i) => {
               const offset = swipeOffsets[task.occKey] ?? 0;
               return (
