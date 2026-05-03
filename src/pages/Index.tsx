@@ -1219,7 +1219,7 @@ const Index = () => {
                     aria-label="Delete task"
                     className="shrink-0 w-10 h-10 rounded-full neu-surface-sm flex items-center justify-center text-destructive active:neu-pressed"
                   >
-                    <Trash2 className="w-4.5 h-4.5" strokeWidth={2.4} />
+                    <Trash2 className="w-4 h-4" strokeWidth={2.4} />
                   </button>
                 </article>
               </div>
