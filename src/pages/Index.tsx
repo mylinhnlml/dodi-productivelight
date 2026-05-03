@@ -872,10 +872,13 @@ const Index = () => {
           {/* Search */}
           <div className="px-6 pb-3">
             <div className="neu-inset rounded-2xl flex items-center gap-3 px-4 py-3">
-              <Search className="w-4 h-4 text-muted-foreground" strokeWidth={2.2} />
-              <span className="text-sm text-muted-foreground font-medium">
-                Search reminders...
-              </span>
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" strokeWidth={2.2} />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search reminders..."
+                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground font-medium"
+              />
             </div>
           </div>
 
