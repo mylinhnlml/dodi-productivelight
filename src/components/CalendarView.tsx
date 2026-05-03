@@ -67,83 +67,62 @@ const Month = ({
             today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
 
           const pct = info && info.due > 0 ? Math.round((info.done / info.due) * 100) : null;
-          // Aesthetic text tones aligned with warm-yellow palette
-          let fg: string | null = null;
+          // Aesthetic tones aligned with warm-yellow palette
+          let tint: { bg: string; fg: string } | null = null;
           if (pct !== null) {
-            if (pct >= 70) fg = "140 45% 30%"; // soft sage
-            else if (pct >= 40) fg = "25 70% 38%"; // warm peach
-            else fg = "8 65% 42%"; // dusty coral
+            if (pct >= 70) tint = { bg: "120 40% 82%", fg: "140 35% 25%" }; // soft sage
+            else if (pct >= 40) tint = { bg: "30 90% 80%", fg: "25 55% 28%" }; // warm peach
+            else tint = { bg: "8 75% 84%", fg: "8 50% 32%" }; // dusty coral
           }
-
-          // Border-hugging positions for stickers (top, right, bottom, left edges)
-          const emojis = info?.doneEmojis ?? [];
-          // Deterministic pseudo-random spots around perimeter based on iso
-          const seed = iso.split("-").reduce((a, c) => a + parseInt(c, 10), 0);
-          const positions = emojis.map((_, k) => {
-            // distribute around perimeter (0..1 around the square)
-            const t = ((k + 1) / (emojis.length + 1) + (seed % 7) * 0.07) % 1;
-            const jitter = ((seed + k * 13) % 5) - 2; // -2..2 px
-            let top = "auto", left = "auto", right = "auto", bottom = "auto";
-            if (t < 0.25) {
-              // top edge
-              top = `${-2 + jitter}px`;
-              left = `${t * 4 * 100}%`;
-            } else if (t < 0.5) {
-              // right edge
-              right = `${-2 + jitter}px`;
-              top = `${(t - 0.25) * 4 * 100}%`;
-            } else if (t < 0.75) {
-              // bottom edge
-              bottom = `${-2 + jitter}px`;
-              right = `${(t - 0.5) * 4 * 100}%`;
-            } else {
-              // left edge
-              left = `${-2 + jitter}px`;
-              bottom = `${(t - 0.75) * 4 * 100}%`;
-            }
-            return { top, left, right, bottom };
-          });
 
           return (
             <button
               key={i}
               onClick={() => onSelectDate(iso)}
-              className={`relative aspect-square rounded-xl flex flex-col items-center justify-center transition-all hover:scale-[1.04] active:scale-95 ${
-                isToday ? "neu-surface-sm" : ""
+              className={`relative aspect-square rounded-xl flex flex-col items-center justify-start p-1 transition-all hover:scale-[1.04] active:scale-95 ${
+                isToday ? "neu-surface-sm" : tint ? "" : "neu-inset"
               }`}
+              style={
+                tint
+                  ? {
+                      background: `hsl(${tint.bg} / 0.75)`,
+                      boxShadow: isToday
+                        ? undefined
+                        : `inset 1.5px 1.5px 3px hsl(var(--neu-dark) / 0.25), inset -1.5px -1.5px 3px hsl(var(--neu-light) / 0.7)`,
+                    }
+                  : undefined
+              }
             >
-              {/* Stickers around the perimeter */}
-              {emojis.map((e, k) => (
-                <span
-                  key={k}
-                  className="absolute text-[9px] leading-none -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-                  style={{
-                    top: positions[k].top,
-                    left: positions[k].left,
-                    right: positions[k].right,
-                    bottom: positions[k].bottom,
-                  }}
-                >
-                  {e}
-                </span>
-              ))}
-
-              {/* Date number */}
-              <span
-                className="text-[12px] font-extrabold leading-none"
-                style={fg ? { color: `hsl(${fg})` } : undefined}
+              {/* Top row: bold date + completion count */}
+              <div
+                className="flex items-center justify-center gap-0.5 leading-none w-full"
+                style={tint ? { color: `hsl(${tint.fg})` } : undefined}
               >
-                {d}
-              </span>
+                <span className="text-[10px] font-extrabold">{d}</span>
+                {info && info.done > 0 && (
+                  <span className="text-[8px] font-extrabold opacity-80">·{info.done}</span>
+                )}
+              </div>
 
-              {/* Percentage right under date */}
+              {/* Percentage */}
               {pct !== null && (
                 <span
                   className="text-[8px] font-bold leading-none mt-0.5 opacity-85"
-                  style={{ color: `hsl(${fg})` }}
+                  style={{ color: `hsl(${tint!.fg})` }}
                 >
                   {pct}%
                 </span>
+              )}
+
+              {/* Stickers row(s) */}
+              {info && info.doneEmojis.length > 0 && (
+                <div className="mt-0.5 flex flex-wrap justify-center gap-[1px] leading-none overflow-hidden">
+                  {info.doneEmojis.slice(0, 3).map((e, k) => (
+                    <span key={k} className="text-[8px]">
+                      {e}
+                    </span>
+                  ))}
+                </div>
               )}
 
               {/* Red dot — incomplete due task reminder */}
