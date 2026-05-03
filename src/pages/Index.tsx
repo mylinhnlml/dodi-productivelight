@@ -137,6 +137,7 @@ const Index = () => {
     avatar: "🌷",
   });
   const [editingProfile, setEditingProfile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const toggle = (taskId: number, dueIso: string) => {
     const task = tasks.find((t) => t.id === taskId);
