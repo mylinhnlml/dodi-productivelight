@@ -93,55 +93,36 @@ const Month = ({
                   : undefined
               }
             >
-              {/* Stickers — random scattered arrangement, behind text */}
-              {info && info.doneEmojis.length > 0 && (
-                <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
-                  {info.doneEmojis.map((e, k) => {
-                    // Deterministic pseudo-random based on date + index
-                    const seed = (d * 31 + k * 17 + month * 7) % 100;
-                    const seed2 = (d * 13 + k * 23 + month * 11) % 100;
-                    const seed3 = (d * 7 + k * 19) % 100;
-                    const top = 8 + (seed % 70);
-                    const left = 6 + (seed2 % 76);
-                    const rot = (seed3 % 50) - 25;
-                    return (
-                      <span
-                        key={k}
-                        className="absolute text-[9px] leading-none opacity-70"
-                        style={{
-                          top: `${top}%`,
-                          left: `${left}%`,
-                          transform: `translate(-50%, -50%) rotate(${rot}deg)`,
-                        }}
-                      >
-                        {e}
-                      </span>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Top: bold date number */}
+              {/* Top row: bold date + completion count */}
               <div
-                className="relative flex items-center justify-center leading-none w-full"
+                className="flex items-center justify-center gap-0.5 leading-none w-full"
                 style={tint ? { color: `hsl(${tint.fg})` } : undefined}
               >
-                <span className="text-[11px] font-extrabold drop-shadow-[0_1px_0_hsl(var(--neu-light))]">
-                  {d}
-                </span>
+                <span className="text-[10px] font-extrabold">{d}</span>
+                {info && info.done > 0 && (
+                  <span className="text-[8px] font-extrabold opacity-80">·{info.done}</span>
+                )}
               </div>
 
               {/* Percentage */}
               {pct !== null && (
                 <span
-                  className="relative text-[8px] font-extrabold leading-none mt-auto mb-0.5 px-1 rounded-full"
-                  style={{
-                    color: `hsl(${tint!.fg})`,
-                    background: `hsl(var(--neu-light) / 0.6)`,
-                  }}
+                  className="text-[8px] font-bold leading-none mt-0.5 opacity-85"
+                  style={{ color: `hsl(${tint!.fg})` }}
                 >
                   {pct}%
                 </span>
+              )}
+
+              {/* Stickers row(s) */}
+              {info && info.doneEmojis.length > 0 && (
+                <div className="mt-0.5 flex flex-wrap justify-center gap-[1px] leading-none overflow-hidden">
+                  {info.doneEmojis.slice(0, 3).map((e, k) => (
+                    <span key={k} className="text-[8px]">
+                      {e}
+                    </span>
+                  ))}
+                </div>
               )}
 
               {/* Red dot — incomplete due task reminder */}
