@@ -117,6 +117,7 @@ const Index = () => {
 
   // Add-form state
   const [newTitle, setNewTitle] = useState("");
+  const [newNote, setNewNote] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
   const [newTime, setNewTime] = useState("");
   const [showStickers, setShowStickers] = useState(false);
