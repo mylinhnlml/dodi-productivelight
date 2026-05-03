@@ -721,10 +721,15 @@ const Index = () => {
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5">
+                  <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${timelineTag(task.dueDate).cls}`}>
                       {timelineTag(task.dueDate).label}
                     </span>
+                    {task.repeat && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)]">
+                        🔁 {task.repeat}
+                      </span>
+                    )}
                     <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
                   </p>
                 </div>
