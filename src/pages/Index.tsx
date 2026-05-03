@@ -1,4 +1,4 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, AlignLeft, CalendarDays, Clock, Flag, Tag, Smile } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil } from "lucide-react";
 import { useRef, useState } from "react";
 import CalendarView from "@/components/CalendarView";
 
@@ -70,14 +70,8 @@ const Index = () => {
 
   // Add-form state
   const [newTitle, setNewTitle] = useState("");
-  const [newNotes, setNewNotes] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
-  const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
-  const [newFlag, setNewFlag] = useState(false);
-  const [newPriority, setNewPriority] = useState<"none" | "low" | "med" | "high">("none");
-  const [newList, setNewList] = useState("Today");
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -125,28 +119,19 @@ const Index = () => {
   const submitNew = () => {
     if (!newTitle.trim()) return;
     const id = nextId.current++;
-    const timeLabel = newTime
+    const time = newTime
       ? new Date(`2000-01-01T${newTime}`).toLocaleTimeString([], {
           hour: "numeric",
           minute: "2-digit",
         })
       : "Anytime";
-    const dateLabel = newDate
-      ? new Date(newDate).toLocaleDateString([], { month: "short", day: "numeric" })
-      : "";
-    const time = dateLabel ? `${dateLabel} • ${timeLabel}` : timeLabel;
     setTasks((t) => [
       ...t,
-      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag: newList },
+      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag: "Today" },
     ]);
     setNewTitle("");
-    setNewNotes("");
-    setNewDate("");
     setNewTime("");
     setNewEmoji("🌸");
-    setNewFlag(false);
-    setNewPriority("none");
-    setNewList("Today");
     setActive("home");
   };
 
@@ -256,158 +241,56 @@ const Index = () => {
               <CalendarView />
             </div>
           ) : active === "add" ? (
-            <section className="flex-1 px-5 overflow-y-auto pb-4 space-y-4">
-              {/* iOS-like header row */}
-              <div className="flex items-center justify-between -mt-1">
-                <button
-                  onClick={() => setActive("home")}
-                  className="text-sm font-semibold text-muted-foreground px-1"
-                >
-                  Cancel
-                </button>
-                <p className="text-xs font-bold text-foreground/70">Details</p>
-                <button
-                  onClick={submitNew}
-                  disabled={!newTitle.trim()}
-                  className="text-sm font-extrabold text-primary px-1 disabled:opacity-40"
-                >
-                  Add
-                </button>
-              </div>
-
-              {/* Title + Notes card */}
-              <div className="rounded-3xl neu-surface-sm overflow-hidden">
-                <div className="flex items-start gap-3 px-4 pt-3.5 pb-2.5">
-                  <button
-                    onClick={() => setShowEmojiPicker((v) => !v)}
-                    className={`shrink-0 w-10 h-10 rounded-2xl flex items-center justify-center text-xl transition-all ${
-                      showEmojiPicker ? "neu-pressed" : "neu-inset"
-                    }`}
-                    aria-label="Pick icon"
-                  >
-                    {newEmoji}
-                  </button>
+            <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Reminder name</label>
+                <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
                   <input
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="Title"
-                    className="flex-1 text-base font-bold bg-transparent outline-none placeholder:text-muted-foreground/60 py-2"
+                    placeholder="e.g. Sip warm tea"
+                    className="w-full text-sm font-bold bg-transparent outline-none placeholder:text-muted-foreground/70"
                   />
                 </div>
-                <div className="h-px mx-4 bg-foreground/5" />
-                <textarea
-                  value={newNotes}
-                  onChange={(e) => setNewNotes(e.target.value)}
-                  placeholder="Notes"
-                  rows={2}
-                  className="w-full text-sm font-medium bg-transparent outline-none placeholder:text-muted-foreground/60 px-4 py-3 resize-none"
-                />
-                {showEmojiPicker && (
-                  <div className="px-3 pb-3 grid grid-cols-8 gap-1.5">
-                    {EMOJI_CHOICES.map((e) => (
-                      <button
-                        key={e}
-                        onClick={() => {
-                          setNewEmoji(e);
-                          setShowEmojiPicker(false);
-                        }}
-                        className={`aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
-                          newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-105"
-                        }`}
-                      >
-                        {e}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
 
-              {/* Grouped settings rows */}
-              <div className="rounded-3xl neu-surface-sm overflow-hidden divide-y divide-foreground/5">
-                {/* Date */}
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "hsl(8 70% 75% / 0.7)" }}>
-                    <CalendarDays className="w-4 h-4 text-foreground/80" strokeWidth={2.4} />
-                  </div>
-                  <span className="flex-1 text-sm font-bold text-foreground">Date</span>
-                  <input
-                    type="date"
-                    value={newDate}
-                    onChange={(e) => setNewDate(e.target.value)}
-                    className="text-sm font-semibold bg-transparent outline-none text-muted-foreground"
-                  />
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Pick an icon</label>
+                <div className="neu-surface-sm rounded-2xl mt-1.5 p-3 grid grid-cols-8 gap-1.5">
+                  {EMOJI_CHOICES.map((e) => (
+                    <button
+                      key={e}
+                      onClick={() => setNewEmoji(e)}
+                      className={`aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
+                        newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-105"
+                      }`}
+                    >
+                      {e}
+                    </button>
+                  ))}
                 </div>
-                {/* Time */}
-                <div className="flex items-center gap-3 px-4 py-3">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "hsl(220 60% 78% / 0.7)" }}>
-                    <Clock className="w-4 h-4 text-foreground/80" strokeWidth={2.4} />
-                  </div>
-                  <span className="flex-1 text-sm font-bold text-foreground">Time</span>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Time</label>
+                <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
                   <input
                     type="time"
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
-                    className="text-sm font-semibold bg-transparent outline-none text-muted-foreground"
+                    className="w-full text-sm font-bold bg-transparent outline-none"
                   />
                 </div>
-                {/* Flag */}
-                <button
-                  onClick={() => setNewFlag((v) => !v)}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left"
-                >
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "hsl(30 85% 75% / 0.8)" }}>
-                    <Flag className="w-4 h-4 text-foreground/80" strokeWidth={2.4} />
-                  </div>
-                  <span className="flex-1 text-sm font-bold text-foreground">Flag</span>
-                  <span className={`relative w-10 h-6 rounded-full transition-all ${newFlag ? "" : "neu-inset"}`} style={newFlag ? { background: "hsl(var(--primary))" } : undefined}>
-                    <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-background shadow transition-all ${newFlag ? "left-[18px]" : "left-0.5"}`} />
-                  </span>
-                </button>
-                {/* Priority */}
-                <div className="px-4 py-3">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "hsl(0 65% 78% / 0.75)" }}>
-                      <span className="text-sm font-extrabold text-foreground/80">!</span>
-                    </div>
-                    <span className="flex-1 text-sm font-bold text-foreground">Priority</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-1.5 neu-inset rounded-2xl p-1">
-                    {(["none", "low", "med", "high"] as const).map((p) => (
-                      <button
-                        key={p}
-                        onClick={() => setNewPriority(p)}
-                        className={`text-[11px] font-extrabold rounded-xl py-1.5 capitalize transition-all ${
-                          newPriority === p ? "neu-surface-sm text-primary" : "text-muted-foreground"
-                        }`}
-                      >
-                        {p === "none" ? "None" : p === "med" ? "!!" : p === "low" ? "!" : "!!!"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                {/* List */}
-                <div className="px-4 py-3">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "hsl(140 35% 75% / 0.8)" }}>
-                      <Tag className="w-4 h-4 text-foreground/80" strokeWidth={2.4} />
-                    </div>
-                    <span className="flex-1 text-sm font-bold text-foreground">List</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {["Today", "Tonight", "Tomorrow", "Someday"].map((l) => (
-                      <button
-                        key={l}
-                        onClick={() => setNewList(l)}
-                        className={`text-[11px] font-extrabold rounded-full px-3 py-1.5 transition-all ${
-                          newList === l ? "neu-pressed text-primary" : "neu-surface-sm text-muted-foreground"
-                        }`}
-                      >
-                        {l}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
+
+              <button
+                onClick={submitNew}
+                disabled={!newTitle.trim()}
+                className="w-full rounded-2xl neu-surface-sm py-3.5 text-sm font-extrabold text-primary-foreground transition-all hover:scale-[1.02] active:neu-pressed disabled:opacity-50"
+                style={{ background: "hsl(var(--primary))" }}
+              >
+                Add Reminder {newEmoji}
+              </button>
             </section>
           ) : (
           <>
