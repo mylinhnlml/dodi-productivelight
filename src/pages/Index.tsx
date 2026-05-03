@@ -138,11 +138,18 @@ const Index = () => {
   });
   const [editingProfile, setEditingProfile] = useState(false);
 
-  const toggle = (id: number) => {
-    const task = tasks.find((t) => t.id === id);
+  const toggle = (taskId: number, dueIso: string) => {
+    const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
-    const becomingDone = !task.done;
-    setTasks((t) => t.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
+    const occKey = `${taskId}|${dueIso}`;
+    const becomingDone = !completed.has(occKey);
+
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      if (becomingDone) next.add(occKey);
+      else next.delete(occKey);
+      return next;
+    });
 
     if (becomingDone) {
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
@@ -154,28 +161,34 @@ const Index = () => {
       }));
       setDrops((d) => [...d, ...newDrops]);
 
-      const settledId = id;
       const newSettled: Settled = {
-        id: settledId,
+        id: occKey,
         emoji: task.emoji,
         x: rand(6, 82),
         y: rand(38, 72),
         rot: rand(-20, 20),
       };
       window.setTimeout(() => {
-        setSettled((s) => [...s.filter((x) => x.id !== settledId), newSettled]);
+        setSettled((s) => [...s.filter((x) => x.id !== occKey), newSettled]);
       }, 1000);
       window.setTimeout(() => {
         setDrops((d) => d.filter((dd) => !newDrops.some((n) => n.key === dd.key)));
       }, 1700);
     } else {
-      setSettled((s) => s.filter((x) => x.id !== id));
+      setSettled((s) => s.filter((x) => x.id !== occKey));
     }
   };
 
   const deleteTask = (id: number) => {
     setTasks((t) => t.filter((x) => x.id !== id));
-    setSettled((s) => s.filter((x) => x.id !== id));
+    setCompleted((prev) => {
+      const next = new Set<string>();
+      prev.forEach((k) => {
+        if (!k.startsWith(`${id}|`)) next.add(k);
+      });
+      return next;
+    });
+    setSettled((s) => s.filter((x) => !x.id.startsWith(`${id}|`)));
     toast("Task removed");
   };
 
