@@ -1,7 +1,7 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft } from "lucide-react";
 import { useRef, useState, useMemo } from "react";
 import { toast } from "sonner";
-import CalendarView from "@/components/CalendarView";
+import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 
 type Priority = 0 | 1 | 2 | 3;
 
@@ -14,9 +14,10 @@ type Task = {
   dueDate: string; // YYYY-MM-DD
   priority: Priority;
   createdAt: number;
+  repeat?: string;
 };
 
-type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
+type Settled = { id: string; emoji: string; x: number; y: number; rot: number };
 type Drop = { key: string; emoji: string; x: number; delay: number; rot: number };
 
 const todayStr = () => {
@@ -59,19 +60,33 @@ const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [active, setActive] = useState("home");
+  // Per-occurrence completion: keys like `${taskId}|${YYYY-MM-DD}`
+  const [completed, setCompleted] = useState<Set<string>>(() => {
+    const s = new Set<string>();
+    for (const t of initialTasks) if (t.done) s.add(`${t.id}|${t.dueDate}`);
+    return s;
+  });
   const [settled, setSettled] = useState<Settled[]>(() =>
     initialTasks
       .filter((t) => t.done)
-      .map((t) => ({ id: t.id, emoji: t.emoji, x: rand(8, 78), y: rand(45, 70), rot: rand(-18, 18) }))
+      .map((t) => ({
+        id: `${t.id}|${t.dueDate}`,
+        emoji: t.emoji,
+        x: rand(8, 78),
+        y: rand(45, 70),
+        rot: rand(-18, 18),
+      }))
   );
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
   const nextId = useRef(initialTasks.length + 1);
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
-  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const startDrag = (e: React.PointerEvent, id: number) => {
+  const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
     const el = progressRef.current;
@@ -122,12 +137,20 @@ const Index = () => {
     avatar: "🌷",
   });
   const [editingProfile, setEditingProfile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const toggle = (id: number) => {
-    const task = tasks.find((t) => t.id === id);
+  const toggle = (taskId: number, dueIso: string) => {
+    const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
-    const becomingDone = !task.done;
-    setTasks((t) => t.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
+    const occKey = `${taskId}|${dueIso}`;
+    const becomingDone = !completed.has(occKey);
+
+    setCompleted((prev) => {
+      const next = new Set(prev);
+      if (becomingDone) next.add(occKey);
+      else next.delete(occKey);
+      return next;
+    });
 
     if (becomingDone) {
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
@@ -139,23 +162,66 @@ const Index = () => {
       }));
       setDrops((d) => [...d, ...newDrops]);
 
-      const settledId = id;
       const newSettled: Settled = {
-        id: settledId,
+        id: occKey,
         emoji: task.emoji,
         x: rand(6, 82),
         y: rand(38, 72),
         rot: rand(-20, 20),
       };
       window.setTimeout(() => {
-        setSettled((s) => [...s.filter((x) => x.id !== settledId), newSettled]);
+        setSettled((s) => [...s.filter((x) => x.id !== occKey), newSettled]);
       }, 1000);
       window.setTimeout(() => {
         setDrops((d) => d.filter((dd) => !newDrops.some((n) => n.key === dd.key)));
       }, 1700);
     } else {
-      setSettled((s) => s.filter((x) => x.id !== id));
+      setSettled((s) => s.filter((x) => x.id !== occKey));
     }
+  };
+
+  const deleteTask = (id: number) => {
+    setTasks((t) => t.filter((x) => x.id !== id));
+    setCompleted((prev) => {
+      const next = new Set<string>();
+      prev.forEach((k) => {
+        if (!k.startsWith(`${id}|`)) next.add(k);
+      });
+      return next;
+    });
+    setSettled((s) => s.filter((x) => !x.id.startsWith(`${id}|`)));
+    toast("Task removed");
+  };
+
+  const startSwipe = (e: React.PointerEvent, key: string) => {
+    const startX = e.clientX;
+    const startOffset = swipeOffsets[key] ?? 0;
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - startX;
+      if (Math.abs(dx) > 5) moved = true;
+      const next = Math.max(-96, Math.min(0, startOffset + dx));
+      setSwipeOffsets((s) => ({ ...s, [key]: next }));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      setSwipeOffsets((s) => {
+        const cur = s[key] ?? 0;
+        return { ...s, [key]: cur < -48 ? -88 : 0 };
+      });
+      if (moved) {
+        // suppress click after swipe
+        const swallow = (ev: MouseEvent) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          window.removeEventListener("click", swallow, true);
+        };
+        window.addEventListener("click", swallow, true);
+      }
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
   };
 
   const submitNew = () => {
@@ -180,6 +246,7 @@ const Index = () => {
         dueDate,
         priority: newPriority,
         createdAt: createdSeq.current++,
+        repeat: repeat !== "Never" ? repeat : undefined,
       },
     ]);
     setNewTitle("");
@@ -194,19 +261,139 @@ const Index = () => {
     setActive("home");
   };
 
-  const remaining = tasks.filter((t) => !t.done).length;
-  const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
+  const todayIso = todayStr();
 
   // Sort: by date asc, then priority desc, then createdAt asc
-  const sortedTasks = useMemo(
-    () =>
-      [...tasks].sort((a, b) => {
-        if (a.dueDate !== b.dueDate) return a.dueDate < b.dueDate ? -1 : 1;
+  // Also limit to today + 6 upcoming days, and expand recurring tasks
+  const sortedTasks = useMemo(() => {
+    const today = new Date(todayIso);
+    const startMs = today.getTime();
+    const maxMs = startMs + 6 * 86400000;
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    type DisplayTask = Task & { occKey: string; isOccurrence: boolean };
+    const out: DisplayTask[] = [];
+
+    for (const t of tasks) {
+      const base = new Date(t.dueDate);
+      const occurrences: string[] = [];
+      const pushIfInWindow = (d: Date) => {
+        const ms = d.getTime();
+        if (ms >= startMs && ms <= maxMs) occurrences.push(fmt(d));
+      };
+      pushIfInWindow(base);
+
+      if (t.repeat) {
+        const cap = 400;
+        let i = 0;
+        const next = new Date(base);
+        while (i++ < cap) {
+          if (t.repeat === "Every Day") next.setDate(next.getDate() + 1);
+          else if (t.repeat === "Every Week") next.setDate(next.getDate() + 7);
+          else if (t.repeat === "Every 2 Weeks") next.setDate(next.getDate() + 14);
+          else if (t.repeat === "Every Month") next.setMonth(next.getMonth() + 1);
+          else if (t.repeat === "Every Year") next.setFullYear(next.getFullYear() + 1);
+          else break;
+          if (next.getTime() > maxMs) break;
+          if (next.getTime() >= startMs) occurrences.push(fmt(new Date(next)));
+        }
+      }
+
+      for (const iso of occurrences) {
+        const occKey = `${t.id}|${iso}`;
+        out.push({
+          ...t,
+          dueDate: iso,
+          done: completed.has(occKey),
+          occKey,
+          isOccurrence: iso !== t.dueDate,
+        });
+      }
+    }
+
+    return out.sort((a, b) => {
+      if (a.dueDate !== b.dueDate) return a.dueDate < b.dueDate ? -1 : 1;
+      if (a.priority !== b.priority) return b.priority - a.priority;
+      return a.createdAt - b.createdAt;
+    });
+  }, [tasks, completed, todayIso]);
+
+  const todayTasks = sortedTasks.filter((t) => t.dueDate === todayIso);
+  const remaining = todayTasks.filter((t) => !t.done).length;
+  const pct = todayTasks.length === 0 ? 0 : Math.round(((todayTasks.length - remaining) / todayTasks.length) * 100);
+
+  // Expand all tasks (incl. recurring) across the whole year for calendar
+  const yearOccurrences = useMemo(() => {
+    const year = new Date().getFullYear();
+    const startMs = new Date(year, 0, 1).getTime();
+    const endMs = new Date(year, 11, 31).getTime();
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    type Occ = Task & { occKey: string };
+    const out: Occ[] = [];
+    for (const t of tasks) {
+      const base = new Date(t.dueDate);
+      const baseMs = base.getTime();
+      const pushOcc = (iso: string) => {
+        const occKey = `${t.id}|${iso}`;
+        out.push({ ...t, dueDate: iso, done: completed.has(occKey), occKey });
+      };
+      if (baseMs >= startMs && baseMs <= endMs) {
+        pushOcc(fmt(base));
+      }
+      if (t.repeat) {
+        const cap = 800;
+        let i = 0;
+        const next = new Date(base);
+        while (i++ < cap) {
+          if (t.repeat === "Every Day") next.setDate(next.getDate() + 1);
+          else if (t.repeat === "Every Week") next.setDate(next.getDate() + 7);
+          else if (t.repeat === "Every 2 Weeks") next.setDate(next.getDate() + 14);
+          else if (t.repeat === "Every Month") next.setMonth(next.getMonth() + 1);
+          else if (t.repeat === "Every Year") next.setFullYear(next.getFullYear() + 1);
+          else break;
+          if (next.getTime() > endMs) break;
+          if (next.getTime() < startMs) continue;
+          pushOcc(fmt(new Date(next)));
+        }
+      }
+    }
+    return out;
+  }, [tasks, completed]);
+
+  const calendarByDate = useMemo(() => {
+    const map = new Map<string, CalendarTaskInfo>();
+    for (const o of yearOccurrences) {
+      const cur = map.get(o.dueDate) ?? { due: 0, done: 0, doneEmojis: [], hasIncomplete: false };
+      cur.due += 1;
+      // Completion is always counted on the due date, even if completed early
+      if (o.done) {
+        cur.done += 1;
+        cur.doneEmojis.push(o.emoji);
+      } else {
+        cur.hasIncomplete = true;
+      }
+      map.set(o.dueDate, cur);
+    }
+    return map;
+  }, [yearOccurrences]);
+
+  const tasksOnSelectedDate = useMemo(() => {
+    if (!selectedDate) return [] as (Task & { occKey: string })[];
+    return yearOccurrences
+      .filter((o) => o.dueDate === selectedDate)
+      .sort((a, b) => {
         if (a.priority !== b.priority) return b.priority - a.priority;
         return a.createdAt - b.createdAt;
-      }),
-    [tasks]
-  );
+      });
+  }, [yearOccurrences, selectedDate]);
+
+  const timelineTag = (iso: string) => {
+    if (iso === todayStr()) return { label: "Today", cls: "bg-[hsl(40,100%,55%)] text-[hsl(40,80%,12%)]" };
+    if (iso === tomorrowStr()) return { label: "Tomorrow", cls: "bg-[hsl(45,90%,75%)] text-[hsl(45,50%,25%)]" };
+    return { label: "Coming soon", cls: "bg-[hsl(45,80%,92%)] text-[hsl(45,40%,40%)]" };
+  };
 
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
@@ -241,12 +428,6 @@ const Index = () => {
                 {headerTitle}
               </h1>
             </div>
-            <button
-              aria-label="Notifications"
-              className="w-12 h-12 rounded-2xl neu-surface-sm flex items-center justify-center active:neu-pressed transition-all duration-300 hover:scale-105"
-            >
-              <Bell className="w-5 h-5 text-primary" strokeWidth={2.2} />
-            </button>
           </header>
 
           {active === "calendar" ? (
@@ -308,7 +489,95 @@ const Index = () => {
                   </button>
                 </div>
               </div>
-              <CalendarView />
+              {selectedDate ? (
+                <section className="flex-1 px-5 overflow-y-auto pb-4">
+                  <div className="flex items-center justify-between px-1 pb-3">
+                    <button
+                      onClick={() => setSelectedDate(null)}
+                      className="flex items-center gap-1 text-xs font-extrabold text-primary neu-surface-sm rounded-full px-3 py-1.5"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" strokeWidth={3} />
+                      Calendar
+                    </button>
+                    <h2 className="text-base font-extrabold text-foreground">
+                      {new Date(selectedDate).toLocaleDateString([], {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </h2>
+                  </div>
+
+                  {tasksOnSelectedDate.length === 0 ? (
+                    <div className="neu-inset rounded-2xl p-6 text-center text-xs font-bold text-muted-foreground">
+                      No tasks on this day 🌿
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {tasksOnSelectedDate.map((task, i) => {
+                        const offset = swipeOffsets[task.occKey] ?? 0;
+                        return (
+                          <div key={task.occKey} className="relative">
+                            <button
+                              onClick={() => deleteTask(task.id)}
+                              aria-label="Delete task"
+                              className="absolute right-0 top-0 bottom-0 w-20 rounded-2xl bg-destructive flex items-center justify-center"
+                            >
+                              <Trash2 className="w-5 h-5 text-destructive-foreground" strokeWidth={2.4} />
+                            </button>
+                            <article
+                              onPointerDown={(e) => startSwipe(e, task.occKey)}
+                              onClick={() => toggle(task.id, task.dueDate)}
+                              style={{
+                                animationDelay: `${i * 60}ms`,
+                                transform: `translateX(${offset}px)`,
+                                transition: "transform 0.2s",
+                              }}
+                              className="relative rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] cursor-pointer touch-pan-y select-none"
+                            >
+                              <div
+                                className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
+                                  task.done ? "neu-pressed" : "neu-surface-sm"
+                                }`}
+                              >
+                                {task.done ? (
+                                  <Check className="w-5 h-5 text-primary" strokeWidth={3} />
+                                ) : (
+                                  <span>{task.emoji}</span>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p
+                                  className={`text-sm font-bold truncate ${
+                                    task.done ? "text-muted-foreground line-through" : "text-foreground"
+                                  }`}
+                                >
+                                  {task.title}
+                                  {task.priority > 0 && (
+                                    <span className="ml-1.5 text-primary font-extrabold">
+                                      {PRIORITY_LABELS[task.priority]}
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                  {task.repeat && (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)]">
+                                      🔁 {task.repeat}
+                                    </span>
+                                  )}
+                                  {task.time && <span>{task.time}</span>}
+                                </p>
+                              </div>
+                            </article>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              ) : (
+                <CalendarView byDate={calendarByDate} onSelectDate={setSelectedDate} />
+              )}
             </div>
           ) : active === "add" ? (
             <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
@@ -468,17 +737,26 @@ const Index = () => {
               <div>
                 <label className="text-xs font-bold text-muted-foreground px-1">Priority</label>
                 <div className="grid grid-cols-4 gap-2 mt-1.5">
-                  {PRIORITY_LABELS.map((label, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setNewPriority(i as Priority)}
-                      className={`rounded-2xl py-2.5 text-xs font-extrabold transition-all ${
-                        newPriority === i ? "neu-pressed text-primary" : "neu-surface-sm text-muted-foreground"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
+                  {PRIORITY_LABELS.map((label, i) => {
+                    const yellowStyles = [
+                      "bg-[hsl(45,90%,96%)] text-[hsl(45,20%,60%)]",
+                      "bg-[hsl(45,90%,82%)] text-[hsl(45,50%,30%)]",
+                      "bg-[hsl(43,95%,62%)] text-[hsl(40,60%,18%)]",
+                      "bg-[hsl(40,100%,48%)] text-[hsl(40,80%,10%)]",
+                    ];
+                    const selected = newPriority === i;
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => setNewPriority(i as Priority)}
+                        className={`rounded-2xl py-2.5 text-xs font-extrabold transition-all ${yellowStyles[i]} ${
+                          selected ? "neu-pressed scale-95" : "neu-surface-sm"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -594,10 +872,13 @@ const Index = () => {
           {/* Search */}
           <div className="px-6 pb-3">
             <div className="neu-inset rounded-2xl flex items-center gap-3 px-4 py-3">
-              <Search className="w-4 h-4 text-muted-foreground" strokeWidth={2.2} />
-              <span className="text-sm text-muted-foreground font-medium">
-                Search reminders...
-              </span>
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" strokeWidth={2.2} />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search reminders..."
+                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground font-medium"
+              />
             </div>
           </div>
 
@@ -666,45 +947,68 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {sortedTasks.map((task, i) => (
-              <article
-                key={task.id}
-                style={{ animationDelay: `${i * 60}ms` }}
-                className="rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] hover:scale-[1.02] transition-transform duration-300"
-              >
+            {sortedTasks.filter((t) => t.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).map((task, i) => {
+              const offset = swipeOffsets[task.occKey] ?? 0;
+              return (
+              <div key={task.occKey} className="relative">
                 <button
-                  onClick={() => toggle(task.id)}
-                  aria-label={task.done ? "Mark incomplete" : "Mark complete"}
-                  className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
-                    task.done ? "neu-pressed" : "neu-surface-sm active:neu-pressed"
-                  }`}
+                  onClick={() => deleteTask(task.id)}
+                  aria-label="Delete task"
+                  className="absolute right-0 top-0 bottom-0 w-20 rounded-2xl bg-destructive flex items-center justify-center"
                 >
-                  {task.done ? (
-                    <Check className="w-5 h-5 text-primary" strokeWidth={3} />
-                  ) : (
-                    <span>{task.emoji}</span>
-                  )}
+                  <Trash2 className="w-5 h-5 text-destructive-foreground" strokeWidth={2.4} />
                 </button>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-sm font-bold truncate ${
-                      task.done ? "text-muted-foreground line-through" : "text-foreground"
+                <article
+                  onPointerDown={(e) => startSwipe(e, task.occKey)}
+                  onClick={() => toggle(task.id, task.dueDate)}
+                  style={{
+                    animationDelay: `${i * 60}ms`,
+                    transform: `translateX(${offset}px)`,
+                    transition: "transform 0.2s",
+                  }}
+                  className="relative rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] cursor-pointer touch-pan-y select-none"
+                >
+                  <div
+                    aria-label={task.done ? "Mark incomplete" : "Mark complete"}
+                    className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
+                      task.done ? "neu-pressed" : "neu-surface-sm"
                     }`}
                   >
-                    {task.title}
-                    {task.priority > 0 && (
-                      <span className="ml-1.5 text-primary font-extrabold">
-                        {PRIORITY_LABELS[task.priority]}
-                      </span>
+                    {task.done ? (
+                      <Check className="w-5 h-5 text-primary" strokeWidth={3} />
+                    ) : (
+                      <span>{task.emoji}</span>
                     )}
-                  </p>
-                  <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                    {formatDateLabel(task.dueDate)}
-                    {task.time ? ` • ${task.time}` : ""}
-                  </p>
-                </div>
-              </article>
-            ))}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`text-sm font-bold truncate ${
+                        task.done ? "text-muted-foreground line-through" : "text-foreground"
+                      }`}
+                    >
+                      {task.title}
+                      {task.priority > 0 && (
+                        <span className="ml-1.5 text-primary font-extrabold">
+                          {PRIORITY_LABELS[task.priority]}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${timelineTag(task.dueDate).cls}`}>
+                        {timelineTag(task.dueDate).label}
+                      </span>
+                      {task.repeat && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)]">
+                          🔁 {task.repeat}
+                        </span>
+                      )}
+                      <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
+                    </p>
+                  </div>
+                </article>
+              </div>
+              );
+            })}
           </section>
           </>
           )}
