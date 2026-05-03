@@ -160,7 +160,42 @@ const Index = () => {
     }
   };
 
-  const submitNew = () => {
+  const deleteTask = (id: number) => {
+    setTasks((t) => t.filter((x) => x.id !== id));
+    setSettled((s) => s.filter((x) => x.id !== id));
+    toast("Task removed");
+  };
+
+  const startSwipe = (e: React.PointerEvent, key: string) => {
+    const startX = e.clientX;
+    const startOffset = swipeOffsets[key] ?? 0;
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - startX;
+      if (Math.abs(dx) > 5) moved = true;
+      const next = Math.max(-96, Math.min(0, startOffset + dx));
+      setSwipeOffsets((s) => ({ ...s, [key]: next }));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      setSwipeOffsets((s) => {
+        const cur = s[key] ?? 0;
+        return { ...s, [key]: cur < -48 ? -88 : 0 };
+      });
+      if (moved) {
+        // suppress click after swipe
+        const swallow = (ev: MouseEvent) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          window.removeEventListener("click", swallow, true);
+        };
+        window.addEventListener("click", swallow, true);
+      }
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
     if (!newTitle.trim()) return;
     const id = nextId.current++;
     const time = newTime
