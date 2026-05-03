@@ -777,6 +777,21 @@ const Index = () => {
                 </div>
               </div>
 
+              {/* Note (optional) */}
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Note (optional)</label>
+                <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
+                  <textarea
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="Write a short message..."
+                    maxLength={200}
+                    rows={2}
+                    className="w-full text-sm font-medium bg-transparent outline-none resize-none placeholder:text-muted-foreground"
+                  />
+                </div>
+              </div>
+
               {/* Compact Add Reminder button — right aligned, with Feedback on left */}
               <div className="flex justify-between items-center gap-2 pt-2 pb-1">
                 <button
