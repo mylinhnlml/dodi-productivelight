@@ -76,7 +76,7 @@ const Index = () => {
   const nextId = useRef(initialTasks.length + 1);
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
   const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
