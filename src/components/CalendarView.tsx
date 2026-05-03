@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -6,48 +6,29 @@ const MONTHS = [
 ];
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
-export type CalendarTaskInfo = {
-  due: number;
-  done: number;
-  doneEmojis: string[];
-  hasIncomplete: boolean;
+// Deterministic pseudo-random based on date
+const seedPct = (y: number, m: number, d: number) => {
+  const s = Math.sin(y * 10000 + (m + 1) * 100 + d) * 43758.5453;
+  return Math.floor((s - Math.floor(s)) * 100);
 };
 
-type Props = {
-  byDate: Map<string, CalendarTaskInfo>;
-  onSelectDate: (iso: string) => void;
+// Aesthetic peach-aligned tones (HSL) — soft, muted
+const tintFor = (pct: number) => {
+  if (pct >= 70) return { bg: "140 35% 78%", text: "140 30% 28%" }; // soft sage
+  if (pct >= 40) return { bg: "30 80% 75%", text: "24 45% 30%" };  // warm peach
+  return { bg: "8 65% 78%", text: "8 40% 32%" };                    // dusty coral
 };
 
-const fmt = (y: number, m: number, d: number) =>
-  `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-
-const Month = ({
-  year,
-  month,
-  today,
-  byDate,
-  onSelectDate,
-  registerRef,
-}: Props & {
-  year: number;
-  month: number;
-  today: Date;
-  registerRef: (el: HTMLDivElement | null, isCurrent: boolean) => void;
-}) => {
+const Month = ({ year, month, today }: { year: number; month: number; today: Date }) => {
   const first = new Date(year, month, 1).getDay();
   const days = new Date(year, month + 1, 0).getDate();
   const cells: (number | null)[] = [
     ...Array(first).fill(null),
     ...Array.from({ length: days }, (_, i) => i + 1),
   ];
-  const isCurrentMonth =
-    today.getFullYear() === year && today.getMonth() === month;
 
   return (
-    <div
-      ref={(el) => registerRef(el, isCurrentMonth)}
-      className="mb-6"
-    >
+    <div className="mb-6">
       <h3 className="text-base font-extrabold text-foreground px-1 mb-2">
         {MONTHS[month]} <span className="text-muted-foreground font-bold">{year}</span>
       </h3>
@@ -61,75 +42,36 @@ const Month = ({
       <div className="grid grid-cols-7 gap-1.5 px-0.5">
         {cells.map((d, i) => {
           if (d === null) return <div key={i} />;
-          const iso = fmt(year, month, d);
-          const info = byDate.get(iso);
+          const pct = seedPct(year, month, d);
+          const { bg, text } = tintFor(pct);
           const isToday =
             today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
-
-          const pct = info && info.due > 0 ? Math.round((info.done / info.due) * 100) : null;
-          // Aesthetic tones aligned with warm-yellow palette
-          let tint: { bg: string; fg: string } | null = null;
-          if (pct !== null) {
-            if (pct >= 70) tint = { bg: "120 40% 82%", fg: "140 35% 25%" }; // soft sage
-            else if (pct >= 40) tint = { bg: "30 90% 80%", fg: "25 55% 28%" }; // warm peach
-            else tint = { bg: "8 75% 84%", fg: "8 50% 32%" }; // dusty coral
-          }
-
           return (
-            <button
+            <div
               key={i}
-              onClick={() => onSelectDate(iso)}
-              className={`relative aspect-square rounded-xl flex flex-col items-center justify-start p-1 transition-all hover:scale-[1.04] active:scale-95 ${
-                isToday ? "neu-surface-sm" : tint ? "" : "neu-inset"
+              className={`aspect-square rounded-xl flex flex-col items-center justify-center ${
+                isToday ? "neu-surface-sm" : ""
               }`}
-              style={
-                tint
-                  ? {
-                      background: `hsl(${tint.bg} / 0.75)`,
-                      boxShadow: isToday
-                        ? undefined
-                        : `inset 1.5px 1.5px 3px hsl(var(--neu-dark) / 0.25), inset -1.5px -1.5px 3px hsl(var(--neu-light) / 0.7)`,
-                    }
-                  : undefined
-              }
+              style={{
+                background: `hsl(${bg} / 0.65)`,
+                boxShadow: isToday
+                  ? undefined
+                  : `inset 1.5px 1.5px 3px hsl(var(--neu-dark) / 0.25), inset -1.5px -1.5px 3px hsl(var(--neu-light) / 0.7)`,
+              }}
             >
-              {/* Top row: bold date + completion count */}
-              <div
-                className="flex items-center justify-center gap-0.5 leading-none w-full"
-                style={tint ? { color: `hsl(${tint.fg})` } : undefined}
+              <span
+                className="text-[10px] font-extrabold leading-none"
+                style={{ color: `hsl(${text})` }}
               >
-                <span className="text-[10px] font-extrabold">{d}</span>
-                {info && info.done > 0 && (
-                  <span className="text-[8px] font-extrabold opacity-80">·{info.done}</span>
-                )}
-              </div>
-
-              {/* Percentage */}
-              {pct !== null && (
-                <span
-                  className="text-[8px] font-bold leading-none mt-0.5 opacity-85"
-                  style={{ color: `hsl(${tint!.fg})` }}
-                >
-                  {pct}%
-                </span>
-              )}
-
-              {/* Stickers row(s) */}
-              {info && info.doneEmojis.length > 0 && (
-                <div className="mt-0.5 flex flex-wrap justify-center gap-[1px] leading-none overflow-hidden">
-                  {info.doneEmojis.slice(0, 3).map((e, k) => (
-                    <span key={k} className="text-[8px]">
-                      {e}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Red dot — incomplete due task reminder */}
-              {info && info.hasIncomplete && (
-                <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-destructive" />
-              )}
-            </button>
+                {d}
+              </span>
+              <span
+                className="text-[8px] font-bold leading-none mt-0.5 opacity-80"
+                style={{ color: `hsl(${text})` }}
+              >
+                {pct}%
+              </span>
+            </div>
           );
         })}
       </div>
@@ -137,39 +79,36 @@ const Month = ({
   );
 };
 
-const CalendarView = ({ byDate, onSelectDate }: Props) => {
+const CalendarView = () => {
   const today = useMemo(() => new Date(), []);
   const year = today.getFullYear();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const currentMonthRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (currentMonthRef.current && scrollRef.current) {
-      const container = scrollRef.current;
-      const target = currentMonthRef.current;
-      container.scrollTo({ top: target.offsetTop - container.offsetTop - 8, behavior: "auto" });
-    }
-  }, []);
 
   return (
-    <section ref={scrollRef} className="flex-1 px-5 overflow-y-auto pb-4">
+    <section className="flex-1 px-5 overflow-y-auto pb-4">
       <div className="flex items-baseline justify-between px-1 pb-3">
         <h2 className="text-2xl font-extrabold text-foreground">{year}</h2>
-        <span className="text-xs font-semibold text-muted-foreground">Tap a date to view 🌿</span>
+        <span className="text-xs font-semibold text-muted-foreground">Daily progress 🌿</span>
+      </div>
+
+      {/* Legend */}
+      <div className="neu-inset rounded-2xl px-3 py-2 mb-4 flex items-center justify-around text-[10px] font-bold">
+        {[
+          { label: "<40%", bg: "8 65% 78%", text: "8 40% 32%" },
+          { label: "40–70%", bg: "30 80% 75%", text: "24 45% 30%" },
+          { label: "70%+", bg: "140 35% 78%", text: "140 30% 28%" },
+        ].map((l) => (
+          <div key={l.label} className="flex items-center gap-1.5">
+            <span
+              className="w-3 h-3 rounded-md"
+              style={{ background: `hsl(${l.bg} / 0.85)` }}
+            />
+            <span style={{ color: `hsl(${l.text})` }}>{l.label}</span>
+          </div>
+        ))}
       </div>
 
       {Array.from({ length: 12 }, (_, m) => (
-        <Month
-          key={m}
-          year={year}
-          month={m}
-          today={today}
-          byDate={byDate}
-          onSelectDate={onSelectDate}
-          registerRef={(el, isCurrent) => {
-            if (isCurrent) currentMonthRef.current = el;
-          }}
-        />
+        <Month key={m} year={year} month={m} today={today} />
       ))}
     </section>
   );
