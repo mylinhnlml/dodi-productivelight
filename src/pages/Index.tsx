@@ -148,10 +148,24 @@ const Index = () => {
 
   // Profile state
   const [profile, setProfile] = useState({
-    name: "Mira",
+    name: "Friend",
     slogan: "Soft days, gentle wins ✨",
     avatar: "🌷",
   });
+  const [profileTouched, setProfileTouched] = useState(false);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      if (!u || profileTouched) return;
+      const meta = (u.user_metadata || {}) as Record<string, unknown>;
+      const accountName =
+        (meta.full_name as string) ||
+        (meta.name as string) ||
+        (meta.given_name as string) ||
+        (typeof u.email === "string" ? u.email.split("@")[0] : "");
+      if (accountName) setProfile((p) => ({ ...p, name: accountName }));
+    });
+  }, [profileTouched]);
   const [editingProfile, setEditingProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
