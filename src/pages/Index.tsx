@@ -37,6 +37,36 @@ const Index = () => {
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
   const nextId = useRef(initialTasks.length + 1);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+
+  const startDrag = (e: React.PointerEvent, id: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const el = progressRef.current;
+    if (!el) return;
+    setDraggingId(id);
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    const move = (ev: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const x = ((ev.clientX - rect.left) / rect.width) * 100;
+      const y = ((ev.clientY - rect.top) / rect.height) * 100;
+      setSettled((s) =>
+        s.map((it) =>
+          it.id === id
+            ? { ...it, x: Math.max(2, Math.min(92, x)), y: Math.max(10, Math.min(85, y)) }
+            : it
+        )
+      );
+    };
+    const up = () => {
+      setDraggingId(null);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
 
   // Add-form state
   const [newTitle, setNewTitle] = useState("");
@@ -276,8 +306,11 @@ const Index = () => {
 
           {/* Progress card with rain + settled emojis */}
           <div className="px-6 pb-4">
-            <div className="relative rounded-3xl neu-surface-sm p-5 h-32 overflow-hidden">
-              <div className="flex items-start justify-between relative z-10">
+            <div
+              ref={progressRef}
+              className="relative rounded-3xl neu-surface-sm p-5 h-32 overflow-hidden touch-none"
+            >
+              <div className="flex items-start justify-between relative z-10 pointer-events-none">
                 <div>
                   <p className="text-xs font-semibold text-muted-foreground">Today's progress</p>
                   <p className="text-3xl font-extrabold text-foreground mt-1">
@@ -302,12 +335,16 @@ const Index = () => {
               {settled.map((s) => (
                 <span
                   key={`s-${s.id}`}
-                  className="absolute text-3xl select-none pointer-events-none animate-settle-pop"
+                  onPointerDown={(e) => startDrag(e, s.id)}
+                  className={`absolute text-3xl select-none animate-settle-pop touch-none ${
+                    draggingId === s.id ? "cursor-grabbing z-20 scale-110" : "cursor-grab"
+                  }`}
                   style={{
                     left: `${s.x}%`,
                     top: `${s.y}%`,
                     ["--settle-rot" as any]: `${s.rot}deg`,
                     filter: "drop-shadow(2px 2px 3px hsl(var(--neu-dark) / 0.4))",
+                    transition: draggingId === s.id ? "none" : "left 0.2s, top 0.2s",
                   }}
                 >
                   {s.emoji}
