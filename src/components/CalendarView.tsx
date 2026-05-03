@@ -6,32 +6,20 @@ const MONTHS = [
 ];
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
-export type CalTask = {
-  id: number;
-  emoji: string;
-  done: boolean;
-  date: Date;
+// Deterministic pseudo-random based on date
+const seedPct = (y: number, m: number, d: number) => {
+  const s = Math.sin(y * 10000 + (m + 1) * 100 + d) * 43758.5453;
+  return Math.floor((s - Math.floor(s)) * 100);
 };
 
 // Aesthetic peach-aligned tones (HSL) — soft, muted
-const tintFor = (pct: number | null) => {
-  if (pct === null) return { bg: "30 25% 92%", text: "30 15% 55%" }; // neutral
-  if (pct >= 70) return { bg: "140 35% 78%", text: "140 30% 28%" };
-  if (pct >= 40) return { bg: "30 80% 75%", text: "24 45% 30%" };
-  return { bg: "8 65% 78%", text: "8 40% 32%" };
+const tintFor = (pct: number) => {
+  if (pct >= 70) return { bg: "140 35% 78%", text: "140 30% 28%" }; // soft sage
+  if (pct >= 40) return { bg: "30 80% 75%", text: "24 45% 30%" };  // warm peach
+  return { bg: "8 65% 78%", text: "8 40% 32%" };                    // dusty coral
 };
 
-const Month = ({
-  year,
-  month,
-  today,
-  tasksByDay,
-}: {
-  year: number;
-  month: number;
-  today: Date;
-  tasksByDay: Map<string, CalTask[]>;
-}) => {
+const Month = ({ year, month, today }: { year: number; month: number; today: Date }) => {
   const first = new Date(year, month, 1).getDay();
   const days = new Date(year, month + 1, 0).getDate();
   const cells: (number | null)[] = [
@@ -54,28 +42,21 @@ const Month = ({
       <div className="grid grid-cols-7 gap-1.5 px-0.5">
         {cells.map((d, i) => {
           if (d === null) return <div key={i} />;
-          const key = `${year}-${month}-${d}`;
-          const dayTasks = tasksByDay.get(key) ?? [];
-          const doneTasks = dayTasks.filter((t) => t.done);
-          const pct = dayTasks.length
-            ? Math.round((doneTasks.length / dayTasks.length) * 100)
-            : null;
+          const pct = seedPct(year, month, d);
           const { bg, text } = tintFor(pct);
           const isToday =
             today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
-
-          // Up to 3 sticker emojis from completed tasks
-          const stickers = doneTasks.slice(0, 3).map((t) => t.emoji);
-
           return (
             <div
               key={i}
-              className="aspect-square rounded-2xl flex flex-col items-center justify-center relative overflow-hidden"
+              className={`aspect-square rounded-xl flex flex-col items-center justify-center ${
+                isToday ? "neu-surface-sm" : ""
+              }`}
               style={{
-                background: `hsl(${bg} / 0.7)`,
+                background: `hsl(${bg} / 0.65)`,
                 boxShadow: isToday
-                  ? `2px 2px 5px hsl(var(--neu-dark) / 0.35), -2px -2px 5px hsl(var(--neu-light) / 0.85)`
-                  : `inset 1.5px 1.5px 3px hsl(var(--neu-dark) / 0.22), inset -1.5px -1.5px 3px hsl(var(--neu-light) / 0.7)`,
+                  ? undefined
+                  : `inset 1.5px 1.5px 3px hsl(var(--neu-dark) / 0.25), inset -1.5px -1.5px 3px hsl(var(--neu-light) / 0.7)`,
               }}
             >
               <span
@@ -84,34 +65,12 @@ const Month = ({
               >
                 {d}
               </span>
-              {pct !== null ? (
-                <span
-                  className="text-[8px] font-bold leading-none mt-0.5 opacity-85"
-                  style={{ color: `hsl(${text})` }}
-                >
-                  {pct}%
-                </span>
-              ) : (
-                <span
-                  className="text-[8px] font-bold leading-none mt-0.5 opacity-50"
-                  style={{ color: `hsl(${text})` }}
-                >
-                  ·
-                </span>
-              )}
-              {stickers.length > 0 && (
-                <div className="flex -space-x-1 mt-0.5">
-                  {stickers.map((s, idx) => (
-                    <span
-                      key={idx}
-                      className="text-[9px] leading-none"
-                      style={{ transform: `rotate(${(idx - 1) * 8}deg)` }}
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              )}
+              <span
+                className="text-[8px] font-bold leading-none mt-0.5 opacity-80"
+                style={{ color: `hsl(${text})` }}
+              >
+                {pct}%
+              </span>
             </div>
           );
         })}
@@ -120,21 +79,9 @@ const Month = ({
   );
 };
 
-const CalendarView = ({ tasks }: { tasks: CalTask[] }) => {
+const CalendarView = () => {
   const today = useMemo(() => new Date(), []);
   const year = today.getFullYear();
-
-  const tasksByDay = useMemo(() => {
-    const map = new Map<string, CalTask[]>();
-    tasks.forEach((t) => {
-      const d = t.date;
-      const k = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-      const arr = map.get(k) ?? [];
-      arr.push(t);
-      map.set(k, arr);
-    });
-    return map;
-  }, [tasks]);
 
   return (
     <section className="flex-1 px-5 overflow-y-auto pb-4">
@@ -161,7 +108,7 @@ const CalendarView = ({ tasks }: { tasks: CalTask[] }) => {
       </div>
 
       {Array.from({ length: 12 }, (_, m) => (
-        <Month key={m} year={year} month={m} today={today} tasksByDay={tasksByDay} />
+        <Month key={m} year={year} month={m} today={today} />
       ))}
     </section>
   );

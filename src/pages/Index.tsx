@@ -1,9 +1,6 @@
-import { Bell, Plus, Search, Calendar as CalendarIcon, Check, Pencil, Smile, Calendar as CalIcon } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil } from "lucide-react";
 import { useRef, useState } from "react";
 import CalendarView from "@/components/CalendarView";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format, isToday, isTomorrow, isSameDay, addDays } from "date-fns";
 
 type Task = {
   id: number;
@@ -12,52 +9,20 @@ type Task = {
   emoji: string;
   done: boolean;
   tag: string;
-  priority: 0 | 1 | 2 | 3;
-  createdAt: number;
-  date: Date;
 };
 
 type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
 type Drop = { key: string; emoji: string; x: number; delay: number; rot: number };
 
-const today = new Date();
-
 const initialTasks: Task[] = [
-  { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, tag: "Today", priority: 2, createdAt: 1, date: today },
-  { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, tag: "Today", priority: 1, createdAt: 2, date: today },
-  { id: 3, title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, tag: "Today", priority: 0, createdAt: 3, date: today },
-  { id: 4, title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, tag: "Tonight", priority: 3, createdAt: 4, date: today },
-  { id: 5, title: "Bake cinnamon rolls", time: "Tomorrow • 10 AM", emoji: "🧁", done: false, tag: "Tomorrow", priority: 0, createdAt: 5, date: addDays(today, 1) },
+  { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, tag: "Today" },
+  { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, tag: "Today" },
+  { id: 3, title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, tag: "Today" },
+  { id: 4, title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, tag: "Tonight" },
+  { id: 5, title: "Bake cinnamon rolls", time: "Tomorrow • 10 AM", emoji: "🧁", done: false, tag: "Tomorrow" },
 ];
 
 const EMOJI_CHOICES = ["🌸","☎️","🪴","📖","🧁","☕","💌","🍵","🌿","🧘‍♀️","🛁","🎀","✨","🍰","🌙","📚"];
-// iOS keyboard "Stickers" box only allows standard emoji stickers (no custom images)
-const IOS_EMOJI_STICKERS = [
-  "😀","😁","😂","🥰","😍","😘","🤩","🥳","😎","🤗","🤔","😴","🥱","😇","🙂","😉",
-  "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔",
-  "🌸","🌷","🌹","🌺","🌻","🌼","💐","🌿","🍀","🌱","🪴","🌵","🌳","🍂","🍁","🌾",
-  "☕","🍵","🧋","🍰","🧁","🍪","🍩","🍮","🍨","🍦","🍓","🍑","🍒","🥐","🥞","🍯",
-];
-
-// Curated packs from "creators" — themed sticker sets
-const CREATOR_PACKS: { name: string; author: string; stickers: string[] }[] = [
-  {
-    name: "Cozy Mornings",
-    author: "@peachstudio",
-    stickers: ["☕","🥐","📖","🕯️","🧸","🪴","🌤️","🍯","🥛","🧁","🌙","✨"],
-  },
-  {
-    name: "Soft Bloom",
-    author: "@lilypetal",
-    stickers: ["🌸","🌷","🌹","🌺","🌻","🌼","💐","🍃","🦋","🐝","🌿","🪷"],
-  },
-  {
-    name: "Self Care",
-    author: "@calmco",
-    stickers: ["🛁","🧴","🪥","🧘‍♀️","💆‍♀️","🎧","🕯️","💖","🍵","📚","🌙","💎"],
-  },
-];
-
 
 const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
@@ -72,7 +37,6 @@ const Index = () => {
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
   const nextId = useRef(initialTasks.length + 1);
-  const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
 
@@ -108,13 +72,6 @@ const Index = () => {
   const [newTitle, setNewTitle] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
   const [newTime, setNewTime] = useState("");
-  const [newPriority, setNewPriority] = useState<0 | 1 | 2 | 3>(0);
-  const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
-  const [otherDate, setOtherDate] = useState<Date | undefined>();
-  const [stickerOpen, setStickerOpen] = useState(false);
-  const [stickerTab, setStickerTab] = useState<"yours" | "creators">("yours");
-  const [myStickers, setMyStickers] = useState<string[]>(["🌸","☕","🪴","📖"]);
-  const [pickerInput, setPickerInput] = useState("");
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -162,47 +119,24 @@ const Index = () => {
   const submitNew = () => {
     if (!newTitle.trim()) return;
     const id = nextId.current++;
-    const dateValue =
-      dateMode === "today" ? today
-      : dateMode === "tomorrow" ? addDays(today, 1)
-      : (otherDate ?? today);
-    const tag = isToday(dateValue) ? "Today" : isTomorrow(dateValue) ? "Tomorrow" : format(dateValue, "MMM d");
     const time = newTime
-      ? new Date(`2000-01-01T${newTime}`).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+      ? new Date(`2000-01-01T${newTime}`).toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+        })
       : "Anytime";
     setTasks((t) => [
       ...t,
-      {
-        id,
-        title: newTitle.trim(),
-        time,
-        emoji: newEmoji,
-        done: false,
-        tag,
-        priority: newPriority,
-        createdAt: createdSeq.current++,
-        date: dateValue,
-      },
+      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag: "Today" },
     ]);
     setNewTitle("");
     setNewTime("");
     setNewEmoji("🌸");
-    setNewPriority(0);
-    setDateMode("today");
-    setOtherDate(undefined);
     setActive("home");
   };
 
   const remaining = tasks.filter((t) => !t.done).length;
   const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
-
-  // Sort: higher priority first; within same priority: earlier createdAt first
-  const sortedTasks = [...tasks].sort((a, b) =>
-    b.priority - a.priority || a.createdAt - b.createdAt
-  );
-
-  const priorityBadge = (p: 0 | 1 | 2 | 3) =>
-    p === 0 ? null : "!".repeat(p);
 
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
@@ -237,14 +171,12 @@ const Index = () => {
                 {headerTitle}
               </h1>
             </div>
-            {active !== "add" && (
-              <button
-                aria-label="Notifications"
-                className="w-12 h-12 rounded-2xl neu-surface-sm flex items-center justify-center active:neu-pressed transition-all duration-300 hover:scale-105"
-              >
-                <Bell className="w-5 h-5 text-primary" strokeWidth={2.2} />
-              </button>
-            )}
+            <button
+              aria-label="Notifications"
+              className="w-12 h-12 rounded-2xl neu-surface-sm flex items-center justify-center active:neu-pressed transition-all duration-300 hover:scale-105"
+            >
+              <Bell className="w-5 h-5 text-primary" strokeWidth={2.2} />
+            </button>
           </header>
 
           {active === "calendar" ? (
@@ -306,17 +238,13 @@ const Index = () => {
                   </button>
                 </div>
               </div>
-              <CalendarView tasks={tasks.map((t) => ({ id: t.id, emoji: t.emoji, done: t.done, date: t.date }))} />
+              <CalendarView />
             </div>
           ) : active === "add" ? (
             <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
-              {/* Reminder name with icon box */}
               <div>
                 <label className="text-xs font-bold text-muted-foreground px-1">Reminder name</label>
-                <div className="neu-inset rounded-2xl mt-1.5 px-3 py-2.5 flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl neu-surface-sm flex items-center justify-center text-xl shrink-0">
-                    {newEmoji}
-                  </div>
+                <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
                   <input
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
@@ -326,116 +254,8 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Icon picker with sticker button */}
               <div>
-                <div className="flex items-center justify-between px-1">
-                  <label className="text-xs font-bold text-muted-foreground">Pick an icon</label>
-                  <Popover open={stickerOpen} onOpenChange={setStickerOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        aria-label="More stickers"
-                        className="flex items-center gap-1 text-[11px] font-bold text-primary neu-surface-sm rounded-full px-2.5 py-1 active:neu-pressed"
-                      >
-                        <Smile className="w-3 h-3" strokeWidth={2.6} />
-                        More stickers
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="end"
-                      className="w-80 p-3 rounded-2xl border-0 neu-surface bg-background"
-                    >
-                      {/* Tabs */}
-                      <div className="flex gap-1.5 p-1 neu-inset rounded-xl mb-3">
-                        {(["yours", "creators"] as const).map((t) => (
-                          <button
-                            key={t}
-                            onClick={() => setStickerTab(t)}
-                            className={`flex-1 text-[11px] font-bold py-1.5 rounded-lg transition-all ${
-                              stickerTab === t
-                                ? "neu-surface-sm text-primary"
-                                : "text-muted-foreground"
-                            }`}
-                          >
-                            {t === "yours" ? "Add yours" : "Creators"}
-                          </button>
-                        ))}
-                      </div>
-
-                      {stickerTab === "yours" ? (
-                        <div className="space-y-2.5">
-                          <p className="text-[10px] font-semibold text-muted-foreground px-1 leading-snug">
-                            Paste a sticker from your iOS keyboard's Stickers box (emoji stickers only).
-                          </p>
-                          <div className="flex gap-1.5">
-                            <input
-                              value={pickerInput}
-                              onChange={(e) => setPickerInput(e.target.value)}
-                              placeholder="Paste sticker here"
-                              className="flex-1 text-sm font-bold bg-transparent neu-inset rounded-lg px-2.5 py-1.5 outline-none"
-                            />
-                            <button
-                              onClick={() => {
-                                const trimmed = pickerInput.trim();
-                                // Only allow emoji-only input (iOS keyboard stickers)
-                                const emojiOnly = /^(\p{Extended_Pictographic}|\p{Emoji_Component}|\u200D|\uFE0F)+$/u;
-                                if (trimmed && emojiOnly.test(trimmed) && !myStickers.includes(trimmed)) {
-                                  setMyStickers((s) => [trimmed, ...s]);
-                                  setPickerInput("");
-                                }
-                              }}
-                              className="text-[11px] font-bold text-primary-foreground bg-primary rounded-lg px-3 active:scale-95"
-                            >
-                              Add
-                            </button>
-                          </div>
-                          <div className="max-h-48 overflow-y-auto grid grid-cols-7 gap-1.5">
-                            {myStickers.map((e) => (
-                              <button
-                                key={e}
-                                onClick={() => {
-                                  setNewEmoji(e);
-                                  setStickerOpen(false);
-                                }}
-                                className={`aspect-square rounded-lg text-lg flex items-center justify-center transition-all ${
-                                  newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-110"
-                                }`}
-                              >
-                                {e}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="max-h-64 overflow-y-auto space-y-3">
-                          {CREATOR_PACKS.map((pack) => (
-                            <div key={pack.name}>
-                              <div className="flex items-baseline justify-between px-1 mb-1.5">
-                                <p className="text-[11px] font-extrabold text-foreground">{pack.name}</p>
-                                <p className="text-[9px] font-semibold text-muted-foreground">{pack.author}</p>
-                              </div>
-                              <div className="grid grid-cols-7 gap-1.5">
-                                {pack.stickers.map((e) => (
-                                  <button
-                                    key={pack.name + e}
-                                    onClick={() => {
-                                      setNewEmoji(e);
-                                      setStickerOpen(false);
-                                    }}
-                                    className={`aspect-square rounded-lg text-lg flex items-center justify-center transition-all ${
-                                      newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-110"
-                                    }`}
-                                  >
-                                    {e}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Pick an icon</label>
                 <div className="neu-surface-sm rounded-2xl mt-1.5 p-3 grid grid-cols-8 gap-1.5">
                   {EMOJI_CHOICES.map((e) => (
                     <button
@@ -451,71 +271,8 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Date quick options */}
               <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">Date</label>
-                <div className="grid grid-cols-3 gap-2 mt-1.5">
-                  {(["today","tomorrow","other"] as const).map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => setDateMode(m)}
-                      className={`rounded-2xl py-2.5 text-xs font-extrabold capitalize transition-all ${
-                        dateMode === m ? "neu-pressed text-primary" : "neu-surface-sm text-foreground/70"
-                      }`}
-                    >
-                      {m === "other" ? "Other day" : m}
-                    </button>
-                  ))}
-                </div>
-                {dateMode === "other" && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button className="w-full mt-2 neu-inset rounded-2xl px-4 py-3 flex items-center gap-2 text-sm font-bold text-foreground">
-                        <CalIcon className="w-4 h-4 text-primary" strokeWidth={2.4} />
-                        {otherDate ? format(otherDate, "PPP") : (
-                          <span className="text-muted-foreground font-semibold">Pick a date</span>
-                        )}
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 rounded-2xl border-0 neu-surface bg-background" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={otherDate}
-                        onSelect={setOtherDate}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </div>
-
-              {/* Priority */}
-              <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">Priority</label>
-                <div className="grid grid-cols-4 gap-2 mt-1.5">
-                  {([
-                    { v: 0 as const, label: "None" },
-                    { v: 1 as const, label: "!" },
-                    { v: 2 as const, label: "!!" },
-                    { v: 3 as const, label: "!!!" },
-                  ]).map(({ v, label }) => (
-                    <button
-                      key={v}
-                      onClick={() => setNewPriority(v)}
-                      className={`rounded-2xl py-2.5 text-sm font-extrabold transition-all ${
-                        newPriority === v ? "neu-pressed text-primary" : "neu-surface-sm text-foreground/70"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Time (optional) */}
-              <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">Time <span className="font-semibold text-muted-foreground/70">(optional)</span></label>
+                <label className="text-xs font-bold text-muted-foreground px-1">Time</label>
                 <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
                   <input
                     type="time"
@@ -526,18 +283,14 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Big add circle */}
-              <div className="flex justify-center pt-2 pb-1">
-                <button
-                  onClick={submitNew}
-                  disabled={!newTitle.trim()}
-                  aria-label="Add reminder"
-                  className="w-20 h-20 rounded-full flex items-center justify-center neu-surface active:neu-pressed transition-all duration-300 hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
-                  style={{ background: "hsl(var(--primary))" }}
-                >
-                  <Plus className="w-9 h-9 text-primary-foreground" strokeWidth={2.8} />
-                </button>
-              </div>
+              <button
+                onClick={submitNew}
+                disabled={!newTitle.trim()}
+                className="w-full rounded-2xl neu-surface-sm py-3.5 text-sm font-extrabold text-primary-foreground transition-all hover:scale-[1.02] active:neu-pressed disabled:opacity-50"
+                style={{ background: "hsl(var(--primary))" }}
+              >
+                Add Reminder {newEmoji}
+              </button>
             </section>
           ) : (
           <>
@@ -614,54 +367,44 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Task list — sorted by priority then time added */}
+          {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {sortedTasks.map((task, i) => {
-              const badge = priorityBadge(task.priority);
-              return (
-                <article
-                  key={task.id}
-                  style={{ animationDelay: `${i * 60}ms` }}
-                  className="rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] hover:scale-[1.02] transition-transform duration-300"
+            {tasks.map((task, i) => (
+              <article
+                key={task.id}
+                style={{ animationDelay: `${i * 60}ms` }}
+                className="rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] hover:scale-[1.02] transition-transform duration-300"
+              >
+                <button
+                  onClick={() => toggle(task.id)}
+                  aria-label={task.done ? "Mark incomplete" : "Mark complete"}
+                  className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
+                    task.done ? "neu-pressed" : "neu-surface-sm active:neu-pressed"
+                  }`}
                 >
-                  <button
-                    onClick={() => toggle(task.id)}
-                    aria-label={task.done ? "Mark incomplete" : "Mark complete"}
-                    className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
-                      task.done ? "neu-pressed" : "neu-surface-sm active:neu-pressed"
+                  {task.done ? (
+                    <Check className="w-5 h-5 text-primary" strokeWidth={3} />
+                  ) : (
+                    <span>{task.emoji}</span>
+                  )}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className={`text-sm font-bold truncate ${
+                      task.done ? "text-muted-foreground line-through" : "text-foreground"
                     }`}
                   >
-                    {task.done ? (
-                      <Check className="w-5 h-5 text-primary" strokeWidth={3} />
-                    ) : (
-                      <span>{task.emoji}</span>
-                    )}
-                  </button>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      {badge && (
-                        <span className="text-[11px] font-extrabold text-primary leading-none">
-                          {badge}
-                        </span>
-                      )}
-                      <p
-                        className={`text-sm font-bold truncate ${
-                          task.done ? "text-muted-foreground line-through" : "text-foreground"
-                        }`}
-                      >
-                        {task.title}
-                      </p>
-                    </div>
-                    <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                      {task.time}
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-bold text-primary px-2.5 py-1 rounded-full neu-inset">
-                    {task.tag}
-                  </span>
-                </article>
-              );
-            })}
+                    {task.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-semibold mt-0.5">
+                    {task.time}
+                  </p>
+                </div>
+                <span className="text-[10px] font-bold text-primary px-2.5 py-1 rounded-full neu-inset">
+                  {task.tag}
+                </span>
+              </article>
+            ))}
           </section>
           </>
           )}
@@ -671,7 +414,7 @@ const Index = () => {
             {[
               { id: "home", icon: Bell, label: "Reminder" },
               { id: "add", icon: Plus, label: "Add", primary: true },
-              { id: "calendar", icon: CalendarIcon, label: "Calendar" },
+              { id: "calendar", icon: Calendar, label: "Calendar" },
             ].map(({ id, icon: Icon, primary }) => {
               const isActive = active === id;
               if (primary) {
