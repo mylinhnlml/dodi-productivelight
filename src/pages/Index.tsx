@@ -130,18 +130,31 @@ const Index = () => {
           minute: "2-digit",
         })
       : "Anytime";
+    let tag = "Today";
+    if (newDateOpt === "tomorrow") tag = "Tomorrow";
+    else if (newDateOpt === "other" && newOtherDate) {
+      tag = new Date(newOtherDate).toLocaleDateString([], { month: "short", day: "numeric" });
+    }
     setTasks((t) => [
       ...t,
-      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag: "Today" },
+      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag, priority: newPriority, createdAt: Date.now() },
     ]);
     setNewTitle("");
     setNewTime("");
     setNewEmoji("🌸");
+    setNewDateOpt("today");
+    setNewOtherDate("");
+    setNewPriority(0);
     setActive("home");
   };
 
   const remaining = tasks.filter((t) => !t.done).length;
   const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
+
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (b.priority !== a.priority) return b.priority - a.priority;
+    return a.createdAt - b.createdAt;
+  });
 
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
