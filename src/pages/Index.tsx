@@ -459,15 +459,15 @@ const Index = () => {
               </div>
 
               {/* Big circular Add button */}
-              <div className="flex justify-center pt-2 pb-1">
+              <div className="flex justify-end pt-2 pb-1">
                 <button
                   onClick={submitNew}
                   disabled={!newTitle.trim()}
                   aria-label="Add reminder"
-                  className="w-20 h-20 rounded-full flex items-center justify-center neu-surface active:neu-pressed transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                  className="w-12 h-12 rounded-full flex items-center justify-center neu-surface active:neu-pressed transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                   style={{ background: "hsl(var(--primary))" }}
                 >
-                  <Plus className="w-9 h-9 text-primary-foreground" strokeWidth={3} />
+                  <Plus className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
                 </button>
               </div>
             </section>
