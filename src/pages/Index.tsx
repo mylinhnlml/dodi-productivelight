@@ -109,6 +109,8 @@ const Index = () => {
   const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
   const [customDate, setCustomDate] = useState(todayStr());
   const [newPriority, setNewPriority] = useState<Priority>(0);
+  const [repeat, setRepeat] = useState<string>("Never");
+  const [showRepeat, setShowRepeat] = useState(false);
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -183,6 +185,8 @@ const Index = () => {
     setNewPriority(0);
     setDateMode("today");
     setCustomDate(todayStr());
+    setRepeat("Never");
+    setShowRepeat(false);
     setShowStickers(false);
     setActive("home");
   };
@@ -425,6 +429,36 @@ const Index = () => {
                     />
                   </div>
                 )}
+
+                {/* Repeat — iOS Reminders style */}
+                <button
+                  onClick={() => setShowRepeat((v) => !v)}
+                  className={`w-full mt-2 rounded-2xl px-4 py-2.5 flex items-center justify-between transition-all ${
+                    showRepeat ? "neu-pressed" : "neu-surface-sm"
+                  }`}
+                >
+                  <span className="text-xs font-extrabold text-muted-foreground">Repeat</span>
+                  <span className="text-xs font-bold text-primary">{repeat} ›</span>
+                </button>
+                {showRepeat && (
+                  <div className="neu-inset rounded-2xl mt-2 p-2 space-y-1">
+                    {["Never", "Every Day", "Every Week", "Every 2 Weeks", "Every Month", "Every Year"].map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => {
+                          setRepeat(opt);
+                          setShowRepeat(false);
+                        }}
+                        className={`w-full text-left text-xs font-bold px-3 py-2 rounded-xl flex items-center justify-between transition-all ${
+                          repeat === opt ? "neu-pressed text-primary" : "hover:neu-surface-sm text-foreground"
+                        }`}
+                      >
+                        <span>{opt}</span>
+                        {repeat === opt && <Check className="w-3.5 h-3.5 text-primary" strokeWidth={3} />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Priority */}
@@ -458,16 +492,19 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Big circular Add button */}
-              <div className="flex justify-center pt-2 pb-1">
+              {/* Compact Add More button — right aligned */}
+              <div className="flex justify-end items-center gap-2 pt-2 pb-1">
+                <span className="text-[8px] font-extrabold text-muted-foreground uppercase tracking-wide">
+                  Add more
+                </span>
                 <button
                   onClick={submitNew}
                   disabled={!newTitle.trim()}
                   aria-label="Add reminder"
-                  className="w-20 h-20 rounded-full flex items-center justify-center neu-surface active:neu-pressed transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                  className="w-12 h-12 rounded-full flex items-center justify-center neu-surface active:neu-pressed transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
                   style={{ background: "hsl(var(--primary))" }}
                 >
-                  <Plus className="w-9 h-9 text-primary-foreground" strokeWidth={3} />
+                  <Plus className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
                 </button>
               </div>
             </section>
