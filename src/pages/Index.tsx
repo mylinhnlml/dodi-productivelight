@@ -17,11 +17,11 @@ type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
 type Drop = { key: string; emoji: string; x: number; delay: number; rot: number };
 
 const initialTasks: Task[] = [
-  { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, tag: "Today" },
-  { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, tag: "Today" },
-  { id: 3, title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, tag: "Today" },
-  { id: 4, title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, tag: "Tonight" },
-  { id: 5, title: "Bake cinnamon rolls", time: "Tomorrow • 10 AM", emoji: "🧁", done: false, tag: "Tomorrow" },
+  { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, tag: "Today", priority: 2, createdAt: 1 },
+  { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, tag: "Today", priority: 1, createdAt: 2 },
+  { id: 3, title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, tag: "Today", priority: 0, createdAt: 3 },
+  { id: 4, title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, tag: "Tonight", priority: 0, createdAt: 4 },
+  { id: 5, title: "Bake cinnamon rolls", time: "Tomorrow • 10 AM", emoji: "🧁", done: false, tag: "Tomorrow", priority: 3, createdAt: 5 },
 ];
 
 const EMOJI_CHOICES = ["🌸","☎️","🪴","📖","🧁","☕","💌","🍵","🌿","🧘‍♀️","🛁","🎀","✨","🍰","🌙","📚"];
