@@ -112,6 +112,9 @@ const Index = () => {
   const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
   const [otherDate, setOtherDate] = useState<Date | undefined>();
   const [stickerOpen, setStickerOpen] = useState(false);
+  const [stickerTab, setStickerTab] = useState<"yours" | "creators">("yours");
+  const [myStickers, setMyStickers] = useState<string[]>(["🌸","☕","🪴","📖"]);
+  const [pickerInput, setPickerInput] = useState("");
 
   // Profile state
   const [profile, setProfile] = useState({
