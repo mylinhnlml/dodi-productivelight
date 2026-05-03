@@ -38,13 +38,7 @@ const formatDateLabel = (iso: string) => {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 };
 
-const initialTasks: Task[] = [
-  { id: "seed-1", title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, dueDate: todayStr(), priority: 2, createdAt: 1 },
-  { id: "seed-2", title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, dueDate: todayStr(), priority: 1, createdAt: 2 },
-  { id: "seed-3", title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, dueDate: todayStr(), priority: 0, createdAt: 3 },
-  { id: "seed-4", title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, dueDate: todayStr(), priority: 0, createdAt: 4 },
-  { id: "seed-5", title: "Bake cinnamon rolls", time: "10:00 AM", emoji: "🧁", done: false, dueDate: tomorrowStr(), priority: 3, createdAt: 5 },
-];
+const initialTasks: Task[] = [];
 
 // Default quick-pick stickers covering common activities
 const EMOJI_BASIC = [
