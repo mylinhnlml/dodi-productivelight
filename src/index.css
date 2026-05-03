@@ -53,12 +53,6 @@
       inset -3px -3px 6px hsl(var(--neu-light) / 0.85);
 
     --gradient-bg: linear-gradient(145deg, hsl(24 65% 95%), hsl(20 55% 91%));
-
-    /* Aesthetic completion colors (peach-aligned, muted) */
-    --comp-high: 140 35% 68%;   /* soft sage green */
-    --comp-mid:  30 80% 70%;    /* warm peach orange */
-    --comp-low:  8 65% 70%;     /* muted coral red */
-    --comp-none: 24 30% 84%;    /* neutral peach */
   }
 }
 
