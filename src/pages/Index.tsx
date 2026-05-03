@@ -14,6 +14,7 @@ type Task = {
   dueDate: string; // YYYY-MM-DD
   priority: Priority;
   createdAt: number;
+  repeat?: string;
 };
 
 type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
