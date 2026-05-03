@@ -71,6 +71,7 @@ const Index = () => {
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
 
   const startDrag = (e: React.PointerEvent, id: number) => {
     e.preventDefault();
