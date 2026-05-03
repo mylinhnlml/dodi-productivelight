@@ -15,6 +15,7 @@ type Task = {
   priority: Priority;
   createdAt: number;
   repeat?: string;
+  note?: string;
 };
 
 type Settled = { id: string; emoji: string; x: number; y: number; rot: number };
