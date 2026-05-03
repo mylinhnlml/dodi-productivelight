@@ -66,26 +66,58 @@ const Month = ({
           const isToday =
             today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
 
+          const pct = info && info.due > 0 ? Math.round((info.done / info.due) * 100) : null;
+          // Aesthetic tones aligned with warm-yellow palette
+          let tint: { bg: string; fg: string } | null = null;
+          if (pct !== null) {
+            if (pct >= 70) tint = { bg: "120 40% 82%", fg: "140 35% 25%" }; // soft sage
+            else if (pct >= 40) tint = { bg: "30 90% 80%", fg: "25 55% 28%" }; // warm peach
+            else tint = { bg: "8 75% 84%", fg: "8 50% 32%" }; // dusty coral
+          }
+
           return (
             <button
               key={i}
               onClick={() => onSelectDate(iso)}
               className={`relative aspect-square rounded-xl flex flex-col items-center justify-start p-1 transition-all hover:scale-[1.04] active:scale-95 ${
-                isToday ? "neu-surface-sm" : "neu-inset"
+                isToday ? "neu-surface-sm" : tint ? "" : "neu-inset"
               }`}
+              style={
+                tint
+                  ? {
+                      background: `hsl(${tint.bg} / 0.75)`,
+                      boxShadow: isToday
+                        ? undefined
+                        : `inset 1.5px 1.5px 3px hsl(var(--neu-dark) / 0.25), inset -1.5px -1.5px 3px hsl(var(--neu-light) / 0.7)`,
+                    }
+                  : undefined
+              }
             >
               {/* Top row: bold date + completion count */}
-              <div className="flex items-center justify-center gap-0.5 leading-none w-full">
-                <span className="text-[10px] font-extrabold text-foreground">{d}</span>
+              <div
+                className="flex items-center justify-center gap-0.5 leading-none w-full"
+                style={tint ? { color: `hsl(${tint.fg})` } : undefined}
+              >
+                <span className="text-[10px] font-extrabold">{d}</span>
                 {info && info.done > 0 && (
-                  <span className="text-[8px] font-extrabold text-primary">·{info.done}</span>
+                  <span className="text-[8px] font-extrabold opacity-80">·{info.done}</span>
                 )}
               </div>
+
+              {/* Percentage */}
+              {pct !== null && (
+                <span
+                  className="text-[8px] font-bold leading-none mt-0.5 opacity-85"
+                  style={{ color: `hsl(${tint!.fg})` }}
+                >
+                  {pct}%
+                </span>
+              )}
 
               {/* Stickers row(s) */}
               {info && info.doneEmojis.length > 0 && (
                 <div className="mt-0.5 flex flex-wrap justify-center gap-[1px] leading-none overflow-hidden">
-                  {info.doneEmojis.slice(0, 4).map((e, k) => (
+                  {info.doneEmojis.slice(0, 3).map((e, k) => (
                     <span key={k} className="text-[8px]">
                       {e}
                     </span>
