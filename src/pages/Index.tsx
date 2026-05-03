@@ -1,7 +1,7 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2 } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft } from "lucide-react";
 import { useRef, useState, useMemo } from "react";
 import { toast } from "sonner";
-import CalendarView from "@/components/CalendarView";
+import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 
 type Priority = 0 | 1 | 2 | 3;
 
@@ -72,6 +72,7 @@ const Index = () => {
   const progressRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   const startDrag = (e: React.PointerEvent, id: number) => {
     e.preventDefault();
@@ -294,6 +295,68 @@ const Index = () => {
     });
   }, [tasks]);
 
+  // Expand all tasks (incl. recurring) across the whole year for calendar
+  const yearOccurrences = useMemo(() => {
+    const year = new Date().getFullYear();
+    const startMs = new Date(year, 0, 1).getTime();
+    const endMs = new Date(year, 11, 31).getTime();
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    type Occ = Task & { occKey: string };
+    const out: Occ[] = [];
+    for (const t of tasks) {
+      const base = new Date(t.dueDate);
+      const baseMs = base.getTime();
+      if (baseMs >= startMs && baseMs <= endMs) {
+        out.push({ ...t, occKey: `${t.id}|${fmt(base)}` });
+      }
+      if (t.repeat) {
+        const cap = 800;
+        let i = 0;
+        const next = new Date(base);
+        while (i++ < cap) {
+          if (t.repeat === "Every Day") next.setDate(next.getDate() + 1);
+          else if (t.repeat === "Every Week") next.setDate(next.getDate() + 7);
+          else if (t.repeat === "Every 2 Weeks") next.setDate(next.getDate() + 14);
+          else if (t.repeat === "Every Month") next.setMonth(next.getMonth() + 1);
+          else if (t.repeat === "Every Year") next.setFullYear(next.getFullYear() + 1);
+          else break;
+          if (next.getTime() > endMs) break;
+          if (next.getTime() < startMs) continue;
+          out.push({ ...t, dueDate: fmt(new Date(next)), occKey: `${t.id}|${fmt(new Date(next))}` });
+        }
+      }
+    }
+    return out;
+  }, [tasks]);
+
+  const calendarByDate = useMemo(() => {
+    const map = new Map<string, CalendarTaskInfo>();
+    for (const o of yearOccurrences) {
+      const cur = map.get(o.dueDate) ?? { due: 0, done: 0, doneEmojis: [], hasIncomplete: false };
+      cur.due += 1;
+      // A task occurrence is "done" only when the base task is done AND the occurrence date <= today
+      if (o.done && o.dueDate <= todayStr()) {
+        cur.done += 1;
+        cur.doneEmojis.push(o.emoji);
+      } else {
+        cur.hasIncomplete = true;
+      }
+      map.set(o.dueDate, cur);
+    }
+    return map;
+  }, [yearOccurrences]);
+
+  const tasksOnSelectedDate = useMemo(() => {
+    if (!selectedDate) return [] as (Task & { occKey: string })[];
+    return yearOccurrences
+      .filter((o) => o.dueDate === selectedDate)
+      .sort((a, b) => {
+        if (a.priority !== b.priority) return b.priority - a.priority;
+        return a.createdAt - b.createdAt;
+      });
+  }, [yearOccurrences, selectedDate]);
+
   const timelineTag = (iso: string) => {
     if (iso === todayStr()) return { label: "Today", cls: "bg-[hsl(40,100%,55%)] text-[hsl(40,80%,12%)]" };
     if (iso === tomorrowStr()) return { label: "Tomorrow", cls: "bg-[hsl(45,90%,75%)] text-[hsl(45,50%,25%)]" };
@@ -400,7 +463,95 @@ const Index = () => {
                   </button>
                 </div>
               </div>
-              <CalendarView />
+              {selectedDate ? (
+                <section className="flex-1 px-5 overflow-y-auto pb-4">
+                  <div className="flex items-center justify-between px-1 pb-3">
+                    <button
+                      onClick={() => setSelectedDate(null)}
+                      className="flex items-center gap-1 text-xs font-extrabold text-primary neu-surface-sm rounded-full px-3 py-1.5"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" strokeWidth={3} />
+                      Calendar
+                    </button>
+                    <h2 className="text-base font-extrabold text-foreground">
+                      {new Date(selectedDate).toLocaleDateString([], {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </h2>
+                  </div>
+
+                  {tasksOnSelectedDate.length === 0 ? (
+                    <div className="neu-inset rounded-2xl p-6 text-center text-xs font-bold text-muted-foreground">
+                      No tasks on this day 🌿
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {tasksOnSelectedDate.map((task, i) => {
+                        const offset = swipeOffsets[task.occKey] ?? 0;
+                        return (
+                          <div key={task.occKey} className="relative">
+                            <button
+                              onClick={() => deleteTask(task.id)}
+                              aria-label="Delete task"
+                              className="absolute right-0 top-0 bottom-0 w-20 rounded-2xl bg-destructive flex items-center justify-center"
+                            >
+                              <Trash2 className="w-5 h-5 text-destructive-foreground" strokeWidth={2.4} />
+                            </button>
+                            <article
+                              onPointerDown={(e) => startSwipe(e, task.occKey)}
+                              onClick={() => toggle(task.id)}
+                              style={{
+                                animationDelay: `${i * 60}ms`,
+                                transform: `translateX(${offset}px)`,
+                                transition: "transform 0.2s",
+                              }}
+                              className="relative rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] cursor-pointer touch-pan-y select-none"
+                            >
+                              <div
+                                className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
+                                  task.done ? "neu-pressed" : "neu-surface-sm"
+                                }`}
+                              >
+                                {task.done ? (
+                                  <Check className="w-5 h-5 text-primary" strokeWidth={3} />
+                                ) : (
+                                  <span>{task.emoji}</span>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p
+                                  className={`text-sm font-bold truncate ${
+                                    task.done ? "text-muted-foreground line-through" : "text-foreground"
+                                  }`}
+                                >
+                                  {task.title}
+                                  {task.priority > 0 && (
+                                    <span className="ml-1.5 text-primary font-extrabold">
+                                      {PRIORITY_LABELS[task.priority]}
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                  {task.repeat && (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)]">
+                                      🔁 {task.repeat}
+                                    </span>
+                                  )}
+                                  {task.time && <span>{task.time}</span>}
+                                </p>
+                              </div>
+                            </article>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              ) : (
+                <CalendarView byDate={calendarByDate} onSelectDate={setSelectedDate} />
+              )}
             </div>
           ) : active === "add" ? (
             <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
