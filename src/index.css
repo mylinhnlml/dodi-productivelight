@@ -4,40 +4,40 @@
 
 @layer base {
   :root {
-    /* Soft peach monochromatic palette */
-    --background: 24 60% 94%;
-    --foreground: 18 25% 28%;
+    /* Minimal unisex neutral palette */
+    --background: 0 0% 97%;
+    --foreground: 220 10% 20%;
 
-    --card: 24 55% 95%;
-    --card-foreground: 18 25% 28%;
+    --card: 0 0% 98%;
+    --card-foreground: 220 10% 20%;
 
-    --popover: 24 55% 95%;
-    --popover-foreground: 18 25% 28%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 220 10% 20%;
 
-    --primary: 18 70% 65%;
-    --primary-foreground: 24 60% 97%;
+    --primary: 220 12% 35%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 24 45% 90%;
-    --secondary-foreground: 18 25% 28%;
+    --secondary: 220 10% 92%;
+    --secondary-foreground: 220 10% 20%;
 
-    --muted: 24 40% 88%;
-    --muted-foreground: 18 15% 50%;
+    --muted: 220 10% 90%;
+    --muted-foreground: 220 8% 45%;
 
-    --accent: 18 80% 78%;
-    --accent-foreground: 18 30% 25%;
+    --accent: 220 15% 80%;
+    --accent-foreground: 220 12% 25%;
 
-    --destructive: 0 65% 65%;
+    --destructive: 0 65% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 24 40% 88%;
-    --input: 24 40% 88%;
-    --ring: 18 70% 65%;
+    --border: 220 10% 88%;
+    --input: 220 10% 88%;
+    --ring: 220 12% 35%;
 
     --radius: 1.75rem;
 
     /* Neumorphic shadow tokens */
-    --neu-light: 24 80% 99%;
-    --neu-dark: 18 35% 78%;
+    --neu-light: 0 0% 100%;
+    --neu-dark: 220 15% 75%;
 
     --shadow-neu:
       8px 8px 20px hsl(var(--neu-dark) / 0.55),
@@ -52,7 +52,7 @@
       inset 3px 3px 6px hsl(var(--neu-dark) / 0.45),
       inset -3px -3px 6px hsl(var(--neu-light) / 0.85);
 
-    --gradient-bg: linear-gradient(145deg, hsl(24 65% 95%), hsl(20 55% 91%));
+    --gradient-bg: linear-gradient(145deg, hsl(0 0% 98%), hsl(220 10% 95%));
   }
 }
 
