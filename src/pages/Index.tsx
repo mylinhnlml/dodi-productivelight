@@ -630,7 +630,7 @@ const Index = () => {
                             </button>
                             <article
                               onPointerDown={(e) => startSwipe(e, task.occKey)}
-                              onClick={() => toggle(task.id, task.dueDate)}
+                              onClick={() => { if (justSwipedRef.current.has(task.occKey)) return; toggle(task.id, task.dueDate); }}
                               style={{
                                 animationDelay: `${i * 60}ms`,
                                 transform: `translateX(${offset}px)`,
@@ -1081,7 +1081,7 @@ const Index = () => {
                 </button>
                 <article
                   onPointerDown={(e) => startSwipe(e, task.occKey)}
-                  onClick={() => toggle(task.id, task.dueDate)}
+                  onClick={() => { if (justSwipedRef.current.has(task.occKey)) return; toggle(task.id, task.dueDate); }}
                   style={{
                     animationDelay: `${i * 60}ms`,
                     transform: `translateX(${offset}px)`,
