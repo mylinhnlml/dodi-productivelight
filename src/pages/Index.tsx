@@ -70,6 +70,14 @@ const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [active, setActive] = useState("home");
+  const [showSwipeHint, setShowSwipeHint] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("dodi.swipeHintDismissed") !== "1";
+  });
+  const dismissSwipeHint = () => {
+    setShowSwipeHint(false);
+    try { localStorage.setItem("dodi.swipeHintDismissed", "1"); } catch {}
+  };
   // Per-occurrence completion: keys like `${taskId}|${YYYY-MM-DD}`
   const [completed, setCompleted] = useState<Set<string>>(() => {
     const s = new Set<string>();
