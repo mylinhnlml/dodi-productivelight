@@ -299,22 +299,22 @@ const Index = () => {
         return { ...s, [key]: cur < -48 ? -88 : 0 };
       });
       if (moved) {
-        // suppress click after swipe
-        const swallow = (ev: MouseEvent) => {
-          ev.stopPropagation();
-          ev.preventDefault();
-          window.removeEventListener("click", swallow, true);
-        };
-        window.addEventListener("click", swallow, true);
+        // Mark this row as just-swiped so its own click is ignored,
+        // but DON'T swallow clicks globally (that was eating the trash button tap).
+        justSwipedRef.current.add(key);
+        window.setTimeout(() => justSwipedRef.current.delete(key), 350);
       }
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   };
 
-  const submitNew = () => {
+  const submitNew = async () => {
     if (!newTitle.trim()) return;
-    const id = nextId.current++;
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const time = newTime
       ? new Date(`2000-01-01T${newTime}`).toLocaleTimeString([], {
           hour: "numeric",
@@ -323,20 +323,35 @@ const Index = () => {
       : "";
     const dueDate =
       dateMode === "today" ? todayStr() : dateMode === "tomorrow" ? tomorrowStr() : customDate;
-    setTasks((t) => [
-      ...t,
-      {
+    const newTask: Task = {
+      id,
+      title: newTitle.trim(),
+      time,
+      emoji: newEmoji,
+      done: false,
+      dueDate,
+      priority: newPriority,
+      createdAt: createdSeq.current++,
+      repeat: repeat !== "Never" ? repeat : undefined,
+    };
+    setTasks((t) => [...t, newTask]);
+    if (userId) {
+      const { error } = await supabase.from("tasks").insert({
         id,
-        title: newTitle.trim(),
-        time,
-        emoji: newEmoji,
+        user_id: userId,
+        title: newTask.title,
+        time: newTask.time,
+        emoji: newTask.emoji,
+        due_date: newTask.dueDate,
+        priority: newTask.priority,
+        repeat: newTask.repeat ?? null,
         done: false,
-        dueDate,
-        priority: newPriority,
-        createdAt: createdSeq.current++,
-        repeat: repeat !== "Never" ? repeat : undefined,
-      },
-    ]);
+      });
+      if (error) {
+        console.error(error);
+        toast.error("Couldn't save reminder to your account");
+      }
+    }
     setNewTitle("");
     setNewTime("");
     setNewEmoji("🌸");
