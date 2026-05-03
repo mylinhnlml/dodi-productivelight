@@ -67,7 +67,6 @@ const Index = () => {
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   };
-  const nextId = useRef(initialTasks.length + 1);
 
   // Add-form state
   const [newTitle, setNewTitle] = useState("");
