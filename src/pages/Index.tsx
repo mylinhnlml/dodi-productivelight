@@ -1,5 +1,6 @@
 import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft } from "lucide-react";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 
@@ -147,10 +148,24 @@ const Index = () => {
 
   // Profile state
   const [profile, setProfile] = useState({
-    name: "Mira",
+    name: "Friend",
     slogan: "Soft days, gentle wins ✨",
     avatar: "🌷",
   });
+  const [profileTouched, setProfileTouched] = useState(false);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      if (!u || profileTouched) return;
+      const meta = (u.user_metadata || {}) as Record<string, unknown>;
+      const accountName =
+        (meta.full_name as string) ||
+        (meta.name as string) ||
+        (meta.given_name as string) ||
+        (typeof u.email === "string" ? u.email.split("@")[0] : "");
+      if (accountName) setProfile((p) => ({ ...p, name: accountName }));
+    });
+  }, [profileTouched]);
   const [editingProfile, setEditingProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -470,7 +485,7 @@ const Index = () => {
                       </div>
                       <input
                         value={profile.name}
-                        onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))}
+                        onChange={(e) => { setProfileTouched(true); setProfile((p) => ({ ...p, name: e.target.value })); }}
                         placeholder="Name"
                         className="w-full text-sm font-bold bg-transparent neu-inset rounded-lg px-2.5 py-1 outline-none"
                       />
