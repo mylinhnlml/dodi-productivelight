@@ -21,7 +21,47 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-between bg-gradient-to-b from-rose-50 via-amber-50 to-white px-6 py-12">
       <div className="flex-1 flex flex-col items-center justify-center text-center max-w-md">
-        <div className="text-8xl mb-6 drop-shadow-sm animate-pulse">🌞</div>
+        <div className="mb-6 animate-[bounce_3s_ease-in-out_infinite]">
+          <svg width="180" height="180" viewBox="0 0 200 200">
+            <defs>
+              <radialGradient id="sunBody" cx="50%" cy="40%" r="60%">
+                <stop offset="0%" stopColor="#FFE680" />
+                <stop offset="60%" stopColor="#FFC83D" />
+                <stop offset="100%" stopColor="#FF9F1C" />
+              </radialGradient>
+              <radialGradient id="cheek" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="#FF8FA8" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#FF8FA8" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            {/* chubby rays */}
+            {Array.from({ length: 12 }).map((_, i) => {
+              const a = (i * 360) / 12;
+              return (
+                <ellipse
+                  key={i}
+                  cx="100"
+                  cy="22"
+                  rx="9"
+                  ry="14"
+                  fill="#FFD24D"
+                  transform={`rotate(${a} 100 100)`}
+                />
+              );
+            })}
+            {/* body */}
+            <circle cx="100" cy="100" r="62" fill="url(#sunBody)" stroke="#F59E0B" strokeWidth="2" />
+            {/* cheeks */}
+            <circle cx="70" cy="115" r="11" fill="url(#cheek)" />
+            <circle cx="130" cy="115" r="11" fill="url(#cheek)" />
+            {/* eyes (happy closed) */}
+            <path d="M75 95 Q82 86 89 95" stroke="#3B2A1A" strokeWidth="4" fill="none" strokeLinecap="round" />
+            <path d="M111 95 Q118 86 125 95" stroke="#3B2A1A" strokeWidth="4" fill="none" strokeLinecap="round" />
+            {/* smile */}
+            <path d="M82 118 Q100 138 118 118" stroke="#3B2A1A" strokeWidth="4" fill="#C2410C" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M86 122 Q100 132 114 122 Q100 126 86 122 Z" fill="#FB7185" />
+          </svg>
+        </div>
         <h1 className="text-4xl font-bold text-stone-800 mb-3">Welcome</h1>
         <p className="text-stone-600 text-base leading-relaxed mb-2">
           Your gentle little reminder companion.
