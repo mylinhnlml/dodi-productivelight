@@ -109,6 +109,8 @@ const Index = () => {
   const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
   const [customDate, setCustomDate] = useState(todayStr());
   const [newPriority, setNewPriority] = useState<Priority>(0);
+  const [repeat, setRepeat] = useState<string>("Never");
+  const [showRepeat, setShowRepeat] = useState(false);
 
   // Profile state
   const [profile, setProfile] = useState({
