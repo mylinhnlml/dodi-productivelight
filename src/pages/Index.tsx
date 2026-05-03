@@ -719,9 +719,11 @@ const Index = () => {
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                    {formatDateLabel(task.dueDate)}
-                    {task.time ? ` • ${task.time}` : ""}
+                  <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${timelineTag(task.dueDate).cls}`}>
+                      {timelineTag(task.dueDate).label}
+                    </span>
+                    <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
                   </p>
                 </div>
               </article>
