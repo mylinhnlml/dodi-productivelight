@@ -337,29 +337,102 @@ const Index = () => {
                         className="flex items-center gap-1 text-[11px] font-bold text-primary neu-surface-sm rounded-full px-2.5 py-1 active:neu-pressed"
                       >
                         <Smile className="w-3 h-3" strokeWidth={2.6} />
-                        Stickers
+                        More stickers
                       </button>
                     </PopoverTrigger>
                     <PopoverContent
                       align="end"
-                      className="w-72 p-2 rounded-2xl border-0 neu-surface bg-background"
+                      className="w-80 p-3 rounded-2xl border-0 neu-surface bg-background"
                     >
-                      <div className="max-h-56 overflow-y-auto grid grid-cols-8 gap-1">
-                        {STICKER_PACK.map((e) => (
+                      {/* Tabs */}
+                      <div className="flex gap-1.5 p-1 neu-inset rounded-xl mb-3">
+                        {(["yours", "creators"] as const).map((t) => (
                           <button
-                            key={e}
-                            onClick={() => {
-                              setNewEmoji(e);
-                              setStickerOpen(false);
-                            }}
-                            className={`aspect-square rounded-lg text-lg flex items-center justify-center transition-all ${
-                              newEmoji === e ? "neu-pressed scale-95" : "hover:neu-surface-sm hover:scale-110"
+                            key={t}
+                            onClick={() => setStickerTab(t)}
+                            className={`flex-1 text-[11px] font-bold py-1.5 rounded-lg transition-all ${
+                              stickerTab === t
+                                ? "neu-surface-sm text-primary"
+                                : "text-muted-foreground"
                             }`}
                           >
-                            {e}
+                            {t === "yours" ? "Add yours" : "Creators"}
                           </button>
                         ))}
                       </div>
+
+                      {stickerTab === "yours" ? (
+                        <div className="space-y-2.5">
+                          <p className="text-[10px] font-semibold text-muted-foreground px-1 leading-snug">
+                            Paste a sticker from your iOS keyboard's Stickers box (emoji stickers only).
+                          </p>
+                          <div className="flex gap-1.5">
+                            <input
+                              value={pickerInput}
+                              onChange={(e) => setPickerInput(e.target.value)}
+                              placeholder="Paste sticker here"
+                              className="flex-1 text-sm font-bold bg-transparent neu-inset rounded-lg px-2.5 py-1.5 outline-none"
+                            />
+                            <button
+                              onClick={() => {
+                                const trimmed = pickerInput.trim();
+                                // Only allow emoji-only input (iOS keyboard stickers)
+                                const emojiOnly = /^(\p{Extended_Pictographic}|\p{Emoji_Component}|\u200D|\uFE0F)+$/u;
+                                if (trimmed && emojiOnly.test(trimmed) && !myStickers.includes(trimmed)) {
+                                  setMyStickers((s) => [trimmed, ...s]);
+                                  setPickerInput("");
+                                }
+                              }}
+                              className="text-[11px] font-bold text-primary-foreground bg-primary rounded-lg px-3 active:scale-95"
+                            >
+                              Add
+                            </button>
+                          </div>
+                          <div className="max-h-48 overflow-y-auto grid grid-cols-7 gap-1.5">
+                            {myStickers.map((e) => (
+                              <button
+                                key={e}
+                                onClick={() => {
+                                  setNewEmoji(e);
+                                  setStickerOpen(false);
+                                }}
+                                className={`aspect-square rounded-lg text-lg flex items-center justify-center transition-all ${
+                                  newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-110"
+                                }`}
+                              >
+                                {e}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="max-h-64 overflow-y-auto space-y-3">
+                          {CREATOR_PACKS.map((pack) => (
+                            <div key={pack.name}>
+                              <div className="flex items-baseline justify-between px-1 mb-1.5">
+                                <p className="text-[11px] font-extrabold text-foreground">{pack.name}</p>
+                                <p className="text-[9px] font-semibold text-muted-foreground">{pack.author}</p>
+                              </div>
+                              <div className="grid grid-cols-7 gap-1.5">
+                                {pack.stickers.map((e) => (
+                                  <button
+                                    key={pack.name + e}
+                                    onClick={() => {
+                                      setNewEmoji(e);
+                                      setStickerOpen(false);
+                                    }}
+                                    className={`aspect-square rounded-lg text-lg flex items-center justify-center transition-all ${
+                                      newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-110"
+                                    }`}
+                                  >
+                                    {e}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </PopoverContent>
                   </Popover>
                 </div>
