@@ -200,20 +200,59 @@ const Index = () => {
   const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
 
   // Sort: by date asc, then priority desc, then createdAt asc
-  // Also limit to today + 6 upcoming days
+  // Also limit to today + 6 upcoming days, and expand recurring tasks
   const sortedTasks = useMemo(() => {
     const today = new Date(todayStr());
-    const maxMs = today.getTime() + 6 * 86400000;
-    return [...tasks]
-      .filter((t) => {
-        const d = new Date(t.dueDate).getTime();
-        return d >= today.getTime() && d <= maxMs;
-      })
-      .sort((a, b) => {
-        if (a.dueDate !== b.dueDate) return a.dueDate < b.dueDate ? -1 : 1;
-        if (a.priority !== b.priority) return b.priority - a.priority;
-        return a.createdAt - b.createdAt;
-      });
+    const startMs = today.getTime();
+    const maxMs = startMs + 6 * 86400000;
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    type DisplayTask = Task & { occKey: string; isOccurrence: boolean };
+    const out: DisplayTask[] = [];
+
+    for (const t of tasks) {
+      const base = new Date(t.dueDate);
+      // generate occurrences within window
+      const occurrences: string[] = [];
+      const pushIfInWindow = (d: Date) => {
+        const ms = d.getTime();
+        if (ms >= startMs && ms <= maxMs) occurrences.push(fmt(d));
+      };
+      pushIfInWindow(base);
+
+      if (t.repeat) {
+        // step forward from base until past window
+        const cap = 400; // safety
+        let i = 0;
+        const next = new Date(base);
+        while (i++ < cap) {
+          if (t.repeat === "Every Day") next.setDate(next.getDate() + 1);
+          else if (t.repeat === "Every Week") next.setDate(next.getDate() + 7);
+          else if (t.repeat === "Every 2 Weeks") next.setDate(next.getDate() + 14);
+          else if (t.repeat === "Every Month") next.setMonth(next.getMonth() + 1);
+          else if (t.repeat === "Every Year") next.setFullYear(next.getFullYear() + 1);
+          else break;
+          if (next.getTime() > maxMs) break;
+          if (next.getTime() >= startMs) occurrences.push(fmt(new Date(next)));
+        }
+      }
+
+      for (const iso of occurrences) {
+        out.push({
+          ...t,
+          dueDate: iso,
+          occKey: `${t.id}|${iso}`,
+          isOccurrence: iso !== t.dueDate,
+        });
+      }
+    }
+
+    return out.sort((a, b) => {
+      if (a.dueDate !== b.dueDate) return a.dueDate < b.dueDate ? -1 : 1;
+      if (a.priority !== b.priority) return b.priority - a.priority;
+      return a.createdAt - b.createdAt;
+    });
   }, [tasks]);
 
   const timelineTag = (iso: string) => {
