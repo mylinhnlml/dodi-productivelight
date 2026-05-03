@@ -485,7 +485,7 @@ const Index = () => {
                       </div>
                       <input
                         value={profile.name}
-                        onChange={(e) => setProfile((p) => ({ ...p, name: e.target.value }))}
+                        onChange={(e) => { setProfileTouched(true); setProfile((p) => ({ ...p, name: e.target.value })); }}
                         placeholder="Name"
                         className="w-full text-sm font-bold bg-transparent neu-inset rounded-lg px-2.5 py-1 outline-none"
                       />
