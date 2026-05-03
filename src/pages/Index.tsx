@@ -429,6 +429,40 @@ const Index = () => {
                     />
                   </div>
                 )}
+
+                {/* Repeat (iOS-like) */}
+                <div className="mt-2">
+                  <button
+                    onClick={() => setShowRepeatOptions((v) => !v)}
+                    className={`w-full flex items-center justify-between rounded-2xl px-4 py-2.5 transition-all ${
+                      showRepeatOptions ? "neu-pressed" : "neu-surface-sm"
+                    }`}
+                  >
+                    <span className="text-xs font-extrabold text-muted-foreground">Repeat</span>
+                    <span className="text-xs font-extrabold text-primary">
+                      {newRepeat} ›
+                    </span>
+                  </button>
+                  {showRepeatOptions && (
+                    <div className="neu-inset rounded-2xl mt-2 p-2 space-y-1">
+                      {["Never", "Every Day", "Every Week", "Every 2 Weeks", "Every Month", "Every Year"].map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => {
+                            setNewRepeat(opt);
+                            setShowRepeatOptions(false);
+                          }}
+                          className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+                            newRepeat === opt ? "neu-pressed text-primary" : "hover:neu-surface-sm text-foreground"
+                          }`}
+                        >
+                          <span>{opt}</span>
+                          {newRepeat === opt && <Check className="w-3.5 h-3.5 text-primary" strokeWidth={3} />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Priority */}
