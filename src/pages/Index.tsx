@@ -1023,6 +1023,11 @@ const Index = () => {
                       )}
                       <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
                     </p>
+                    {task.note && (
+                      <p className="text-xs text-muted-foreground font-medium mt-1 italic line-clamp-2">
+                        {task.note}
+                      </p>
+                    )}
                   </div>
                 </article>
               </div>
