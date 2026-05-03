@@ -253,6 +253,8 @@ const Index = () => {
   };
 
   const deleteTask = (id: string) => {
+    const removed = tasks.find((x) => x.id === id);
+    const removedCompleted = Array.from(completed).filter((k) => k.startsWith(`${id}|`));
     setTasks((t) => t.filter((x) => x.id !== id));
     setCompleted((prev) => {
       const next = new Set<string>();
@@ -267,12 +269,51 @@ const Index = () => {
       Object.keys(next).forEach((k) => { if (k.startsWith(`${id}|`)) delete next[k]; });
       return next;
     });
-    if (userId) {
-      supabase.from("tasks").delete().eq("id", id).then(({ error }) => {
-        if (error) toast.error("Failed to remove task");
+
+    let undone = false;
+    const restore = () => {
+      if (undone || !removed) return;
+      undone = true;
+      setTasks((t) => (t.some((x) => x.id === removed.id) ? t : [...t, removed]));
+      setCompleted((prev) => {
+        const next = new Set(prev);
+        removedCompleted.forEach((k) => next.add(k));
+        return next;
       });
+      if (userId) {
+        supabase.from("tasks").insert({
+          id: removed.id,
+          user_id: userId,
+          title: removed.title,
+          time: removed.time,
+          emoji: removed.emoji,
+          due_date: removed.dueDate,
+          priority: removed.priority,
+          repeat: removed.repeat ?? null,
+          done: removed.done,
+        }).then(({ error }) => {
+          if (error) toast.error("Failed to restore task");
+        });
+      }
+      toast("Task restored");
+    };
+
+    if (userId) {
+      // Defer DB delete so undo can cancel it
+      setTimeout(() => {
+        if (undone) return;
+        supabase.from("tasks").delete().eq("id", id).then(({ error }) => {
+          if (error) toast.error("Failed to remove task");
+        });
+      }, 5000);
     }
-    toast("Task removed");
+
+    toast("Task removed", {
+      duration: 5000,
+      action: removed
+        ? { label: "Undo", onClick: restore }
+        : undefined,
+    });
   };
 
   const startSwipe = (e: React.PointerEvent, key: string) => {
