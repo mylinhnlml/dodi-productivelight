@@ -730,7 +730,7 @@ const Index = () => {
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
             {sortedTasks.map((task, i) => (
               <article
-                key={task.id}
+                key={task.occKey}
                 style={{ animationDelay: `${i * 60}ms` }}
                 className="rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] hover:scale-[1.02] transition-transform duration-300"
               >
