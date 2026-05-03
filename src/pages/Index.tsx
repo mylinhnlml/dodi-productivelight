@@ -1,7 +1,7 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2 } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft } from "lucide-react";
 import { useRef, useState, useMemo } from "react";
 import { toast } from "sonner";
-import CalendarView from "@/components/CalendarView";
+import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 
 type Priority = 0 | 1 | 2 | 3;
 
