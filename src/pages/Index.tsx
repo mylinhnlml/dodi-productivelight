@@ -9,6 +9,8 @@ type Task = {
   emoji: string;
   done: boolean;
   tag: string;
+  priority: 0 | 1 | 2 | 3;
+  createdAt: number;
 };
 
 type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
