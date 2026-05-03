@@ -7,7 +7,7 @@ import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 type Priority = 0 | 1 | 2 | 3;
 
 type Task = {
-  id: number;
+  id: string;
   title: string;
   time: string; // display
   emoji: string;
@@ -39,11 +39,11 @@ const formatDateLabel = (iso: string) => {
 };
 
 const initialTasks: Task[] = [
-  { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, dueDate: todayStr(), priority: 2, createdAt: 1 },
-  { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, dueDate: todayStr(), priority: 1, createdAt: 2 },
-  { id: 3, title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, dueDate: todayStr(), priority: 0, createdAt: 3 },
-  { id: 4, title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, dueDate: todayStr(), priority: 0, createdAt: 4 },
-  { id: 5, title: "Bake cinnamon rolls", time: "10:00 AM", emoji: "🧁", done: false, dueDate: tomorrowStr(), priority: 3, createdAt: 5 },
+  { id: "seed-1", title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, dueDate: todayStr(), priority: 2, createdAt: 1 },
+  { id: "seed-2", title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, dueDate: todayStr(), priority: 1, createdAt: 2 },
+  { id: "seed-3", title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, dueDate: todayStr(), priority: 0, createdAt: 3 },
+  { id: "seed-4", title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, dueDate: todayStr(), priority: 0, createdAt: 4 },
+  { id: "seed-5", title: "Bake cinnamon rolls", time: "10:00 AM", emoji: "🧁", done: false, dueDate: tomorrowStr(), priority: 3, createdAt: 5 },
 ];
 
 // Default quick-pick stickers covering common activities
@@ -95,12 +95,13 @@ const Index = () => {
   );
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
-  const nextId = useRef(initialTasks.length + 1);
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
+  const justSwipedRef = useRef<Set<string>>(new Set());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
@@ -169,7 +170,54 @@ const Index = () => {
   const [editingProfile, setEditingProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const toggle = (taskId: number, dueIso: string) => {
+  // Load this user's tasks; ensure tasks are scoped per account
+  useEffect(() => {
+    let active = true;
+    const loadTasks = async (uid: string | null) => {
+      if (!uid) {
+        setTasks(initialTasks);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (!active) return;
+      if (error) {
+        console.error("Failed to load tasks", error);
+        setTasks([]);
+        return;
+      }
+      const rows = (data ?? []).map((r, i) => ({
+        id: r.id as string,
+        title: r.title as string,
+        time: (r.time as string) ?? "",
+        emoji: (r.emoji as string) ?? "🌸",
+        done: !!r.done,
+        dueDate: r.due_date as string,
+        priority: ((r.priority as number) ?? 0) as Priority,
+        createdAt: i + 1,
+        repeat: (r.repeat as string) ?? undefined,
+      }));
+      setTasks(rows);
+    };
+    supabase.auth.getUser().then(({ data }) => {
+      const uid = data.user?.id ?? null;
+      setUserId(uid);
+      loadTasks(uid);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      const uid = session?.user?.id ?? null;
+      setUserId(uid);
+      loadTasks(uid);
+    });
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const toggle = (taskId: string, dueIso: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
     const occKey = `${taskId}|${dueIso}`;
@@ -210,7 +258,7 @@ const Index = () => {
     }
   };
 
-  const deleteTask = (id: number) => {
+  const deleteTask = (id: string) => {
     setTasks((t) => t.filter((x) => x.id !== id));
     setCompleted((prev) => {
       const next = new Set<string>();
@@ -220,6 +268,16 @@ const Index = () => {
       return next;
     });
     setSettled((s) => s.filter((x) => !x.id.startsWith(`${id}|`)));
+    setSwipeOffsets((s) => {
+      const next = { ...s };
+      Object.keys(next).forEach((k) => { if (k.startsWith(`${id}|`)) delete next[k]; });
+      return next;
+    });
+    if (userId) {
+      supabase.from("tasks").delete().eq("id", id).then(({ error }) => {
+        if (error) toast.error("Failed to remove task");
+      });
+    }
     toast("Task removed");
   };
 
@@ -241,22 +299,22 @@ const Index = () => {
         return { ...s, [key]: cur < -48 ? -88 : 0 };
       });
       if (moved) {
-        // suppress click after swipe
-        const swallow = (ev: MouseEvent) => {
-          ev.stopPropagation();
-          ev.preventDefault();
-          window.removeEventListener("click", swallow, true);
-        };
-        window.addEventListener("click", swallow, true);
+        // Mark this row as just-swiped so its own click is ignored,
+        // but DON'T swallow clicks globally (that was eating the trash button tap).
+        justSwipedRef.current.add(key);
+        window.setTimeout(() => justSwipedRef.current.delete(key), 350);
       }
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   };
 
-  const submitNew = () => {
+  const submitNew = async () => {
     if (!newTitle.trim()) return;
-    const id = nextId.current++;
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const time = newTime
       ? new Date(`2000-01-01T${newTime}`).toLocaleTimeString([], {
           hour: "numeric",
@@ -265,20 +323,35 @@ const Index = () => {
       : "";
     const dueDate =
       dateMode === "today" ? todayStr() : dateMode === "tomorrow" ? tomorrowStr() : customDate;
-    setTasks((t) => [
-      ...t,
-      {
+    const newTask: Task = {
+      id,
+      title: newTitle.trim(),
+      time,
+      emoji: newEmoji,
+      done: false,
+      dueDate,
+      priority: newPriority,
+      createdAt: createdSeq.current++,
+      repeat: repeat !== "Never" ? repeat : undefined,
+    };
+    setTasks((t) => [...t, newTask]);
+    if (userId) {
+      const { error } = await supabase.from("tasks").insert({
         id,
-        title: newTitle.trim(),
-        time,
-        emoji: newEmoji,
+        user_id: userId,
+        title: newTask.title,
+        time: newTask.time,
+        emoji: newTask.emoji,
+        due_date: newTask.dueDate,
+        priority: newTask.priority,
+        repeat: newTask.repeat ?? null,
         done: false,
-        dueDate,
-        priority: newPriority,
-        createdAt: createdSeq.current++,
-        repeat: repeat !== "Never" ? repeat : undefined,
-      },
-    ]);
+      });
+      if (error) {
+        console.error(error);
+        toast.error("Couldn't save reminder to your account");
+      }
+    }
     setNewTitle("");
     setNewTime("");
     setNewEmoji("🌸");
@@ -557,7 +630,7 @@ const Index = () => {
                             </button>
                             <article
                               onPointerDown={(e) => startSwipe(e, task.occKey)}
-                              onClick={() => toggle(task.id, task.dueDate)}
+                              onClick={() => { if (justSwipedRef.current.has(task.occKey)) return; toggle(task.id, task.dueDate); }}
                               style={{
                                 animationDelay: `${i * 60}ms`,
                                 transform: `translateX(${offset}px)`,
@@ -1008,7 +1081,7 @@ const Index = () => {
                 </button>
                 <article
                   onPointerDown={(e) => startSwipe(e, task.occKey)}
-                  onClick={() => toggle(task.id, task.dueDate)}
+                  onClick={() => { if (justSwipedRef.current.has(task.occKey)) return; toggle(task.id, task.dueDate); }}
                   style={{
                     animationDelay: `${i * 60}ms`,
                     transform: `translateX(${offset}px)`,
