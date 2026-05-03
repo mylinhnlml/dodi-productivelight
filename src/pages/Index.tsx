@@ -15,7 +15,6 @@ type Task = {
   priority: Priority;
   createdAt: number;
   repeat?: string;
-  note?: string;
 };
 
 type Settled = { id: string; emoji: string; x: number; y: number; rot: number };
@@ -119,7 +118,6 @@ const Index = () => {
   const [newTitle, setNewTitle] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
   const [newTime, setNewTime] = useState("");
-  const [newNote, setNewNote] = useState("");
   const [showStickers, setShowStickers] = useState(false);
   const [recentEmojis, setRecentEmojis] = useState<string[]>(EMOJI_BASIC);
   const [customStickers, setCustomStickers] = useState<string[]>([]);
@@ -249,12 +247,10 @@ const Index = () => {
         priority: newPriority,
         createdAt: createdSeq.current++,
         repeat: repeat !== "Never" ? repeat : undefined,
-        note: newNote.trim() || undefined,
       },
     ]);
     setNewTitle("");
     setNewTime("");
-    setNewNote("");
     setNewEmoji("🌸");
     setNewPriority(0);
     setDateMode("today");
@@ -777,21 +773,6 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Note (optional) */}
-              <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">Note (optional)</label>
-                <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
-                  <textarea
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    placeholder="Write a short message..."
-                    maxLength={200}
-                    rows={2}
-                    className="w-full text-sm font-medium bg-transparent outline-none resize-none placeholder:text-muted-foreground"
-                  />
-                </div>
-              </div>
-
               {/* Compact Add Reminder button — right aligned, with Feedback on left */}
               <div className="flex justify-between items-center gap-2 pt-2 pb-1">
                 <button
@@ -1023,11 +1004,6 @@ const Index = () => {
                       )}
                       <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
                     </p>
-                    {task.note && (
-                      <p className="text-xs text-muted-foreground font-medium mt-1 italic line-clamp-2">
-                        {task.note}
-                      </p>
-                    )}
                   </div>
                 </article>
               </div>
