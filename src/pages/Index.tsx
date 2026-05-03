@@ -196,8 +196,9 @@ const Index = () => {
     setActive("home");
   };
 
-  const remaining = tasks.filter((t) => !t.done).length;
-  const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
+  const todayTasks = tasks.filter((t) => t.dueDate === todayStr());
+  const remaining = todayTasks.filter((t) => !t.done).length;
+  const pct = todayTasks.length === 0 ? 0 : Math.round(((todayTasks.length - remaining) / todayTasks.length) * 100);
 
   // Sort: by date asc, then priority desc, then createdAt asc
   // Also limit to today + 6 upcoming days, and expand recurring tasks
