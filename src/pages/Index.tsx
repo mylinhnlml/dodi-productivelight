@@ -1,5 +1,6 @@
 import { Bell, Plus, Search, Calendar, Check, Pencil, Smile } from "lucide-react";
 import { useRef, useState, useMemo } from "react";
+import { toast } from "sonner";
 import CalendarView from "@/components/CalendarView";
 
 type Priority = 0 | 1 | 2 | 3;
@@ -357,13 +358,16 @@ const Index = () => {
                       <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">More stickers</span>
                       <button
                         onClick={() => {
-                          const input = window.prompt("Paste an emoji or sticker character:");
-                          const ch = input?.trim();
-                          if (ch) {
-                            setCustomStickers((c) => (c.includes(ch) ? c : [ch, ...c]));
-                            setNewEmoji(ch);
-                            setRecentEmojis((r) => [ch, ...r.filter((x) => x !== ch)].slice(0, 16));
+                          if (customStickers.length === 0) {
+                            toast("Create stickers to add yours", {
+                              description: "Make your own stickers in the iOS Stickers keyboard, then come back to add them here.",
+                            });
+                            return;
                           }
+                          // Move focus to the user's own sticker collection
+                          const first = customStickers[0];
+                          setNewEmoji(first);
+                          setRecentEmojis((r) => [first, ...r.filter((x) => x !== first)].slice(0, 16));
                         }}
                         className="text-[10px] font-bold px-2.5 py-1 rounded-full neu-surface-sm text-primary"
                       >
