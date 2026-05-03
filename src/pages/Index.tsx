@@ -738,6 +738,18 @@ const Index = () => {
                                   {task.time && <span>{task.time}</span>}
                                 </p>
                               </div>
+                              <button
+                                onPointerDown={(e) => e.stopPropagation()}
+                                onTouchStart={(e) => e.stopPropagation()}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteTask(task.id);
+                                }}
+                                aria-label="Delete task"
+                                className="shrink-0 w-10 h-10 rounded-full neu-surface-sm flex items-center justify-center text-destructive active:neu-pressed"
+                              >
+                                <Trash2 className="w-4 h-4" strokeWidth={2.4} />
+                              </button>
                             </article>
                           </div>
                         );
@@ -1209,6 +1221,18 @@ const Index = () => {
                       <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
                     </p>
                   </div>
+                  <button
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteTask(task.id);
+                    }}
+                    aria-label="Delete task"
+                    className="shrink-0 w-10 h-10 rounded-full neu-surface-sm flex items-center justify-center text-destructive active:neu-pressed"
+                  >
+                    <Trash2 className="w-4 h-4" strokeWidth={2.4} />
+                  </button>
                 </article>
               </div>
               );
