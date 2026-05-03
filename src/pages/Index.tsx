@@ -181,6 +181,7 @@ const Index = () => {
         dueDate,
         priority: newPriority,
         createdAt: createdSeq.current++,
+        repeat: repeat !== "Never" ? repeat : undefined,
       },
     ]);
     setNewTitle("");
