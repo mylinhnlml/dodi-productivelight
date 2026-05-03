@@ -282,31 +282,62 @@ const Index = () => {
   };
 
   const startSwipe = (e: React.PointerEvent, key: string) => {
+    // Ignore secondary buttons / non-primary pointers
+    if (e.button !== undefined && e.button !== 0) return;
     const startX = e.clientX;
+    const startY = e.clientY;
     const startOffset = swipeOffsets[key] ?? 0;
+    const target = e.currentTarget as HTMLElement;
+    const pointerId = e.pointerId;
     let moved = false;
+    let captured = false;
+    let axis: "x" | "y" | null = null;
+
     const move = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
       const dx = ev.clientX - startX;
-      if (Math.abs(dx) > 5) moved = true;
+      const dy = ev.clientY - startY;
+      if (axis === null) {
+        if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+          axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+          if (axis === "x") {
+            try { target.setPointerCapture(pointerId); captured = true; } catch {}
+          } else {
+            // Vertical scroll — abort swipe
+            cleanup();
+            return;
+          }
+        } else {
+          return;
+        }
+      }
+      if (axis !== "x") return;
+      moved = true;
+      ev.preventDefault();
       const next = Math.max(-96, Math.min(0, startOffset + dx));
       setSwipeOffsets((s) => ({ ...s, [key]: next }));
     };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
+    const cleanup = () => {
+      target.removeEventListener("pointermove", move);
+      target.removeEventListener("pointerup", up);
+      target.removeEventListener("pointercancel", up);
+      if (captured) { try { target.releasePointerCapture(pointerId); } catch {} }
+    };
+    const up = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return;
+      cleanup();
       setSwipeOffsets((s) => {
         const cur = s[key] ?? 0;
         return { ...s, [key]: cur < -48 ? -88 : 0 };
       });
       if (moved) {
-        // Mark this row as just-swiped so its own click is ignored,
-        // but DON'T swallow clicks globally (that was eating the trash button tap).
         justSwipedRef.current.add(key);
         window.setTimeout(() => justSwipedRef.current.delete(key), 350);
       }
     };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+    target.addEventListener("pointermove", move);
+    target.addEventListener("pointerup", up);
+    target.addEventListener("pointercancel", up);
   };
 
   const submitNew = async () => {
