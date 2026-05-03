@@ -198,15 +198,27 @@ const Index = () => {
   const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
 
   // Sort: by date asc, then priority desc, then createdAt asc
-  const sortedTasks = useMemo(
-    () =>
-      [...tasks].sort((a, b) => {
+  // Also limit to today + 6 upcoming days
+  const sortedTasks = useMemo(() => {
+    const today = new Date(todayStr());
+    const maxMs = today.getTime() + 6 * 86400000;
+    return [...tasks]
+      .filter((t) => {
+        const d = new Date(t.dueDate).getTime();
+        return d >= today.getTime() && d <= maxMs;
+      })
+      .sort((a, b) => {
         if (a.dueDate !== b.dueDate) return a.dueDate < b.dueDate ? -1 : 1;
         if (a.priority !== b.priority) return b.priority - a.priority;
         return a.createdAt - b.createdAt;
-      }),
-    [tasks]
-  );
+      });
+  }, [tasks]);
+
+  const timelineTag = (iso: string) => {
+    if (iso === todayStr()) return { label: "Today", cls: "bg-[hsl(40,100%,55%)] text-[hsl(40,80%,12%)]" };
+    if (iso === tomorrowStr()) return { label: "Tomorrow", cls: "bg-[hsl(45,90%,75%)] text-[hsl(45,50%,25%)]" };
+    return { label: "Coming soon", cls: "bg-[hsl(45,80%,92%)] text-[hsl(45,40%,40%)]" };
+  };
 
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
@@ -707,9 +719,11 @@ const Index = () => {
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-muted-foreground font-semibold mt-0.5">
-                    {formatDateLabel(task.dueDate)}
-                    {task.time ? ` • ${task.time}` : ""}
+                  <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${timelineTag(task.dueDate).cls}`}>
+                      {timelineTag(task.dueDate).label}
+                    </span>
+                    <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
                   </p>
                 </div>
               </article>
