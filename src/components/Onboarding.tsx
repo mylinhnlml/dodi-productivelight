@@ -21,7 +21,7 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-between bg-gradient-to-b from-rose-50 via-amber-50 to-white px-6 py-12">
       <div className="flex-1 flex flex-col items-center justify-center text-center max-w-md">
-        <div className="text-7xl mb-6">🌸</div>
+        <div className="text-8xl mb-6 drop-shadow-sm animate-pulse">🌞</div>
         <h1 className="text-4xl font-bold text-stone-800 mb-3">Welcome</h1>
         <p className="text-stone-600 text-base leading-relaxed mb-2">
           Your gentle little reminder companion.
