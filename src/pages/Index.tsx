@@ -1,4 +1,4 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2 } from "lucide-react";
 import { useRef, useState, useMemo } from "react";
 import { toast } from "sonner";
 import CalendarView from "@/components/CalendarView";
@@ -71,6 +71,7 @@ const Index = () => {
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
 
   const startDrag = (e: React.PointerEvent, id: number) => {
     e.preventDefault();
@@ -159,6 +160,43 @@ const Index = () => {
     }
   };
 
+  const deleteTask = (id: number) => {
+    setTasks((t) => t.filter((x) => x.id !== id));
+    setSettled((s) => s.filter((x) => x.id !== id));
+    toast("Task removed");
+  };
+
+  const startSwipe = (e: React.PointerEvent, key: string) => {
+    const startX = e.clientX;
+    const startOffset = swipeOffsets[key] ?? 0;
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - startX;
+      if (Math.abs(dx) > 5) moved = true;
+      const next = Math.max(-96, Math.min(0, startOffset + dx));
+      setSwipeOffsets((s) => ({ ...s, [key]: next }));
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      setSwipeOffsets((s) => {
+        const cur = s[key] ?? 0;
+        return { ...s, [key]: cur < -48 ? -88 : 0 };
+      });
+      if (moved) {
+        // suppress click after swipe
+        const swallow = (ev: MouseEvent) => {
+          ev.stopPropagation();
+          ev.preventDefault();
+          window.removeEventListener("click", swallow, true);
+        };
+        window.addEventListener("click", swallow, true);
+      }
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
   const submitNew = () => {
     if (!newTitle.trim()) return;
     const id = nextId.current++;
@@ -196,8 +234,9 @@ const Index = () => {
     setActive("home");
   };
 
-  const remaining = tasks.filter((t) => !t.done).length;
-  const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
+  const todayTasks = tasks.filter((t) => t.dueDate === todayStr());
+  const remaining = todayTasks.filter((t) => !t.done).length;
+  const pct = todayTasks.length === 0 ? 0 : Math.round(((todayTasks.length - remaining) / todayTasks.length) * 100);
 
   // Sort: by date asc, then priority desc, then createdAt asc
   // Also limit to today + 6 upcoming days, and expand recurring tasks
@@ -728,52 +767,68 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {sortedTasks.map((task, i) => (
-              <article
-                key={task.occKey}
-                style={{ animationDelay: `${i * 60}ms` }}
-                className="rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] hover:scale-[1.02] transition-transform duration-300"
-              >
+            {sortedTasks.map((task, i) => {
+              const offset = swipeOffsets[task.occKey] ?? 0;
+              return (
+              <div key={task.occKey} className="relative">
                 <button
-                  onClick={() => toggle(task.id)}
-                  aria-label={task.done ? "Mark incomplete" : "Mark complete"}
-                  className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
-                    task.done ? "neu-pressed" : "neu-surface-sm active:neu-pressed"
-                  }`}
+                  onClick={() => deleteTask(task.id)}
+                  aria-label="Delete task"
+                  className="absolute right-0 top-0 bottom-0 w-20 rounded-2xl bg-destructive flex items-center justify-center"
                 >
-                  {task.done ? (
-                    <Check className="w-5 h-5 text-primary" strokeWidth={3} />
-                  ) : (
-                    <span>{task.emoji}</span>
-                  )}
+                  <Trash2 className="w-5 h-5 text-destructive-foreground" strokeWidth={2.4} />
                 </button>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`text-sm font-bold truncate ${
-                      task.done ? "text-muted-foreground line-through" : "text-foreground"
+                <article
+                  onPointerDown={(e) => startSwipe(e, task.occKey)}
+                  onClick={() => toggle(task.id)}
+                  style={{
+                    animationDelay: `${i * 60}ms`,
+                    transform: `translateX(${offset}px)`,
+                    transition: "transform 0.2s",
+                  }}
+                  className="relative rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] cursor-pointer touch-pan-y select-none"
+                >
+                  <div
+                    aria-label={task.done ? "Mark incomplete" : "Mark complete"}
+                    className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
+                      task.done ? "neu-pressed" : "neu-surface-sm"
                     }`}
                   >
-                    {task.title}
-                    {task.priority > 0 && (
-                      <span className="ml-1.5 text-primary font-extrabold">
-                        {PRIORITY_LABELS[task.priority]}
-                      </span>
+                    {task.done ? (
+                      <Check className="w-5 h-5 text-primary" strokeWidth={3} />
+                    ) : (
+                      <span>{task.emoji}</span>
                     )}
-                  </p>
-                  <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${timelineTag(task.dueDate).cls}`}>
-                      {timelineTag(task.dueDate).label}
-                    </span>
-                    {task.repeat && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)]">
-                        🔁 {task.repeat}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={`text-sm font-bold truncate ${
+                        task.done ? "text-muted-foreground line-through" : "text-foreground"
+                      }`}
+                    >
+                      {task.title}
+                      {task.priority > 0 && (
+                        <span className="ml-1.5 text-primary font-extrabold">
+                          {PRIORITY_LABELS[task.priority]}
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${timelineTag(task.dueDate).cls}`}>
+                        {timelineTag(task.dueDate).label}
                       </span>
-                    )}
-                    <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
-                  </p>
-                </div>
-              </article>
-            ))}
+                      {task.repeat && (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)]">
+                          🔁 {task.repeat}
+                        </span>
+                      )}
+                      <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
+                    </p>
+                  </div>
+                </article>
+              </div>
+              );
+            })}
           </section>
           </>
           )}
