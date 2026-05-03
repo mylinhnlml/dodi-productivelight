@@ -1139,7 +1139,7 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {false && showSwipeHint && null}
+            
 
             {sortedTasks.filter((t) => t.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).map((task, i) => {
               const offset = swipeOffsets[task.occKey] ?? 0;
