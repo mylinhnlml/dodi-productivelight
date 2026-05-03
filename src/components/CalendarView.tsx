@@ -1,41 +1,25 @@
 import { useMemo } from "react";
 
-type CalTask = {
-  id: number;
-  done: boolean;
-  date: Date;
-};
-
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 
-const isSameDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() &&
-  a.getMonth() === b.getMonth() &&
-  a.getDate() === b.getDate();
+// Deterministic pseudo-random based on date
+const seedPct = (y: number, m: number, d: number) => {
+  const s = Math.sin(y * 10000 + (m + 1) * 100 + d) * 43758.5453;
+  return Math.floor((s - Math.floor(s)) * 100);
+};
 
 // Aesthetic peach-aligned tones (HSL) — soft, muted
-const tintFor = (pct: number | null) => {
-  if (pct === null) return { bg: "30 20% 92%", text: "24 15% 55%" }; // empty/neutral
+const tintFor = (pct: number) => {
   if (pct >= 70) return { bg: "140 35% 78%", text: "140 30% 28%" }; // soft sage
   if (pct >= 40) return { bg: "30 80% 75%", text: "24 45% 30%" };  // warm peach
   return { bg: "8 65% 78%", text: "8 40% 32%" };                    // dusty coral
 };
 
-const Month = ({
-  year,
-  month,
-  today,
-  pctMap,
-}: {
-  year: number;
-  month: number;
-  today: Date;
-  pctMap: Map<string, number>;
-}) => {
+const Month = ({ year, month, today }: { year: number; month: number; today: Date }) => {
   const first = new Date(year, month, 1).getDay();
   const days = new Date(year, month + 1, 0).getDate();
   const cells: (number | null)[] = [
@@ -58,8 +42,7 @@ const Month = ({
       <div className="grid grid-cols-7 gap-1.5 px-0.5">
         {cells.map((d, i) => {
           if (d === null) return <div key={i} />;
-          const key = `${year}-${month}-${d}`;
-          const pct = pctMap.has(key) ? pctMap.get(key)! : null;
+          const pct = seedPct(year, month, d);
           const { bg, text } = tintFor(pct);
           const isToday =
             today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
@@ -86,7 +69,7 @@ const Month = ({
                 className="text-[8px] font-bold leading-none mt-0.5 opacity-80"
                 style={{ color: `hsl(${text})` }}
               >
-                {pct === null ? "—" : `${pct}%`}
+                {pct}%
               </span>
             </div>
           );
@@ -96,26 +79,9 @@ const Month = ({
   );
 };
 
-const CalendarView = ({ tasks }: { tasks: CalTask[] }) => {
+const CalendarView = () => {
   const today = useMemo(() => new Date(), []);
   const year = today.getFullYear();
-
-  // Build percentage map keyed by Y-M-D from tasks
-  const pctMap = useMemo(() => {
-    const totals = new Map<string, { done: number; total: number }>();
-    tasks.forEach((t) => {
-      const k = `${t.date.getFullYear()}-${t.date.getMonth()}-${t.date.getDate()}`;
-      const cur = totals.get(k) ?? { done: 0, total: 0 };
-      cur.total += 1;
-      if (t.done) cur.done += 1;
-      totals.set(k, cur);
-    });
-    const out = new Map<string, number>();
-    totals.forEach((v, k) => {
-      out.set(k, v.total === 0 ? 0 : Math.round((v.done / v.total) * 100));
-    });
-    return out;
-  }, [tasks]);
 
   return (
     <section className="flex-1 px-5 overflow-y-auto pb-4">
@@ -142,7 +108,7 @@ const CalendarView = ({ tasks }: { tasks: CalTask[] }) => {
       </div>
 
       {Array.from({ length: 12 }, (_, m) => (
-        <Month key={m} year={year} month={m} today={today} pctMap={pctMap} />
+        <Month key={m} year={year} month={m} today={today} />
       ))}
     </section>
   );
