@@ -429,6 +429,36 @@ const Index = () => {
                     />
                   </div>
                 )}
+
+                {/* Repeat — iOS Reminders style */}
+                <button
+                  onClick={() => setShowRepeat((v) => !v)}
+                  className={`w-full mt-2 rounded-2xl px-4 py-2.5 flex items-center justify-between transition-all ${
+                    showRepeat ? "neu-pressed" : "neu-surface-sm"
+                  }`}
+                >
+                  <span className="text-xs font-extrabold text-muted-foreground">Repeat</span>
+                  <span className="text-xs font-bold text-primary">{repeat} ›</span>
+                </button>
+                {showRepeat && (
+                  <div className="neu-inset rounded-2xl mt-2 p-2 space-y-1">
+                    {["Never", "Every Day", "Every Week", "Every 2 Weeks", "Every Month", "Every Year"].map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => {
+                          setRepeat(opt);
+                          setShowRepeat(false);
+                        }}
+                        className={`w-full text-left text-xs font-bold px-3 py-2 rounded-xl flex items-center justify-between transition-all ${
+                          repeat === opt ? "neu-pressed text-primary" : "hover:neu-surface-sm text-foreground"
+                        }`}
+                      >
+                        <span>{opt}</span>
+                        {repeat === opt && <Check className="w-3.5 h-3.5 text-primary" strokeWidth={3} />}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Priority */}
