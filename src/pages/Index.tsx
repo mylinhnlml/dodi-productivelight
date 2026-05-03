@@ -103,6 +103,8 @@ const Index = () => {
   const [newEmoji, setNewEmoji] = useState("🌸");
   const [newTime, setNewTime] = useState("");
   const [showStickers, setShowStickers] = useState(false);
+  const [recentEmojis, setRecentEmojis] = useState<string[]>(EMOJI_BASIC);
+  const [customStickers, setCustomStickers] = useState<string[]>([]);
   const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
   const [customDate, setCustomDate] = useState(todayStr());
   const [newPriority, setNewPriority] = useState<Priority>(0);
