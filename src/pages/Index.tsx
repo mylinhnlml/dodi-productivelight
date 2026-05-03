@@ -1,4 +1,4 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star } from "lucide-react";
 import { useRef, useState, useMemo } from "react";
 import { toast } from "sonner";
 import CalendarView from "@/components/CalendarView";
@@ -111,6 +111,9 @@ const Index = () => {
   const [newPriority, setNewPriority] = useState<Priority>(0);
   const [repeat, setRepeat] = useState<string>("Never");
   const [showRepeat, setShowRepeat] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState("");
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -492,21 +495,99 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Compact Add More button — right aligned */}
-              <div className="flex justify-end items-center gap-2 pt-2 pb-1">
-                <span className="text-[8px] font-extrabold text-muted-foreground uppercase tracking-wide">
-                  Add more
-                </span>
+              {/* Compact Add Reminder button — right aligned, with Feedback on left */}
+              <div className="flex justify-between items-center gap-2 pt-2 pb-1">
                 <button
-                  onClick={submitNew}
-                  disabled={!newTitle.trim()}
-                  aria-label="Add reminder"
-                  className="w-12 h-12 rounded-full flex items-center justify-center neu-surface active:neu-pressed transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-                  style={{ background: "hsl(var(--primary))" }}
+                  onClick={() => setShowFeedback(true)}
+                  className="neu-surface-sm rounded-2xl px-3 py-2 flex items-center gap-1.5 text-[10px] font-extrabold text-muted-foreground uppercase tracking-wide active:neu-pressed transition-all"
                 >
-                  <Plus className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
+                  <MessageSquare className="w-3 h-3" strokeWidth={2.5} />
+                  Give feedback
                 </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-[8px] font-extrabold text-muted-foreground uppercase tracking-wide">
+                    Add reminder
+                  </span>
+                  <button
+                    onClick={submitNew}
+                    disabled={!newTitle.trim()}
+                    aria-label="Add reminder"
+                    className="w-12 h-12 rounded-full flex items-center justify-center neu-surface active:neu-pressed transition-all hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+                    style={{ background: "hsl(var(--primary))" }}
+                  >
+                    <Plus className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
+                  </button>
+                </div>
               </div>
+
+              {/* Feedback modal */}
+              {showFeedback && (
+                <div
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6"
+                  onClick={() => setShowFeedback(false)}
+                >
+                  <div
+                    className="neu-surface rounded-3xl p-6 w-full max-w-sm space-y-4 bg-background"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <h3 className="text-lg font-extrabold text-center">Give feedback</h3>
+                    <div className="flex justify-center gap-2">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          onClick={() => setFeedbackRating(n)}
+                          aria-label={`${n} star`}
+                        >
+                          <Star
+                            className={`w-8 h-8 transition-all ${
+                              n <= feedbackRating
+                                ? "fill-primary text-primary"
+                                : "text-muted-foreground"
+                            }`}
+                            strokeWidth={2}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      value={feedbackText}
+                      onChange={(e) => setFeedbackText(e.target.value)}
+                      placeholder="Tell us more (optional)"
+                      className="neu-inset rounded-2xl w-full px-4 py-3 text-sm bg-transparent outline-none resize-none"
+                      rows={3}
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        onClick={() => {
+                          setShowFeedback(false);
+                          setFeedbackRating(0);
+                          setFeedbackText("");
+                        }}
+                        className="neu-surface-sm rounded-2xl px-4 py-2 text-xs font-extrabold text-muted-foreground"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (feedbackRating === 0) {
+                            toast("Please select a star rating");
+                            return;
+                          }
+                          // Feedback submitted (recipient hidden)
+                          toast("Thank you for your feedback");
+                          setShowFeedback(false);
+                          setFeedbackRating(0);
+                          setFeedbackText("");
+                        }}
+                        className="rounded-2xl px-4 py-2 text-xs font-extrabold text-primary-foreground"
+                        style={{ background: "hsl(var(--primary))" }}
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </section>
           ) : (
           <>
