@@ -258,10 +258,12 @@ const Index = () => {
       }
 
       for (const iso of occurrences) {
+        const occKey = `${t.id}|${iso}`;
+        if (deletedOccs.has(occKey)) continue;
         out.push({
           ...t,
           dueDate: iso,
-          occKey: `${t.id}|${iso}`,
+          occKey,
           isOccurrence: iso !== t.dueDate,
         });
       }
@@ -272,7 +274,7 @@ const Index = () => {
       if (a.priority !== b.priority) return b.priority - a.priority;
       return a.createdAt - b.createdAt;
     });
-  }, [tasks]);
+  }, [tasks, deletedOccs]);
 
   const timelineTag = (iso: string) => {
     if (iso === todayStr()) return { label: "Today", cls: "bg-[hsl(40,100%,55%)] text-[hsl(40,80%,12%)]" };
