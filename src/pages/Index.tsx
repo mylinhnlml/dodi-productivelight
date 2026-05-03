@@ -1,4 +1,4 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2 } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star } from "lucide-react";
 import { useRef, useState, useMemo } from "react";
 import { toast } from "sonner";
 import CalendarView from "@/components/CalendarView";
@@ -115,25 +115,6 @@ const Index = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState("");
-  const [swipedKey, setSwipedKey] = useState<string | null>(null);
-  const [deletedOccs, setDeletedOccs] = useState<Set<string>>(new Set());
-  const swipeStart = useRef<{ x: number; y: number; key: string } | null>(null);
-  const [swipeDx, setSwipeDx] = useState(0);
-
-  const deleteOccurrence = (task: { id: number; occKey: string; isOccurrence: boolean }) => {
-    if (task.isOccurrence) {
-      setDeletedOccs((s) => {
-        const n = new Set(s);
-        n.add(task.occKey);
-        return n;
-      });
-    } else {
-      setTasks((t) => t.filter((x) => x.id !== task.id));
-      setSettled((s) => s.filter((x) => x.id !== task.id));
-    }
-    setSwipedKey(null);
-    setSwipeDx(0);
-  };
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -258,12 +239,10 @@ const Index = () => {
       }
 
       for (const iso of occurrences) {
-        const occKey = `${t.id}|${iso}`;
-        if (deletedOccs.has(occKey)) continue;
         out.push({
           ...t,
           dueDate: iso,
-          occKey,
+          occKey: `${t.id}|${iso}`,
           isOccurrence: iso !== t.dueDate,
         });
       }
@@ -274,7 +253,7 @@ const Index = () => {
       if (a.priority !== b.priority) return b.priority - a.priority;
       return a.createdAt - b.createdAt;
     });
-  }, [tasks, deletedOccs]);
+  }, [tasks]);
 
   const timelineTag = (iso: string) => {
     if (iso === todayStr()) return { label: "Today", cls: "bg-[hsl(40,100%,55%)] text-[hsl(40,80%,12%)]" };
@@ -749,97 +728,52 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {sortedTasks.map((task, i) => {
-              const isSwiped = swipedKey === task.occKey;
-              const dx = isSwiped ? swipeDx : 0;
-              return (
-                <div
-                  key={task.occKey}
-                  className="relative"
-                  style={{ animationDelay: `${i * 60}ms` }}
+            {sortedTasks.map((task, i) => (
+              <article
+                key={task.occKey}
+                style={{ animationDelay: `${i * 60}ms` }}
+                className="rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] hover:scale-[1.02] transition-transform duration-300"
+              >
+                <button
+                  onClick={() => toggle(task.id)}
+                  aria-label={task.done ? "Mark incomplete" : "Mark complete"}
+                  className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
+                    task.done ? "neu-pressed" : "neu-surface-sm active:neu-pressed"
+                  }`}
                 >
-                  {/* Bin reveal */}
-                  <button
-                    onClick={() => deleteOccurrence(task)}
-                    aria-label="Delete task"
-                    className="absolute right-0 top-0 h-full w-20 rounded-2xl flex items-center justify-center bg-destructive text-destructive-foreground active:scale-95 transition-transform"
+                  {task.done ? (
+                    <Check className="w-5 h-5 text-primary" strokeWidth={3} />
+                  ) : (
+                    <span>{task.emoji}</span>
+                  )}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className={`text-sm font-bold truncate ${
+                      task.done ? "text-muted-foreground line-through" : "text-foreground"
+                    }`}
                   >
-                    <Trash2 className="w-5 h-5" strokeWidth={2.4} />
-                  </button>
-                  <article
-                    onPointerDown={(e) => {
-                      swipeStart.current = { x: e.clientX, y: e.clientY, key: task.occKey };
-                    }}
-                    onPointerMove={(e) => {
-                      const s = swipeStart.current;
-                      if (!s || s.key !== task.occKey) return;
-                      const dxNow = e.clientX - s.x;
-                      const dyNow = Math.abs(e.clientY - s.y);
-                      if (Math.abs(dxNow) > 8 && Math.abs(dxNow) > dyNow) {
-                        setSwipedKey(task.occKey);
-                        setSwipeDx(Math.max(-96, Math.min(0, dxNow)));
-                      }
-                    }}
-                    onPointerUp={() => {
-                      const s = swipeStart.current;
-                      swipeStart.current = null;
-                      if (!s) return;
-                      if (swipedKey === task.occKey) {
-                        if (swipeDx < -48) setSwipeDx(-80);
-                        else {
-                          setSwipedKey(null);
-                          setSwipeDx(0);
-                        }
-                      }
-                    }}
-                    className="relative rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] touch-pan-y"
-                    style={{
-                      transform: `translateX(${dx}px)`,
-                      transition: swipeStart.current?.key === task.occKey ? "none" : "transform 0.2s ease",
-                    }}
-                  >
-                    <button
-                      onClick={() => toggle(task.id)}
-                      aria-label={task.done ? "Mark incomplete" : "Mark complete"}
-                      className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
-                        task.done ? "neu-pressed" : "neu-surface-sm active:neu-pressed"
-                      }`}
-                    >
-                      {task.done ? (
-                        <Check className="w-5 h-5 text-primary" strokeWidth={3} />
-                      ) : (
-                        <span>{task.emoji}</span>
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-sm font-bold truncate ${
-                          task.done ? "text-muted-foreground line-through" : "text-foreground"
-                        }`}
-                      >
-                        {task.title}
-                        {task.priority > 0 && (
-                          <span className="ml-1.5 text-primary font-extrabold">
-                            {PRIORITY_LABELS[task.priority]}
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${timelineTag(task.dueDate).cls}`}>
-                          {timelineTag(task.dueDate).label}
-                        </span>
-                        {task.repeat && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)]">
-                            🔁 {task.repeat}
-                          </span>
-                        )}
-                        <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
-                      </p>
-                    </div>
-                  </article>
+                    {task.title}
+                    {task.priority > 0 && (
+                      <span className="ml-1.5 text-primary font-extrabold">
+                        {PRIORITY_LABELS[task.priority]}
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${timelineTag(task.dueDate).cls}`}>
+                      {timelineTag(task.dueDate).label}
+                    </span>
+                    {task.repeat && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)]">
+                        🔁 {task.repeat}
+                      </span>
+                    )}
+                    <span>{formatDateLabel(task.dueDate)}{task.time ? ` • ${task.time}` : ""}</span>
+                  </p>
                 </div>
-              );
-            })}
+              </article>
+            ))}
           </section>
           </>
           )}
