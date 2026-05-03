@@ -463,7 +463,95 @@ const Index = () => {
                   </button>
                 </div>
               </div>
-              <CalendarView />
+              {selectedDate ? (
+                <section className="flex-1 px-5 overflow-y-auto pb-4">
+                  <div className="flex items-center justify-between px-1 pb-3">
+                    <button
+                      onClick={() => setSelectedDate(null)}
+                      className="flex items-center gap-1 text-xs font-extrabold text-primary neu-surface-sm rounded-full px-3 py-1.5"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" strokeWidth={3} />
+                      Calendar
+                    </button>
+                    <h2 className="text-base font-extrabold text-foreground">
+                      {new Date(selectedDate).toLocaleDateString([], {
+                        weekday: "short",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </h2>
+                  </div>
+
+                  {tasksOnSelectedDate.length === 0 ? (
+                    <div className="neu-inset rounded-2xl p-6 text-center text-xs font-bold text-muted-foreground">
+                      No tasks on this day 🌿
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {tasksOnSelectedDate.map((task, i) => {
+                        const offset = swipeOffsets[task.occKey] ?? 0;
+                        return (
+                          <div key={task.occKey} className="relative">
+                            <button
+                              onClick={() => deleteTask(task.id)}
+                              aria-label="Delete task"
+                              className="absolute right-0 top-0 bottom-0 w-20 rounded-2xl bg-destructive flex items-center justify-center"
+                            >
+                              <Trash2 className="w-5 h-5 text-destructive-foreground" strokeWidth={2.4} />
+                            </button>
+                            <article
+                              onPointerDown={(e) => startSwipe(e, task.occKey)}
+                              onClick={() => toggle(task.id)}
+                              style={{
+                                animationDelay: `${i * 60}ms`,
+                                transform: `translateX(${offset}px)`,
+                                transition: "transform 0.2s",
+                              }}
+                              className="relative rounded-2xl neu-surface-sm p-3.5 flex items-center gap-3 animate-[fade-in_0.5s_ease-out_both] cursor-pointer touch-pan-y select-none"
+                            >
+                              <div
+                                className={`shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center text-lg transition-all duration-300 ${
+                                  task.done ? "neu-pressed" : "neu-surface-sm"
+                                }`}
+                              >
+                                {task.done ? (
+                                  <Check className="w-5 h-5 text-primary" strokeWidth={3} />
+                                ) : (
+                                  <span>{task.emoji}</span>
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p
+                                  className={`text-sm font-bold truncate ${
+                                    task.done ? "text-muted-foreground line-through" : "text-foreground"
+                                  }`}
+                                >
+                                  {task.title}
+                                  {task.priority > 0 && (
+                                    <span className="ml-1.5 text-primary font-extrabold">
+                                      {PRIORITY_LABELS[task.priority]}
+                                    </span>
+                                  )}
+                                </p>
+                                <p className="text-xs text-muted-foreground font-semibold mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                  {task.repeat && (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)]">
+                                      🔁 {task.repeat}
+                                    </span>
+                                  )}
+                                  {task.time && <span>{task.time}</span>}
+                                </p>
+                              </div>
+                            </article>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              ) : (
+                <CalendarView byDate={calendarByDate} onSelectDate={setSelectedDate} />
+              )}
             </div>
           ) : active === "add" ? (
             <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
