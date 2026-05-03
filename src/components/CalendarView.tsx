@@ -82,12 +82,16 @@ const Month = ({
             const x = Math.sin(seed * 9301 + k * 49297) * 233280;
             return x - Math.floor(x);
           };
+          // Inset so the entire emoji glyph stays inside the cell
+          const INSET_MIN = 12; // %
+          const INSET_MAX = 88; // %
+          const span = INSET_MAX - INSET_MIN;
           const perimPos = (t: number) => {
             const p = ((t % 1) + 1) % 1;
-            if (p < 0.25) return { left: `${(p / 0.25) * 100}%`, top: `0%` };
-            if (p < 0.5) return { left: `100%`, top: `${((p - 0.25) / 0.25) * 100}%` };
-            if (p < 0.75) return { left: `${100 - ((p - 0.5) / 0.25) * 100}%`, top: `100%` };
-            return { left: `0%`, top: `${100 - ((p - 0.75) / 0.25) * 100}%` };
+            if (p < 0.25) return { left: `${INSET_MIN + (p / 0.25) * span}%`, top: `${INSET_MIN}%` };
+            if (p < 0.5) return { left: `${INSET_MAX}%`, top: `${INSET_MIN + ((p - 0.25) / 0.25) * span}%` };
+            if (p < 0.75) return { left: `${INSET_MAX - ((p - 0.5) / 0.25) * span}%`, top: `${INSET_MAX}%` };
+            return { left: `${INSET_MIN}%`, top: `${INSET_MAX - ((p - 0.75) / 0.25) * span}%` };
           };
           const N = emojis.length;
 
