@@ -137,6 +137,7 @@ const Index = () => {
     avatar: "🌷",
   });
   const [editingProfile, setEditingProfile] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const toggle = (taskId: number, dueIso: string) => {
     const task = tasks.find((t) => t.id === taskId);
@@ -871,10 +872,13 @@ const Index = () => {
           {/* Search */}
           <div className="px-6 pb-3">
             <div className="neu-inset rounded-2xl flex items-center gap-3 px-4 py-3">
-              <Search className="w-4 h-4 text-muted-foreground" strokeWidth={2.2} />
-              <span className="text-sm text-muted-foreground font-medium">
-                Search reminders...
-              </span>
+              <Search className="w-4 h-4 text-muted-foreground shrink-0" strokeWidth={2.2} />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search reminders..."
+                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground font-medium"
+              />
             </div>
           </div>
 
@@ -943,7 +947,7 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {sortedTasks.map((task, i) => {
+            {sortedTasks.filter((t) => t.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).map((task, i) => {
               const offset = swipeOffsets[task.occKey] ?? 0;
               return (
               <div key={task.occKey} className="relative">
