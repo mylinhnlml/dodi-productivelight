@@ -1,5 +1,6 @@
 import { Bell, Plus, Search, Calendar, Settings, Check } from "lucide-react";
 import { useRef, useState } from "react";
+import CalendarView from "@/components/CalendarView";
 
 type Task = {
   id: number;
