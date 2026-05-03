@@ -532,7 +532,7 @@ const Index = () => {
                             </button>
                             <article
                               onPointerDown={(e) => startSwipe(e, task.occKey)}
-                              onClick={() => toggle(task.id)}
+                              onClick={() => toggle(task.id, task.dueDate)}
                               style={{
                                 animationDelay: `${i * 60}ms`,
                                 transform: `translateX(${offset}px)`,
