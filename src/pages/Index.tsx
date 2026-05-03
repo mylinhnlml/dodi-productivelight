@@ -927,6 +927,19 @@ const Index = () => {
                   </p>
                 </div>
                 <div className="relative w-14 h-14 rounded-full neu-inset flex items-center justify-center">
+                  {/* Sun rays around the percentage */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <span
+                        key={i}
+                        className="absolute left-1/2 top-1/2 block w-[2.5px] h-2 rounded-full bg-[hsl(40,100%,55%)]"
+                        style={{
+                          transform: `translate(-50%, -50%) rotate(${i * 30}deg) translateY(-32px)`,
+                          boxShadow: "0 0 4px hsl(40 100% 60% / 0.8)",
+                        }}
+                      />
+                    ))}
+                  </div>
                   <div
                     className="absolute inset-1 rounded-full"
                     style={{
