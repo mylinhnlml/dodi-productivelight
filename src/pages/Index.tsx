@@ -249,9 +249,11 @@ const Index = () => {
         priority: newPriority,
         createdAt: createdSeq.current++,
         repeat: repeat !== "Never" ? repeat : undefined,
+        note: newNote.trim() || undefined,
       },
     ]);
     setNewTitle("");
+    setNewNote("");
     setNewTime("");
     setNewEmoji("🌸");
     setNewPriority(0);
