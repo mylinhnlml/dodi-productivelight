@@ -295,7 +295,67 @@ const Index = () => {
     });
   }, [tasks]);
 
-  const timelineTag = (iso: string) => {
+  // Expand all tasks (incl. recurring) across the whole year for calendar
+  const yearOccurrences = useMemo(() => {
+    const year = new Date().getFullYear();
+    const startMs = new Date(year, 0, 1).getTime();
+    const endMs = new Date(year, 11, 31).getTime();
+    const fmt = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    type Occ = Task & { occKey: string };
+    const out: Occ[] = [];
+    for (const t of tasks) {
+      const base = new Date(t.dueDate);
+      const baseMs = base.getTime();
+      if (baseMs >= startMs && baseMs <= endMs) {
+        out.push({ ...t, occKey: `${t.id}|${fmt(base)}` });
+      }
+      if (t.repeat) {
+        const cap = 800;
+        let i = 0;
+        const next = new Date(base);
+        while (i++ < cap) {
+          if (t.repeat === "Every Day") next.setDate(next.getDate() + 1);
+          else if (t.repeat === "Every Week") next.setDate(next.getDate() + 7);
+          else if (t.repeat === "Every 2 Weeks") next.setDate(next.getDate() + 14);
+          else if (t.repeat === "Every Month") next.setMonth(next.getMonth() + 1);
+          else if (t.repeat === "Every Year") next.setFullYear(next.getFullYear() + 1);
+          else break;
+          if (next.getTime() > endMs) break;
+          if (next.getTime() < startMs) continue;
+          out.push({ ...t, dueDate: fmt(new Date(next)), occKey: `${t.id}|${fmt(new Date(next))}` });
+        }
+      }
+    }
+    return out;
+  }, [tasks]);
+
+  const calendarByDate = useMemo(() => {
+    const map = new Map<string, CalendarTaskInfo>();
+    for (const o of yearOccurrences) {
+      const cur = map.get(o.dueDate) ?? { due: 0, done: 0, doneEmojis: [], hasIncomplete: false };
+      cur.due += 1;
+      // A task occurrence is "done" only when the base task is done AND the occurrence date <= today
+      if (o.done && o.dueDate <= todayStr()) {
+        cur.done += 1;
+        cur.doneEmojis.push(o.emoji);
+      } else {
+        cur.hasIncomplete = true;
+      }
+      map.set(o.dueDate, cur);
+    }
+    return map;
+  }, [yearOccurrences]);
+
+  const tasksOnSelectedDate = useMemo(() => {
+    if (!selectedDate) return [] as (Task & { occKey: string })[];
+    return yearOccurrences
+      .filter((o) => o.dueDate === selectedDate)
+      .sort((a, b) => {
+        if (a.priority !== b.priority) return b.priority - a.priority;
+        return a.createdAt - b.createdAt;
+      });
+  }, [yearOccurrences, selectedDate]);
     if (iso === todayStr()) return { label: "Today", cls: "bg-[hsl(40,100%,55%)] text-[hsl(40,80%,12%)]" };
     if (iso === tomorrowStr()) return { label: "Tomorrow", cls: "bg-[hsl(45,90%,75%)] text-[hsl(45,50%,25%)]" };
     return { label: "Coming soon", cls: "bg-[hsl(45,80%,92%)] text-[hsl(45,40%,40%)]" };
