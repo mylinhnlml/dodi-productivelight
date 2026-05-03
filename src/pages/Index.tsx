@@ -9,19 +9,17 @@ type Task = {
   emoji: string;
   done: boolean;
   tag: string;
-  priority: 0 | 1 | 2 | 3;
-  createdAt: number;
 };
 
 type Settled = { id: number; emoji: string; x: number; y: number; rot: number };
 type Drop = { key: string; emoji: string; x: number; delay: number; rot: number };
 
 const initialTasks: Task[] = [
-  { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, tag: "Today", priority: 2, createdAt: 1 },
-  { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, tag: "Today", priority: 1, createdAt: 2 },
-  { id: 3, title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, tag: "Today", priority: 0, createdAt: 3 },
-  { id: 4, title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, tag: "Tonight", priority: 0, createdAt: 4 },
-  { id: 5, title: "Bake cinnamon rolls", time: "Tomorrow • 10 AM", emoji: "🧁", done: false, tag: "Tomorrow", priority: 3, createdAt: 5 },
+  { id: 1, title: "Morning yoga", time: "7:30 AM", emoji: "🌸", done: false, tag: "Today" },
+  { id: 2, title: "Call grandma", time: "11:00 AM", emoji: "☎️", done: false, tag: "Today" },
+  { id: 3, title: "Water the plants", time: "2:15 PM", emoji: "🪴", done: true, tag: "Today" },
+  { id: 4, title: "Read a few pages", time: "9:00 PM", emoji: "📖", done: false, tag: "Tonight" },
+  { id: 5, title: "Bake cinnamon rolls", time: "Tomorrow • 10 AM", emoji: "🧁", done: false, tag: "Tomorrow" },
 ];
 
 const EMOJI_CHOICES = ["🌸","☎️","🪴","📖","🧁","☕","💌","🍵","🌿","🧘‍♀️","🛁","🎀","✨","🍰","🌙","📚"];
@@ -74,9 +72,6 @@ const Index = () => {
   const [newTitle, setNewTitle] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
   const [newTime, setNewTime] = useState("");
-  const [newDateOpt, setNewDateOpt] = useState<"today" | "tomorrow" | "other">("today");
-  const [newOtherDate, setNewOtherDate] = useState("");
-  const [newPriority, setNewPriority] = useState<0 | 1 | 2 | 3>(0);
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -130,31 +125,18 @@ const Index = () => {
           minute: "2-digit",
         })
       : "Anytime";
-    let tag = "Today";
-    if (newDateOpt === "tomorrow") tag = "Tomorrow";
-    else if (newDateOpt === "other" && newOtherDate) {
-      tag = new Date(newOtherDate).toLocaleDateString([], { month: "short", day: "numeric" });
-    }
     setTasks((t) => [
       ...t,
-      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag, priority: newPriority, createdAt: Date.now() },
+      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag: "Today" },
     ]);
     setNewTitle("");
     setNewTime("");
     setNewEmoji("🌸");
-    setNewDateOpt("today");
-    setNewOtherDate("");
-    setNewPriority(0);
     setActive("home");
   };
 
   const remaining = tasks.filter((t) => !t.done).length;
   const pct = Math.round(((tasks.length - remaining) / tasks.length) * 100);
-
-  const sortedTasks = [...tasks].sort((a, b) => {
-    if (b.priority !== a.priority) return b.priority - a.priority;
-    return a.createdAt - b.createdAt;
-  });
 
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
@@ -259,7 +241,7 @@ const Index = () => {
               <CalendarView />
             </div>
           ) : active === "add" ? (
-            <section className="flex-1 px-6 overflow-y-auto pb-6 space-y-4">
+            <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
               <div>
                 <label className="text-xs font-bold text-muted-foreground px-1">Reminder name</label>
                 <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
@@ -290,42 +272,7 @@ const Index = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">Date</label>
-                <div className="grid grid-cols-3 gap-2 mt-1.5">
-                  {([
-                    { id: "today", label: "Today" },
-                    { id: "tomorrow", label: "Tomorrow" },
-                    { id: "other", label: "Other day" },
-                  ] as const).map((opt) => (
-                    <button
-                      key={opt.id}
-                      onClick={() => setNewDateOpt(opt.id)}
-                      className={`rounded-2xl py-2.5 text-xs font-extrabold transition-all ${
-                        newDateOpt === opt.id
-                          ? "neu-pressed text-primary"
-                          : "neu-surface-sm text-muted-foreground"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                {newDateOpt === "other" && (
-                  <div className="neu-inset rounded-2xl mt-2 px-4 py-3">
-                    <input
-                      type="date"
-                      value={newOtherDate}
-                      onChange={(e) => setNewOtherDate(e.target.value)}
-                      className="w-full text-sm font-bold bg-transparent outline-none"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">
-                  Time <span className="text-muted-foreground/60 font-semibold">(optional)</span>
-                </label>
+                <label className="text-xs font-bold text-muted-foreground px-1">Time</label>
                 <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
                   <input
                     type="time"
@@ -336,42 +283,14 @@ const Index = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">
-                  Priority <span className="text-muted-foreground/60 font-semibold">(optional)</span>
-                </label>
-                <div className="grid grid-cols-3 gap-2 mt-1.5">
-                  {([1, 2, 3] as const).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setNewPriority(newPriority === p ? 0 : p)}
-                      className={`rounded-2xl py-2.5 text-sm font-extrabold tracking-widest transition-all ${
-                        newPriority === p
-                          ? "neu-pressed text-primary"
-                          : "neu-surface-sm text-muted-foreground"
-                      }`}
-                    >
-                      {"!".repeat(p)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-center pt-2">
-                <button
-                  onClick={submitNew}
-                  disabled={!newTitle.trim()}
-                  aria-label="Add reminder"
-                  className="w-20 h-20 rounded-full neu-surface flex items-center justify-center text-primary-foreground transition-all hover:scale-105 active:neu-pressed disabled:opacity-50"
-                  style={{
-                    background: "hsl(var(--primary))",
-                    boxShadow:
-                      "0 12px 30px -8px hsl(var(--primary) / 0.55), inset 2px 2px 4px hsl(0 0% 100% / 0.35), inset -2px -2px 6px hsl(var(--neu-dark) / 0.25)",
-                  }}
-                >
-                  <Plus className="w-9 h-9" strokeWidth={2.8} />
-                </button>
-              </div>
+              <button
+                onClick={submitNew}
+                disabled={!newTitle.trim()}
+                className="w-full rounded-2xl neu-surface-sm py-3.5 text-sm font-extrabold text-primary-foreground transition-all hover:scale-[1.02] active:neu-pressed disabled:opacity-50"
+                style={{ background: "hsl(var(--primary))" }}
+              >
+                Add Reminder {newEmoji}
+              </button>
             </section>
           ) : (
           <>
@@ -450,7 +369,7 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            {sortedTasks.map((task, i) => (
+            {tasks.map((task, i) => (
               <article
                 key={task.id}
                 style={{ animationDelay: `${i * 60}ms` }}
@@ -481,11 +400,9 @@ const Index = () => {
                     {task.time}
                   </p>
                 </div>
-                {task.priority > 0 && (
-                  <span className="text-[11px] font-extrabold text-primary px-2.5 py-1 rounded-full neu-inset tracking-wider">
-                    {"!".repeat(task.priority)}
-                  </span>
-                )}
+                <span className="text-[10px] font-bold text-primary px-2.5 py-1 rounded-full neu-inset">
+                  {task.tag}
+                </span>
               </article>
             ))}
           </section>
