@@ -331,14 +331,17 @@ const Index = () => {
                     }`}
                   >
                     <Smile className="w-3 h-3" strokeWidth={2.4} />
-                    Stickers
+                    More stickers
                   </button>
                 </div>
-                <div className="neu-surface-sm rounded-2xl mt-1.5 p-3 grid grid-cols-8 gap-1.5 max-h-44 overflow-y-auto">
-                  {(showStickers ? [...EMOJI_BASIC, ...EMOJI_STICKERS] : EMOJI_BASIC).map((e) => (
+                <div className="neu-surface-sm rounded-2xl mt-1.5 p-3 grid grid-cols-8 gap-1.5">
+                  {recentEmojis.slice(0, 16).map((e, i) => (
                     <button
-                      key={e}
-                      onClick={() => setNewEmoji(e)}
+                      key={`${e}-${i}`}
+                      onClick={() => {
+                        setNewEmoji(e);
+                        setRecentEmojis((r) => [e, ...r.filter((x) => x !== e)].slice(0, 16));
+                      }}
                       className={`aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
                         newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-105"
                       }`}
@@ -347,6 +350,44 @@ const Index = () => {
                     </button>
                   ))}
                 </div>
+
+                {showStickers && (
+                  <div className="neu-inset rounded-2xl mt-2 p-3">
+                    <div className="flex items-center justify-between mb-2 px-1">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">More stickers</span>
+                      <button
+                        onClick={() => {
+                          const input = window.prompt("Paste an emoji or sticker character:");
+                          const ch = input?.trim();
+                          if (ch) {
+                            setCustomStickers((c) => (c.includes(ch) ? c : [ch, ...c]));
+                            setNewEmoji(ch);
+                            setRecentEmojis((r) => [ch, ...r.filter((x) => x !== ch)].slice(0, 16));
+                          }
+                        }}
+                        className="text-[10px] font-bold px-2.5 py-1 rounded-full neu-surface-sm text-primary"
+                      >
+                        + add yours
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-8 gap-1.5 max-h-44 overflow-y-auto">
+                      {[...customStickers, ...EMOJI_STICKERS].map((e, i) => (
+                        <button
+                          key={`s-${e}-${i}`}
+                          onClick={() => {
+                            setNewEmoji(e);
+                            setRecentEmojis((r) => [e, ...r.filter((x) => x !== e)].slice(0, 16));
+                          }}
+                          className={`aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
+                            newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-105"
+                          }`}
+                        >
+                          {e}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Date — 3 quick options */}
