@@ -70,8 +70,14 @@ const Index = () => {
 
   // Add-form state
   const [newTitle, setNewTitle] = useState("");
+  const [newNotes, setNewNotes] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
+  const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("");
+  const [newFlag, setNewFlag] = useState(false);
+  const [newPriority, setNewPriority] = useState<"none" | "low" | "med" | "high">("none");
+  const [newList, setNewList] = useState("Today");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   // Profile state
   const [profile, setProfile] = useState({
@@ -119,19 +125,28 @@ const Index = () => {
   const submitNew = () => {
     if (!newTitle.trim()) return;
     const id = nextId.current++;
-    const time = newTime
+    const timeLabel = newTime
       ? new Date(`2000-01-01T${newTime}`).toLocaleTimeString([], {
           hour: "numeric",
           minute: "2-digit",
         })
       : "Anytime";
+    const dateLabel = newDate
+      ? new Date(newDate).toLocaleDateString([], { month: "short", day: "numeric" })
+      : "";
+    const time = dateLabel ? `${dateLabel} • ${timeLabel}` : timeLabel;
     setTasks((t) => [
       ...t,
-      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag: "Today" },
+      { id, title: newTitle.trim(), time, emoji: newEmoji, done: false, tag: newList },
     ]);
     setNewTitle("");
+    setNewNotes("");
+    setNewDate("");
     setNewTime("");
     setNewEmoji("🌸");
+    setNewFlag(false);
+    setNewPriority("none");
+    setNewList("Today");
     setActive("home");
   };
 
