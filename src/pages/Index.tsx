@@ -15,6 +15,7 @@ type Task = {
   priority: Priority;
   createdAt: number;
   repeat?: string;
+  note?: string;
 };
 
 type Settled = { id: string; emoji: string; x: number; y: number; rot: number };
@@ -116,6 +117,7 @@ const Index = () => {
 
   // Add-form state
   const [newTitle, setNewTitle] = useState("");
+  const [newNote, setNewNote] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
   const [newTime, setNewTime] = useState("");
   const [showStickers, setShowStickers] = useState(false);
@@ -247,9 +249,11 @@ const Index = () => {
         priority: newPriority,
         createdAt: createdSeq.current++,
         repeat: repeat !== "Never" ? repeat : undefined,
+        note: newNote.trim() || undefined,
       },
     ]);
     setNewTitle("");
+    setNewNote("");
     setNewTime("");
     setNewEmoji("🌸");
     setNewPriority(0);
@@ -594,7 +598,21 @@ const Index = () => {
                     placeholder="e.g. Sip warm tea"
                     className="flex-1 text-sm font-bold bg-transparent outline-none placeholder:text-muted-foreground/70"
                   />
+              </div>
+
+              {/* Note */}
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Note</label>
+                <div className="neu-inset rounded-2xl mt-1.5 px-3 py-2.5">
+                  <textarea
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="Add a short message..."
+                    rows={2}
+                    className="w-full text-sm font-medium bg-transparent outline-none placeholder:text-muted-foreground/70 resize-none"
+                  />
                 </div>
+              </div>
               </div>
 
               {/* Icon box with sticker toggle */}
