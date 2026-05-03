@@ -196,6 +196,8 @@ const Index = () => {
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   };
+
+  const submitNew = () => {
     if (!newTitle.trim()) return;
     const id = nextId.current++;
     const time = newTime
