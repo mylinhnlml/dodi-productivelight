@@ -119,6 +119,7 @@ const Index = () => {
   const [newTitle, setNewTitle] = useState("");
   const [newEmoji, setNewEmoji] = useState("🌸");
   const [newTime, setNewTime] = useState("");
+  const [newNote, setNewNote] = useState("");
   const [showStickers, setShowStickers] = useState(false);
   const [recentEmojis, setRecentEmojis] = useState<string[]>(EMOJI_BASIC);
   const [customStickers, setCustomStickers] = useState<string[]>([]);
