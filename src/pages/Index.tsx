@@ -111,6 +111,9 @@ const Index = () => {
   const [newPriority, setNewPriority] = useState<Priority>(0);
   const [repeat, setRepeat] = useState<string>("Never");
   const [showRepeat, setShowRepeat] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState("");
 
   // Profile state
   const [profile, setProfile] = useState({
