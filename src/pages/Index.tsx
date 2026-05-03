@@ -31,14 +31,33 @@ const initialTasks: Task[] = [
 ];
 
 const EMOJI_CHOICES = ["🌸","☎️","🪴","📖","🧁","☕","💌","🍵","🌿","🧘‍♀️","🛁","🎀","✨","🍰","🌙","📚"];
-const STICKER_PACK = [
+// iOS keyboard "Stickers" box only allows standard emoji stickers (no custom images)
+const IOS_EMOJI_STICKERS = [
   "😀","😁","😂","🥰","😍","😘","🤩","🥳","😎","🤗","🤔","😴","🥱","😇","🙂","😉",
   "🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔",
   "🌸","🌷","🌹","🌺","🌻","🌼","💐","🌿","🍀","🌱","🪴","🌵","🌳","🍂","🍁","🌾",
   "☕","🍵","🧋","🍰","🧁","🍪","🍩","🍮","🍨","🍦","🍓","🍑","🍒","🥐","🥞","🍯",
-  "📚","📖","✏️","📝","📌","🎀","🎁","💌","💝","💖","✨","⭐","🌙","☀️","☁️","🌈",
-  "🛁","🧴","🪥","🧘‍♀️","🏃‍♀️","💆‍♀️","🎧","🎵","📷","🖌️","🎨","🧶","🪡","🕯️","🔮","💎",
 ];
+
+// Curated packs from "creators" — themed sticker sets
+const CREATOR_PACKS: { name: string; author: string; stickers: string[] }[] = [
+  {
+    name: "Cozy Mornings",
+    author: "@peachstudio",
+    stickers: ["☕","🥐","📖","🕯️","🧸","🪴","🌤️","🍯","🥛","🧁","🌙","✨"],
+  },
+  {
+    name: "Soft Bloom",
+    author: "@lilypetal",
+    stickers: ["🌸","🌷","🌹","🌺","🌻","🌼","💐","🍃","🦋","🐝","🌿","🪷"],
+  },
+  {
+    name: "Self Care",
+    author: "@calmco",
+    stickers: ["🛁","🧴","🪥","🧘‍♀️","💆‍♀️","🎧","🕯️","💖","🍵","📚","🌙","💎"],
+  },
+];
+
 
 const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
