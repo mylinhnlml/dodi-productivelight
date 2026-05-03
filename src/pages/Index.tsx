@@ -400,7 +400,7 @@ const Index = () => {
                   </button>
                 </div>
               </div>
-              <CalendarView />
+              <CalendarView tasks={tasks} onToggle={toggle} onDelete={deleteTask} />
             </div>
           ) : active === "add" ? (
             <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
