@@ -598,7 +598,21 @@ const Index = () => {
                     placeholder="e.g. Sip warm tea"
                     className="flex-1 text-sm font-bold bg-transparent outline-none placeholder:text-muted-foreground/70"
                   />
+              </div>
+
+              {/* Note */}
+              <div>
+                <label className="text-xs font-bold text-muted-foreground px-1">Note</label>
+                <div className="neu-inset rounded-2xl mt-1.5 px-3 py-2.5">
+                  <textarea
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="Add a short message..."
+                    rows={2}
+                    className="w-full text-sm font-medium bg-transparent outline-none placeholder:text-muted-foreground/70 resize-none"
+                  />
                 </div>
+              </div>
               </div>
 
               {/* Icon box with sticker toggle */}
