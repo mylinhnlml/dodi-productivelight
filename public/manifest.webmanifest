@@ -1,0 +1,12 @@
+{
+  "name": "Dodi - Productive light",
+  "short_name": "Dodi",
+  "description": "Overwhelmed by your to-do list? Let Dodi bring a splash of sunshine to your day!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF9F1C",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "any", "type": "image/x-icon" }
+  ]
+}
