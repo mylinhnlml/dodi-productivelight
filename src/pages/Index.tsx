@@ -1,4 +1,4 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2 } from "lucide-react";
 import { useRef, useState, useMemo } from "react";
 import { toast } from "sonner";
 import CalendarView from "@/components/CalendarView";
