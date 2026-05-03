@@ -260,14 +260,12 @@ const Index = () => {
     setActive("home");
   };
 
-  const todayTasks = tasks.filter((t) => t.dueDate === todayStr());
-  const remaining = todayTasks.filter((t) => !t.done).length;
-  const pct = todayTasks.length === 0 ? 0 : Math.round(((todayTasks.length - remaining) / todayTasks.length) * 100);
+  const todayIso = todayStr();
 
   // Sort: by date asc, then priority desc, then createdAt asc
   // Also limit to today + 6 upcoming days, and expand recurring tasks
   const sortedTasks = useMemo(() => {
-    const today = new Date(todayStr());
+    const today = new Date(todayIso);
     const startMs = today.getTime();
     const maxMs = startMs + 6 * 86400000;
     const fmt = (d: Date) =>
@@ -278,7 +276,6 @@ const Index = () => {
 
     for (const t of tasks) {
       const base = new Date(t.dueDate);
-      // generate occurrences within window
       const occurrences: string[] = [];
       const pushIfInWindow = (d: Date) => {
         const ms = d.getTime();
@@ -287,8 +284,7 @@ const Index = () => {
       pushIfInWindow(base);
 
       if (t.repeat) {
-        // step forward from base until past window
-        const cap = 400; // safety
+        const cap = 400;
         let i = 0;
         const next = new Date(base);
         while (i++ < cap) {
@@ -304,10 +300,12 @@ const Index = () => {
       }
 
       for (const iso of occurrences) {
+        const occKey = `${t.id}|${iso}`;
         out.push({
           ...t,
           dueDate: iso,
-          occKey: `${t.id}|${iso}`,
+          done: completed.has(occKey),
+          occKey,
           isOccurrence: iso !== t.dueDate,
         });
       }
@@ -318,7 +316,11 @@ const Index = () => {
       if (a.priority !== b.priority) return b.priority - a.priority;
       return a.createdAt - b.createdAt;
     });
-  }, [tasks]);
+  }, [tasks, completed, todayIso]);
+
+  const todayTasks = sortedTasks.filter((t) => t.dueDate === todayIso);
+  const remaining = todayTasks.filter((t) => !t.done).length;
+  const pct = todayTasks.length === 0 ? 0 : Math.round(((todayTasks.length - remaining) / todayTasks.length) * 100);
 
   // Expand all tasks (incl. recurring) across the whole year for calendar
   const yearOccurrences = useMemo(() => {
