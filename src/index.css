@@ -86,3 +86,9 @@
     box-shadow: var(--shadow-neu-pressed);
   }
 }
+
+/* Center the "Added successfully" sonner toast on screen */
+[data-sonner-toaster][data-y-position="top"]:has(.dodi-center-toast) {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
