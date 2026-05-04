@@ -459,7 +459,11 @@ const Index = () => {
     toast.success(
       <span className="flex items-center gap-1.5">
         Added successfully in <Bell className="w-4 h-4" />
-      </span>
+      </span>,
+      {
+        position: "top-center",
+        className: "dodi-center-toast",
+      }
     );
   };
 
