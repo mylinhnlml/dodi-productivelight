@@ -1349,32 +1349,33 @@ const Index = () => {
                     <span className="text-base leading-none">×</span>
                   </button>
                 </div>
-                {/* Curvy symmetric arrow pointing down to (+) */}
+                {/* Hand-drawn loopy arrow pointing down to (+) */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-[72px] pointer-events-none"
-                  style={{ animation: "bounce 1.6s ease-in-out infinite" }}
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-[96px] pointer-events-none"
+                  style={{ animation: "bounce 1.8s ease-in-out infinite" }}
                   aria-hidden
                 >
-                  <svg width="58" height="78" viewBox="0 0 58 78" fill="none">
+                  <svg width="96" height="104" viewBox="0 0 100 110" fill="none">
                     <defs>
-                      <linearGradient id="ctaArrow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(48 100% 75%)" />
-                        <stop offset="100%" stopColor="hsl(35 95% 60%)" />
+                      <linearGradient id="ctaArrow" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="hsl(48 100% 72%)" />
+                        <stop offset="100%" stopColor="hsl(35 95% 58%)" />
                       </linearGradient>
                     </defs>
-                    {/* Symmetric S-curve shaft */}
+                    {/* Loopy hand-drawn shaft */}
                     <path
-                      d="M29 6 C 10 22, 48 42, 29 60"
+                      d="M10 8 C 28 26, 4 42, 28 52 C 58 62, 62 30, 42 44 C 26 56, 46 80, 56 98"
                       stroke="url(#ctaArrow)"
-                      strokeWidth="6"
+                      strokeWidth="4.5"
                       strokeLinecap="round"
+                      strokeLinejoin="round"
                       fill="none"
                     />
-                    {/* Curved arrowhead — two mirrored arcs meeting at the tip */}
+                    {/* Sketchy arrowhead at the tip */}
                     <path
-                      d="M14 48 Q 21 58, 29 62 Q 37 58, 44 48"
+                      d="M44 90 L 56 98 L 52 84"
                       stroke="url(#ctaArrow)"
-                      strokeWidth="6"
+                      strokeWidth="4.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       fill="none"
