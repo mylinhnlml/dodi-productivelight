@@ -239,6 +239,14 @@ const Index = () => {
     });
 
     if (becomingDone) {
+      if (!userId) {
+        const next = guestCompletes + 1;
+        setGuestCompletes(next);
+        try { localStorage.setItem("dodi.guestCompletes", String(next)); } catch {}
+        if (next >= 3) {
+          window.setTimeout(() => setShowLoginWall(true), 1200);
+        }
+      }
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
         emoji: task.emoji,
