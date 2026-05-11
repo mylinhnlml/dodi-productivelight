@@ -98,6 +98,18 @@ const Index = () => {
   const justSwipedRef = useRef<Set<string>>(new Set());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showIntro, setShowIntro] = useState<boolean>(() => {
+    try { return !localStorage.getItem("dodi.introSeen"); } catch { return true; }
+  });
+  const [guestCompletes, setGuestCompletes] = useState<number>(() => {
+    try { return Number(localStorage.getItem("dodi.guestCompletes") || "0"); } catch { return 0; }
+  });
+  const [showLoginWall, setShowLoginWall] = useState(false);
+
+  const dismissIntro = () => {
+    try { localStorage.setItem("dodi.introSeen", "1"); } catch {}
+    setShowIntro(false);
+  };
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
