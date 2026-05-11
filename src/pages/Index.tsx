@@ -107,6 +107,11 @@ const Index = () => {
     setShowIntro(false);
   };
 
+  const [guestCompletes, setGuestCompletes] = useState<number>(() => {
+    try { return Number(localStorage.getItem("dodi.guestCompletes") || 0); } catch { return 0; }
+  });
+  const [showLoginWall, setShowLoginWall] = useState<boolean>(false);
+
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
