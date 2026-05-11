@@ -111,6 +111,9 @@ const Index = () => {
     try { return Number(localStorage.getItem("dodi.guestCompletes") || 0); } catch { return 0; }
   });
   const [showLoginWall, setShowLoginWall] = useState<boolean>(false);
+  const [hasCreatedFirst, setHasCreatedFirst] = useState<boolean>(() => {
+    try { return localStorage.getItem("dodi.firstReminderCreated") === "1"; } catch { return false; }
+  });
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
@@ -453,6 +456,10 @@ const Index = () => {
       repeat: repeat !== "Never" ? repeat : undefined,
     };
     setTasks((t) => [...t, newTask]);
+    if (!hasCreatedFirst) {
+      setHasCreatedFirst(true);
+      try { localStorage.setItem("dodi.firstReminderCreated", "1"); } catch {}
+    }
     if (userId) {
       const { error } = await supabase.from("tasks").insert({
         id,
@@ -1294,23 +1301,26 @@ const Index = () => {
           </>
           )}
 
-          {/* First-reminder CTA — shows on Reminder tab when there are no tasks */}
-          {active === "home" && tasks.length === 0 && (
+          {/* First-reminder CTA — only for first-time users who haven't created any reminder yet */}
+          {active === "home" && !hasCreatedFirst && !showIntro && (
             <div className="px-6 pb-1 flex justify-center pointer-events-none">
-              <div className="relative max-w-[280px] animate-[fade-in_0.5s_ease-out_both]">
+              <div className="relative max-w-[300px] animate-[fade-in_0.6s_ease-out_both]">
                 <div
-                  className="rounded-2xl px-4 py-2.5 text-center text-xs font-extrabold text-stone-700 shadow-md"
+                  className="rounded-2xl px-4 py-3 text-center text-xs font-extrabold text-stone-700"
                   style={{
                     background:
-                      "linear-gradient(135deg, hsl(45 100% 88%), hsl(35 100% 80%))",
+                      "linear-gradient(135deg, hsl(48 100% 86%), hsl(32 100% 78%))",
+                    boxShadow:
+                      "0 8px 24px -8px hsl(35 90% 55% / 0.5), 0 0 0 2px hsl(45 100% 75% / 0.4)",
                   }}
                 >
                   <span className="mr-1 text-base">🌞</span>
-                  Shine your productive light — create your first reminder!
+                  Shine your productive light — create your first reminder now!
                 </div>
+                {/* Arrow points down to the center (+) button of the bottom nav */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-3 text-2xl"
-                  style={{ animation: "bounce 1.2s ease-in-out infinite" }}
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-4 text-3xl drop-shadow"
+                  style={{ animation: "bounce 1.1s ease-in-out infinite" }}
                   aria-hidden
                 >
                   👇
