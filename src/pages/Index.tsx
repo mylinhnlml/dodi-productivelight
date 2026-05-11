@@ -3,6 +3,8 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
+import IntroTour from "@/components/IntroTour";
+import Onboarding from "@/components/Onboarding";
 
 type Priority = 0 | 1 | 2 | 3;
 
