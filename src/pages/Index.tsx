@@ -1301,29 +1301,34 @@ const Index = () => {
           </>
           )}
 
-          {/* First-reminder CTA — only for first-time users who haven't created any reminder yet */}
+          {/* First-reminder CTA — minimal, cute, yellow */}
           {active === "home" && !hasCreatedFirst && !showIntro && (
-            <div className="px-6 pb-1 flex justify-center pointer-events-none">
-              <div className="relative max-w-[300px] animate-[fade-in_0.6s_ease-out_both]">
+            <div className="px-6 pb-2 flex justify-center pointer-events-none">
+              <div className="relative animate-[fade-in_0.6s_ease-out_both]">
                 <div
-                  className="rounded-2xl px-4 py-3 text-center text-xs font-extrabold text-stone-700"
+                  className="flex items-center gap-2 rounded-full pl-3 pr-4 py-2 text-[12px] font-semibold tracking-tight text-stone-700"
                   style={{
-                    background:
-                      "linear-gradient(135deg, hsl(48 100% 86%), hsl(32 100% 78%))",
-                    boxShadow:
-                      "0 8px 24px -8px hsl(35 90% 55% / 0.5), 0 0 0 2px hsl(45 100% 75% / 0.4)",
+                    background: "hsl(48 100% 92%)",
+                    border: "1px solid hsl(45 90% 80%)",
+                    boxShadow: "0 4px 14px -6px hsl(40 90% 55% / 0.35)",
                   }}
                 >
-                  <span className="mr-1 text-base">🌞</span>
-                  Shine your productive light — create your first reminder now!
+                  <span
+                    className="inline-flex items-center justify-center w-6 h-6 rounded-full text-sm"
+                    style={{ background: "hsl(45 100% 82%)" }}
+                    aria-hidden
+                  >
+                    ☀️
+                  </span>
+                  <span>Shine your light — tap to create your first reminder</span>
                 </div>
-                {/* Arrow points down to the center (+) button of the bottom nav */}
+                {/* Tiny arrow pointing to the (+) button */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-4 text-3xl drop-shadow"
-                  style={{ animation: "bounce 1.1s ease-in-out infinite" }}
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-3 text-lg"
+                  style={{ animation: "bounce 1.2s ease-in-out infinite", color: "hsl(40 90% 55%)" }}
                   aria-hidden
                 >
-                  👇
+                  ↓
                 </div>
               </div>
             </div>
