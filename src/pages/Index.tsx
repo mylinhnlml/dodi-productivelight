@@ -111,6 +111,9 @@ const Index = () => {
     try { return Number(localStorage.getItem("dodi.guestCompletes") || 0); } catch { return 0; }
   });
   const [showLoginWall, setShowLoginWall] = useState<boolean>(false);
+  const [hasCreatedFirst, setHasCreatedFirst] = useState<boolean>(() => {
+    try { return localStorage.getItem("dodi.firstReminderCreated") === "1"; } catch { return false; }
+  });
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
