@@ -114,6 +114,13 @@ const Index = () => {
   const [hasCreatedFirst, setHasCreatedFirst] = useState<boolean>(() => {
     try { return localStorage.getItem("dodi.firstReminderCreated") === "1"; } catch { return false; }
   });
+  const [ctaDismissed, setCtaDismissed] = useState<boolean>(() => {
+    try { return localStorage.getItem("dodi.firstCtaDismissed") === "1"; } catch { return false; }
+  });
+  const dismissFirstCta = () => {
+    setCtaDismissed(true);
+    try { localStorage.setItem("dodi.firstCtaDismissed", "1"); } catch {}
+  };
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
@@ -1301,34 +1308,69 @@ const Index = () => {
           </>
           )}
 
-          {/* First-reminder CTA — minimal, cute, yellow */}
-          {active === "home" && !hasCreatedFirst && !showIntro && (
-            <div className="px-6 pb-2 flex justify-center pointer-events-none">
-              <div className="relative animate-[fade-in_0.6s_ease-out_both]">
+          {/* First-reminder CTA — soft notification card, dismissible */}
+          {active === "home" && !hasCreatedFirst && !showIntro && !ctaDismissed && (
+            <div className="px-5 pb-3 flex justify-center">
+              <div className="relative w-full max-w-[340px] animate-[fade-in_0.5s_ease-out_both]">
                 <div
-                  className="flex items-center gap-2 rounded-full pl-3 pr-4 py-2 text-[12px] font-semibold tracking-tight text-stone-700"
+                  className="flex items-center gap-3 rounded-2xl pl-3 pr-2 py-2.5"
                   style={{
-                    background: "hsl(48 100% 92%)",
-                    border: "1px solid hsl(45 90% 80%)",
-                    boxShadow: "0 4px 14px -6px hsl(40 90% 55% / 0.35)",
+                    background: "linear-gradient(180deg, hsl(50 100% 95%), hsl(45 100% 90%))",
+                    border: "1px solid hsl(45 90% 82%)",
+                    boxShadow: "0 10px 28px -12px hsl(40 90% 50% / 0.35), inset 0 1px 0 hsl(0 0% 100% / 0.6)",
                   }}
                 >
-                  <span
-                    className="inline-flex items-center justify-center w-6 h-6 rounded-full text-sm"
-                    style={{ background: "hsl(45 100% 82%)" }}
+                  {/* Sun avatar */}
+                  <div
+                    className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-2xl text-xl"
+                    style={{
+                      background: "linear-gradient(135deg, hsl(48 100% 80%), hsl(38 100% 72%))",
+                      boxShadow: "inset 0 -2px 0 hsl(35 90% 60% / 0.35)",
+                    }}
                     aria-hidden
                   >
-                    ☀️
-                  </span>
-                  <span>Shine your light — tap to create your first reminder</span>
+                    🌞
+                  </div>
+                  {/* Text */}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[12px] font-extrabold text-stone-800 leading-tight">
+                      Hey sunshine! ✨
+                    </div>
+                    <div className="text-[11px] font-medium text-stone-600 leading-snug mt-0.5">
+                      Shine your productive light — tap <span className="font-bold">＋</span> to create your first reminder.
+                    </div>
+                  </div>
+                  {/* Dismiss */}
+                  <button
+                    onClick={dismissFirstCta}
+                    aria-label="Dismiss tip"
+                    className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-700 hover:bg-white/60 transition-colors"
+                  >
+                    <span className="text-base leading-none">×</span>
+                  </button>
                 </div>
-                {/* Tiny arrow pointing to the (+) button */}
+                {/* Big soft arrow pointing to the (+) button */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-3 text-lg"
-                  style={{ animation: "bounce 1.2s ease-in-out infinite", color: "hsl(40 90% 55%)" }}
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-7 pointer-events-none"
+                  style={{ animation: "bounce 1.4s ease-in-out infinite" }}
                   aria-hidden
                 >
-                  ↓
+                  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                    <defs>
+                      <linearGradient id="ctaArrow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(48 100% 75%)" />
+                        <stop offset="100%" stopColor="hsl(35 95% 60%)" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M22 6 V30 M10 22 L22 34 L34 22"
+                      stroke="url(#ctaArrow)"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      fill="none"
+                    />
+                  </svg>
                 </div>
               </div>
             </div>
