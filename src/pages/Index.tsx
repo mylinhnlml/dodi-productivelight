@@ -3,6 +3,8 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
+import IntroTour from "@/components/IntroTour";
+import Onboarding from "@/components/Onboarding";
 
 type Priority = 0 | 1 | 2 | 3;
 
@@ -96,6 +98,18 @@ const Index = () => {
   const justSwipedRef = useRef<Set<string>>(new Set());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showIntro, setShowIntro] = useState<boolean>(() => {
+    try { return !localStorage.getItem("dodi.introSeen"); } catch { return true; }
+  });
+  const [guestCompletes, setGuestCompletes] = useState<number>(() => {
+    try { return Number(localStorage.getItem("dodi.guestCompletes") || "0"); } catch { return 0; }
+  });
+  const [showLoginWall, setShowLoginWall] = useState(false);
+
+  const dismissIntro = () => {
+    try { localStorage.setItem("dodi.introSeen", "1"); } catch {}
+    setShowIntro(false);
+  };
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
@@ -225,6 +239,14 @@ const Index = () => {
     });
 
     if (becomingDone) {
+      if (!userId) {
+        const next = guestCompletes + 1;
+        setGuestCompletes(next);
+        try { localStorage.setItem("dodi.guestCompletes", String(next)); } catch {}
+        if (next >= 3) {
+          window.setTimeout(() => setShowLoginWall(true), 1200);
+        }
+      }
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
         emoji: task.emoji,
@@ -610,7 +632,13 @@ const Index = () => {
     : active === "add" ? "New Reminder"
     : "Upcoming Tasks";
 
+  if (showLoginWall && !userId) {
+    return <Onboarding />;
+  }
+
   return (
+    <>
+    {showIntro && <IntroTour onDone={dismissIntro} />}
     <main className="min-h-screen flex items-center justify-center p-4 md:p-8">
       <div className="relative w-full max-w-[400px] aspect-[9/19] rounded-[3rem] neu-surface p-3">
         <div className="w-full h-full rounded-[2.5rem] neu-inset overflow-hidden flex flex-col">
@@ -1306,6 +1334,7 @@ const Index = () => {
         </div>
       </div>
     </main>
+    </>
   );
 };
 
