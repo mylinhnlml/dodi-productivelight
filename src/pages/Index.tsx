@@ -1308,9 +1308,9 @@ const Index = () => {
           </>
           )}
 
-          {/* First-reminder CTA — centered soft notification card, dismissible */}
+          {/* First-reminder CTA — positioned so arrow lands on the + button */}
           {active === "home" && !hasCreatedFirst && !showIntro && !ctaDismissed && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none" style={{ bottom: '9rem' }}>
               <div className="relative animate-[fade-in_0.5s_ease-out_both] pointer-events-auto">
                 <div
                   className="flex items-center gap-3.5 rounded-3xl pl-4 pr-3 py-3.5"
@@ -1349,22 +1349,22 @@ const Index = () => {
                     <span className="text-lg leading-none">×</span>
                   </button>
                 </div>
-                {/* Big soft arrow pointing down toward the + button */}
+                {/* Long arrow reaching down to the + button */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-11 pointer-events-none"
+                  className="absolute left-1/2 -translate-x-1/2 top-full mt-1 pointer-events-none"
                   style={{ animation: "bounce 1.4s ease-in-out infinite" }}
                   aria-hidden
                 >
-                  <svg width="58" height="58" viewBox="0 0 58 58" fill="none">
+                  <svg width="58" height="96" viewBox="0 0 58 96" fill="none">
                     <defs>
-                      <linearGradient id="ctaArrowV2" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="ctaArrowV3" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="hsl(48 100% 80%)" />
                         <stop offset="100%" stopColor="hsl(35 95% 62%)" />
                       </linearGradient>
                     </defs>
                     <path
-                      d="M29 6 V36 M12 24 L29 44 L46 24"
-                      stroke="url(#ctaArrowV2)"
+                      d="M29 6 V78 M12 66 L29 94 L46 66"
+                      stroke="url(#ctaArrowV3)"
                       strokeWidth="6"
                       strokeLinecap="round"
                       strokeLinejoin="round"
