@@ -1293,6 +1293,31 @@ const Index = () => {
           </>
           )}
 
+          {/* First-reminder CTA — shows on Reminder tab when there are no tasks */}
+          {active === "home" && tasks.length === 0 && (
+            <div className="px-6 pb-1 flex justify-center pointer-events-none">
+              <div className="relative max-w-[280px] animate-[fade-in_0.5s_ease-out_both]">
+                <div
+                  className="rounded-2xl px-4 py-2.5 text-center text-xs font-extrabold text-stone-700 shadow-md"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, hsl(45 100% 88%), hsl(35 100% 80%))",
+                  }}
+                >
+                  <span className="mr-1 text-base">🌞</span>
+                  Shine your productive light — create your first reminder!
+                </div>
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-3 text-2xl"
+                  style={{ animation: "bounce 1.2s ease-in-out infinite" }}
+                  aria-hidden
+                >
+                  👇
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Bottom nav — 3 tabs */}
           <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-6 py-2.5 flex items-center justify-between">
             {[
