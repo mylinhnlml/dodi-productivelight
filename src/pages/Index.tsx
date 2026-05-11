@@ -1308,21 +1308,22 @@ const Index = () => {
           </>
           )}
 
-          {/* First-reminder CTA — soft notification card, dismissible */}
+          {/* First-reminder CTA — centered notification, dismissible */}
           {active === "home" && !hasCreatedFirst && !showIntro && !ctaDismissed && (
-            <div className="px-5 pb-3 flex justify-center">
-              <div className="relative w-full max-w-[340px] animate-[fade-in_0.5s_ease-out_both]">
+            <div className="fixed inset-0 z-40 flex flex-col items-center justify-center pointer-events-none px-6">
+              <div className="relative w-full max-w-[320px] pointer-events-auto animate-[scale-in_0.35s_ease-out_both]">
                 <div
-                  className="flex items-center gap-3 rounded-2xl pl-3 pr-2 py-2.5"
+                  className="flex items-center gap-3 rounded-3xl pl-3 pr-2 py-3"
                   style={{
-                    background: "linear-gradient(180deg, hsl(50 100% 95%), hsl(45 100% 90%))",
+                    background: "linear-gradient(180deg, hsl(50 100% 96%), hsl(45 100% 90%))",
                     border: "1px solid hsl(45 90% 82%)",
-                    boxShadow: "0 10px 28px -12px hsl(40 90% 50% / 0.35), inset 0 1px 0 hsl(0 0% 100% / 0.6)",
+                    boxShadow:
+                      "0 24px 48px -16px hsl(40 90% 45% / 0.35), 0 4px 12px -4px hsl(40 90% 45% / 0.18), inset 0 1px 0 hsl(0 0% 100% / 0.7)",
                   }}
                 >
                   {/* Sun avatar */}
                   <div
-                    className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-2xl text-xl"
+                    className="shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-2xl text-2xl"
                     style={{
                       background: "linear-gradient(135deg, hsl(48 100% 80%), hsl(38 100% 72%))",
                       boxShadow: "inset 0 -2px 0 hsl(35 90% 60% / 0.35)",
@@ -1333,7 +1334,7 @@ const Index = () => {
                   </div>
                   {/* Text */}
                   <div className="flex-1 min-w-0">
-                    <div className="text-[12px] font-extrabold text-stone-800 leading-tight">
+                    <div className="text-[13px] font-extrabold text-stone-800 leading-tight">
                       Hey sunshine! ✨
                     </div>
                     <div className="text-[11px] font-medium text-stone-600 leading-snug mt-0.5">
@@ -1349,23 +1350,31 @@ const Index = () => {
                     <span className="text-base leading-none">×</span>
                   </button>
                 </div>
-                {/* Big soft arrow pointing to the (+) button */}
+                {/* Big rounded symmetric arrow pointing to the (+) button */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-7 pointer-events-none"
-                  style={{ animation: "bounce 1.4s ease-in-out infinite" }}
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-20 pointer-events-none"
+                  style={{ animation: "bounce 1.6s ease-in-out infinite" }}
                   aria-hidden
                 >
-                  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                  <svg width="72" height="84" viewBox="0 0 72 84" fill="none">
                     <defs>
-                      <linearGradient id="ctaArrow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(48 100% 75%)" />
-                        <stop offset="100%" stopColor="hsl(35 95% 60%)" />
+                      <linearGradient id="ctaArrow" x1="36" y1="0" x2="36" y2="84" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stopColor="hsl(48 100% 78%)" />
+                        <stop offset="100%" stopColor="hsl(35 95% 58%)" />
                       </linearGradient>
                     </defs>
+                    {/* Symmetric rounded down arrow: shaft + chevron */}
                     <path
-                      d="M22 6 V30 M10 22 L22 34 L34 22"
+                      d="M36 8 L36 56"
                       stroke="url(#ctaArrow)"
-                      strokeWidth="5"
+                      strokeWidth="12"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <path
+                      d="M14 50 L36 72 L58 50"
+                      stroke="url(#ctaArrow)"
+                      strokeWidth="12"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       fill="none"
