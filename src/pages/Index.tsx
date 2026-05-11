@@ -1308,21 +1308,21 @@ const Index = () => {
           </>
           )}
 
-          {/* First-reminder CTA — soft notification card, dismissible */}
+          {/* First-reminder CTA — centered soft notification card, dismissible */}
           {active === "home" && !hasCreatedFirst && !showIntro && !ctaDismissed && (
-            <div className="px-5 pb-3 flex justify-center">
-              <div className="relative w-full max-w-[340px] animate-[fade-in_0.5s_ease-out_both]">
+            <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+              <div className="relative animate-[fade-in_0.5s_ease-out_both] pointer-events-auto">
                 <div
-                  className="flex items-center gap-3 rounded-2xl pl-3 pr-2 py-2.5"
+                  className="flex items-center gap-3.5 rounded-3xl pl-4 pr-3 py-3.5"
                   style={{
-                    background: "linear-gradient(180deg, hsl(50 100% 95%), hsl(45 100% 90%))",
-                    border: "1px solid hsl(45 90% 82%)",
-                    boxShadow: "0 10px 28px -12px hsl(40 90% 50% / 0.35), inset 0 1px 0 hsl(0 0% 100% / 0.6)",
+                    background: "linear-gradient(180deg, hsl(50 100% 96%), hsl(45 100% 92%))",
+                    border: "2.5px solid hsl(45 90% 85%)",
+                    boxShadow: "0 20px 48px -14px hsl(40 90% 50% / 0.28), inset 0 1px 0 hsl(0 0% 100% / 0.7)",
                   }}
                 >
                   {/* Sun avatar */}
                   <div
-                    className="shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-2xl text-xl"
+                    className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-[1.125rem] text-2xl"
                     style={{
                       background: "linear-gradient(135deg, hsl(48 100% 80%), hsl(38 100% 72%))",
                       boxShadow: "inset 0 -2px 0 hsl(35 90% 60% / 0.35)",
@@ -1332,11 +1332,11 @@ const Index = () => {
                     🌞
                   </div>
                   {/* Text */}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[12px] font-extrabold text-stone-800 leading-tight">
+                  <div className="flex-1 min-w-0 pr-1">
+                    <div className="text-[13px] font-extrabold text-stone-800 leading-tight">
                       Hey sunshine! ✨
                     </div>
-                    <div className="text-[11px] font-medium text-stone-600 leading-snug mt-0.5">
+                    <div className="text-[12px] font-medium text-stone-600 leading-snug mt-0.5">
                       Shine your productive light — tap <span className="font-bold">＋</span> to create your first reminder.
                     </div>
                   </div>
@@ -1344,28 +1344,28 @@ const Index = () => {
                   <button
                     onClick={dismissFirstCta}
                     aria-label="Dismiss tip"
-                    className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-700 hover:bg-white/60 transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-700 hover:bg-white/60 transition-colors"
                   >
-                    <span className="text-base leading-none">×</span>
+                    <span className="text-lg leading-none">×</span>
                   </button>
                 </div>
-                {/* Big soft arrow pointing to the (+) button */}
+                {/* Big soft arrow pointing down toward the + button */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-7 pointer-events-none"
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-11 pointer-events-none"
                   style={{ animation: "bounce 1.4s ease-in-out infinite" }}
                   aria-hidden
                 >
-                  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                  <svg width="58" height="58" viewBox="0 0 58 58" fill="none">
                     <defs>
-                      <linearGradient id="ctaArrow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(48 100% 75%)" />
-                        <stop offset="100%" stopColor="hsl(35 95% 60%)" />
+                      <linearGradient id="ctaArrowV2" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(48 100% 80%)" />
+                        <stop offset="100%" stopColor="hsl(35 95% 62%)" />
                       </linearGradient>
                     </defs>
                     <path
-                      d="M22 6 V30 M10 22 L22 34 L34 22"
-                      stroke="url(#ctaArrow)"
-                      strokeWidth="5"
+                      d="M29 6 V36 M12 24 L29 44 L46 24"
+                      stroke="url(#ctaArrowV2)"
+                      strokeWidth="6"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       fill="none"
