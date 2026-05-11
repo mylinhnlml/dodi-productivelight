@@ -1208,7 +1208,11 @@ const Index = () => {
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
-            
+
+  const [guestCompletes, setGuestCompletes] = useState<number>(() => {
+    try { return Number(localStorage.getItem("dodi.guestCompletes") || 0); } catch { return 0; }
+  });
+  const [showLoginWall, setShowLoginWall] = useState<boolean>(false);
 
             {sortedTasks.filter((t) => t.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).map((task, i) => {
               const offset = swipeOffsets[task.occKey] ?? 0;
