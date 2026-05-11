@@ -1293,6 +1293,37 @@ const Index = () => {
           </>
           )}
 
+          {/* First-task CTA — points to the + button */}
+          {!showIntro && tasks.length === 0 && active === "home" && (
+            <div className="px-5 pb-1 animate-[fade-in_0.5s_ease-out_both]">
+              <div className="relative mx-auto max-w-[300px]">
+                <div className="rounded-2xl bg-gradient-to-br from-amber-200 via-amber-100 to-rose-100 px-3.5 py-2.5 shadow-md flex items-center gap-2">
+                  <span
+                    className="text-2xl shrink-0"
+                    style={{ animation: "pulse 1.6s ease-in-out infinite" }}
+                  >
+                    🌞
+                  </span>
+                  <p className="text-[12px] font-extrabold leading-snug text-stone-700">
+                    Shine your productive light,
+                    <br />
+                    create your first reminder now!
+                  </p>
+                </div>
+                {/* arrow pointing down to the + button */}
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-3 w-0 h-0"
+                  style={{
+                    borderLeft: "10px solid transparent",
+                    borderRight: "10px solid transparent",
+                    borderTop: "12px solid hsl(40 90% 80%)",
+                    animation: "bounce 1.4s ease-in-out infinite",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Bottom nav — 3 tabs */}
           <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-6 py-2.5 flex items-center justify-between">
             {[
