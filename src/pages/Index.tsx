@@ -1308,16 +1308,16 @@ const Index = () => {
           </>
           )}
 
-          {/* First-reminder CTA — centered soft notification with curvy arrow */}
+          {/* First-reminder CTA — soft notification card, dismissible */}
           {active === "home" && !hasCreatedFirst && !showIntro && !ctaDismissed && (
-            <div className="fixed inset-0 z-30 flex items-center justify-center px-6 pointer-events-none">
-              <div className="relative w-full max-w-[340px] animate-[fade-in_0.5s_ease-out_both] pointer-events-auto">
+            <div className="px-5 pb-3 flex justify-center">
+              <div className="relative w-full max-w-[340px] animate-[fade-in_0.5s_ease-out_both]">
                 <div
                   className="flex items-center gap-3 rounded-2xl pl-3 pr-2 py-2.5"
                   style={{
                     background: "linear-gradient(180deg, hsl(50 100% 95%), hsl(45 100% 90%))",
                     border: "1px solid hsl(45 90% 82%)",
-                    boxShadow: "0 18px 40px -14px hsl(40 90% 50% / 0.45), inset 0 1px 0 hsl(0 0% 100% / 0.6)",
+                    boxShadow: "0 10px 28px -12px hsl(40 90% 50% / 0.35), inset 0 1px 0 hsl(0 0% 100% / 0.6)",
                   }}
                 >
                   {/* Sun avatar */}
@@ -1349,33 +1349,23 @@ const Index = () => {
                     <span className="text-base leading-none">×</span>
                   </button>
                 </div>
-                {/* Hand-drawn loopy arrow pointing down to (+) */}
+                {/* Big soft arrow pointing to the (+) button */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-[96px] pointer-events-none"
-                  style={{ animation: "bounce 1.8s ease-in-out infinite" }}
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-7 pointer-events-none"
+                  style={{ animation: "bounce 1.4s ease-in-out infinite" }}
                   aria-hidden
                 >
-                  <svg width="96" height="104" viewBox="0 0 100 110" fill="none">
+                  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
                     <defs>
-                      <linearGradient id="ctaArrow" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="hsl(48 100% 72%)" />
-                        <stop offset="100%" stopColor="hsl(35 95% 58%)" />
+                      <linearGradient id="ctaArrow" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(48 100% 75%)" />
+                        <stop offset="100%" stopColor="hsl(35 95% 60%)" />
                       </linearGradient>
                     </defs>
-                    {/* Loopy hand-drawn shaft */}
                     <path
-                      d="M10 8 C 28 26, 4 42, 28 52 C 58 62, 62 30, 42 44 C 26 56, 46 80, 56 98"
+                      d="M22 6 V30 M10 22 L22 34 L34 22"
                       stroke="url(#ctaArrow)"
-                      strokeWidth="4.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill="none"
-                    />
-                    {/* Sketchy arrowhead at the tip */}
-                    <path
-                      d="M44 90 L 56 98 L 52 84"
-                      stroke="url(#ctaArrow)"
-                      strokeWidth="4.5"
+                      strokeWidth="5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       fill="none"
