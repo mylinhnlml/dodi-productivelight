@@ -456,6 +456,10 @@ const Index = () => {
       repeat: repeat !== "Never" ? repeat : undefined,
     };
     setTasks((t) => [...t, newTask]);
+    if (!hasCreatedFirst) {
+      setHasCreatedFirst(true);
+      try { localStorage.setItem("dodi.firstReminderCreated", "1"); } catch {}
+    }
     if (userId) {
       const { error } = await supabase.from("tasks").insert({
         id,
