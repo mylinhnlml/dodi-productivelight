@@ -1308,16 +1308,16 @@ const Index = () => {
           </>
           )}
 
-          {/* First-reminder CTA — soft notification card, dismissible */}
+          {/* First-reminder CTA — centered soft notification with curvy arrow */}
           {active === "home" && !hasCreatedFirst && !showIntro && !ctaDismissed && (
-            <div className="px-5 pb-3 flex justify-center">
-              <div className="relative w-full max-w-[340px] animate-[fade-in_0.5s_ease-out_both]">
+            <div className="fixed inset-0 z-30 flex items-center justify-center px-6 pointer-events-none">
+              <div className="relative w-full max-w-[340px] animate-[fade-in_0.5s_ease-out_both] pointer-events-auto">
                 <div
                   className="flex items-center gap-3 rounded-2xl pl-3 pr-2 py-2.5"
                   style={{
                     background: "linear-gradient(180deg, hsl(50 100% 95%), hsl(45 100% 90%))",
                     border: "1px solid hsl(45 90% 82%)",
-                    boxShadow: "0 10px 28px -12px hsl(40 90% 50% / 0.35), inset 0 1px 0 hsl(0 0% 100% / 0.6)",
+                    boxShadow: "0 18px 40px -14px hsl(40 90% 50% / 0.45), inset 0 1px 0 hsl(0 0% 100% / 0.6)",
                   }}
                 >
                   {/* Sun avatar */}
@@ -1349,23 +1349,32 @@ const Index = () => {
                     <span className="text-base leading-none">×</span>
                   </button>
                 </div>
-                {/* Big soft arrow pointing to the (+) button */}
+                {/* Curvy symmetric arrow pointing down to (+) */}
                 <div
-                  className="absolute left-1/2 -translate-x-1/2 -bottom-7 pointer-events-none"
-                  style={{ animation: "bounce 1.4s ease-in-out infinite" }}
+                  className="absolute left-1/2 -translate-x-1/2 -bottom-[72px] pointer-events-none"
+                  style={{ animation: "bounce 1.6s ease-in-out infinite" }}
                   aria-hidden
                 >
-                  <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+                  <svg width="58" height="78" viewBox="0 0 58 78" fill="none">
                     <defs>
                       <linearGradient id="ctaArrow" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="hsl(48 100% 75%)" />
                         <stop offset="100%" stopColor="hsl(35 95% 60%)" />
                       </linearGradient>
                     </defs>
+                    {/* Symmetric S-curve shaft */}
                     <path
-                      d="M22 6 V30 M10 22 L22 34 L34 22"
+                      d="M29 6 C 10 22, 48 42, 29 60"
                       stroke="url(#ctaArrow)"
-                      strokeWidth="5"
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    {/* Curved arrowhead — two mirrored arcs meeting at the tip */}
+                    <path
+                      d="M14 48 Q 21 58, 29 62 Q 37 58, 44 48"
+                      stroke="url(#ctaArrow)"
+                      strokeWidth="6"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       fill="none"
