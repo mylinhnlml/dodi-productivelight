@@ -121,6 +121,7 @@ const Index = () => {
     setCtaDismissed(true);
     try { localStorage.setItem("dodi.firstCtaDismissed.v2", "1"); } catch {}
   };
+  const [debugShowCta, setDebugShowCta] = useState<boolean>(false);
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
@@ -677,6 +678,18 @@ const Index = () => {
                 {headerTitle}
               </h1>
             </div>
+            {/* Debug toggle for first-reminder CTA */}
+            <button
+              onClick={() => setDebugShowCta((v) => !v)}
+              className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full transition-colors ${
+                debugShowCta
+                  ? "bg-amber-300 text-amber-900"
+                  : "bg-stone-100 text-stone-400 hover:text-stone-600"
+              }`}
+              title="Toggle debug: show first-reminder CTA"
+            >
+              {debugShowCta ? "CTA on" : "CTA off"}
+            </button>
           </header>
 
           {active === "calendar" ? (
@@ -1309,7 +1322,7 @@ const Index = () => {
           )}
 
           {/* First-reminder CTA — positioned so arrow lands on the + button */}
-          {active === "home" && tasks.length === 0 && !showIntro && !ctaDismissed && (
+          {active === "home" && (tasks.length === 0 || debugShowCta) && !showIntro && !ctaDismissed && (
             <div className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none" style={{ bottom: '9rem' }}>
               <div className="relative animate-[fade-in_0.5s_ease-out_both] pointer-events-auto">
                 <div
