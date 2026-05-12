@@ -1310,7 +1310,7 @@ const Index = () => {
           )}
 
           {/* First-reminder CTA — positioned so arrow lands on the + button */}
-          {active === "home" && tasks.length === 0 && !showIntro && !ctaDismissed && (
+          {active === "home" && (tasks.length === 0 || debugShowCta) && !showIntro && !ctaDismissed && (
             <div className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none" style={{ bottom: '9rem' }}>
               <div className="relative animate-[fade-in_0.5s_ease-out_both] pointer-events-auto">
                 <div
