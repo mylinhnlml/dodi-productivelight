@@ -115,11 +115,11 @@ const Index = () => {
     try { return localStorage.getItem("dodi.firstReminderCreated") === "1"; } catch { return false; }
   });
   const [ctaDismissed, setCtaDismissed] = useState<boolean>(() => {
-    try { return localStorage.getItem("dodi.firstCtaDismissed") === "1"; } catch { return false; }
+    try { return localStorage.getItem("dodi.firstCtaDismissed.v2") === "1"; } catch { return false; }
   });
   const dismissFirstCta = () => {
     setCtaDismissed(true);
-    try { localStorage.setItem("dodi.firstCtaDismissed", "1"); } catch {}
+    try { localStorage.setItem("dodi.firstCtaDismissed.v2", "1"); } catch {}
   };
 
   const startDrag = (e: React.PointerEvent, id: string) => {
