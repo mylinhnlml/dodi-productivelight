@@ -121,6 +121,7 @@ const Index = () => {
     setCtaDismissed(true);
     try { localStorage.setItem("dodi.firstCtaDismissed.v2", "1"); } catch {}
   };
+  const [debugShowCta, setDebugShowCta] = useState<boolean>(false);
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
