@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          points: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          points?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          points?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      redemptions: {
+        Row: {
+          cost: number
+          id: string
+          redeemed_at: string
+          reward_emoji: string
+          reward_id: string | null
+          reward_title: string
+          user_id: string
+        }
+        Insert: {
+          cost: number
+          id?: string
+          redeemed_at?: string
+          reward_emoji?: string
+          reward_id?: string | null
+          reward_title: string
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          id?: string
+          redeemed_at?: string
+          reward_emoji?: string
+          reward_id?: string | null
+          reward_title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      rewards: {
+        Row: {
+          cost: number
+          created_at: string
+          emoji: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          emoji?: string
+          id?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          emoji?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string
