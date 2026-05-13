@@ -1,10 +1,13 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft, User } from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
+import ProfilePage from "@/components/ProfilePage";
+
+const POINTS_PER_TASK = 5;
 
 type Priority = 0 | 1 | 2 | 3;
 
