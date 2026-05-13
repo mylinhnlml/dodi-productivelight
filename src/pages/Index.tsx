@@ -1,10 +1,13 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft, User } from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
+import ProfilePage from "@/components/ProfilePage";
+
+const POINTS_PER_TASK = 5;
 
 type Priority = 0 | 1 | 2 | 3;
 
@@ -258,6 +261,20 @@ const Index = () => {
         if (next >= 3) {
           window.setTimeout(() => setShowLoginWall(true), 1200);
         }
+      } else {
+        // Award points for completing a task
+        (async () => {
+          const { data: p } = await supabase
+            .from("profiles")
+            .select("points")
+            .eq("user_id", userId)
+            .maybeSingle();
+          const cur = (p?.points as number | undefined) ?? 0;
+          await supabase
+            .from("profiles")
+            .update({ points: cur + POINTS_PER_TASK })
+            .eq("user_id", userId);
+        })();
       }
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
@@ -283,6 +300,20 @@ const Index = () => {
       }, 1700);
     } else {
       setSettled((s) => s.filter((x) => x.id !== occKey));
+      if (userId) {
+        (async () => {
+          const { data: p } = await supabase
+            .from("profiles")
+            .select("points")
+            .eq("user_id", userId)
+            .maybeSingle();
+          const cur = (p?.points as number | undefined) ?? 0;
+          await supabase
+            .from("profiles")
+            .update({ points: Math.max(0, cur - POINTS_PER_TASK) })
+            .eq("user_id", userId);
+        })();
+      }
     }
   };
 
@@ -642,10 +673,12 @@ const Index = () => {
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
     : active === "add" ? "Plant a new intention"
+    : active === "profile" ? "Your soft little world"
     : `Good morning, ${profile.name}`;
   const headerTitle =
     active === "calendar" ? "Calendar"
     : active === "add" ? "New Reminder"
+    : active === "profile" ? "Profile"
     : "Upcoming Tasks";
 
   if (showLoginWall && !userId) {
@@ -692,7 +725,9 @@ const Index = () => {
             </button>
           </header>
 
-          {active === "calendar" ? (
+          {active === "profile" ? (
+            <ProfilePage userId={userId} />
+          ) : active === "calendar" ? (
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Profile card */}
               <div className="px-5 pb-3">
@@ -1389,12 +1424,13 @@ const Index = () => {
             </div>
           )}
 
-          {/* Bottom nav — 3 tabs */}
-          <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-6 py-2.5 flex items-center justify-between">
+          {/* Bottom nav — 4 tabs */}
+          <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-between">
             {[
               { id: "home", icon: Bell, label: "Reminder" },
-              { id: "add", icon: Plus, label: "Add", primary: true },
               { id: "calendar", icon: Calendar, label: "Calendar" },
+              { id: "add", icon: Plus, label: "Add", primary: true },
+              { id: "profile", icon: User, label: "Profile" },
             ].map(({ id, icon: Icon, primary }) => {
               const isActive = active === id;
               if (primary) {
