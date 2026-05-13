@@ -725,7 +725,9 @@ const Index = () => {
             </button>
           </header>
 
-          {active === "calendar" ? (
+          {active === "profile" ? (
+            <ProfilePage userId={userId} />
+          ) : active === "calendar" ? (
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Profile card */}
               <div className="px-5 pb-3">
