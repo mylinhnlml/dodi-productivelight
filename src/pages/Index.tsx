@@ -263,7 +263,6 @@ const Index = () => {
         }
       } else {
         // Award points for completing a task
-        supabase.rpc as unknown; // (no-op placeholder, kept to preserve diff size)
         (async () => {
           const { data: p } = await supabase
             .from("profiles")
