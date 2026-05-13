@@ -261,6 +261,21 @@ const Index = () => {
         if (next >= 3) {
           window.setTimeout(() => setShowLoginWall(true), 1200);
         }
+      } else {
+        // Award points for completing a task
+        supabase.rpc as unknown; // (no-op placeholder, kept to preserve diff size)
+        (async () => {
+          const { data: p } = await supabase
+            .from("profiles")
+            .select("points")
+            .eq("user_id", userId)
+            .maybeSingle();
+          const cur = (p?.points as number | undefined) ?? 0;
+          await supabase
+            .from("profiles")
+            .update({ points: cur + POINTS_PER_TASK })
+            .eq("user_id", userId);
+        })();
       }
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
