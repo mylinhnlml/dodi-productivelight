@@ -712,18 +712,6 @@ const Index = () => {
                 {headerTitle}
               </h1>
             </div>
-            {/* Debug toggle for first-reminder CTA */}
-            <button
-              onClick={() => setDebugShowCta((v) => !v)}
-              className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full transition-colors ${
-                debugShowCta
-                  ? "bg-amber-300 text-amber-900"
-                  : "bg-stone-100 text-stone-400 hover:text-stone-600"
-              }`}
-              title="Toggle debug: show first-reminder CTA"
-            >
-              {debugShowCta ? "CTA on" : "CTA off"}
-            </button>
           </header>
 
           {active === "profile" ? (
