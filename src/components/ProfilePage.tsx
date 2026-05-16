@@ -157,6 +157,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
       .single();
     setProfile({ ...profile, points: newPoints });
     if (red) setRedemptions((h) => [red as Redemption, ...h].slice(0, 10));
+    loadRank();
     toast.success(`Redeemed ${reward.emoji} ${reward.title}`);
   };
 
