@@ -154,7 +154,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_redemption_rank: {
+        Args: never
+        Returns: {
+          my_count: number
+          my_rank: number
+          total_users: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X } from "lucide-react";
+import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -40,6 +40,18 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
   const [newCost, setNewCost] = useState(20);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [rank, setRank] = useState<{ my_count: number; my_rank: number; total_users: number } | null>(null);
+
+  const loadRank = async () => {
+    const { data, error } = await supabase.rpc("get_redemption_rank");
+    if (!error && data && data[0]) {
+      setRank({
+        my_count: Number(data[0].my_count) || 0,
+        my_rank: Number(data[0].my_rank) || 0,
+        total_users: Number(data[0].total_users) || 0,
+      });
+    }
+  };
 
   useEffect(() => {
     if (!userId) return;
@@ -65,6 +77,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         .order("redeemed_at", { ascending: false })
         .limit(10);
       setRedemptions((h ?? []) as Redemption[]);
+      loadRank();
     })();
   }, [userId]);
 
@@ -144,6 +157,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
       .single();
     setProfile({ ...profile, points: newPoints });
     if (red) setRedemptions((h) => [red as Redemption, ...h].slice(0, 10));
+    loadRank();
     toast.success(`Redeemed ${reward.emoji} ${reward.title}`);
   };
 
@@ -226,6 +240,37 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
           )}
         </button>
       </div>
+
+      {/* Redemption rank */}
+      {rank && (
+        <div className="rounded-3xl neu-surface-sm p-4 flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+            style={{
+              background: "linear-gradient(135deg, hsl(48 100% 80%), hsl(38 100% 72%))",
+              boxShadow: "inset 0 -2px 0 hsl(35 90% 60% / 0.35)",
+            }}
+          >
+            <Trophy className="w-5 h-5 text-[hsl(35,70%,30%)]" strokeWidth={2.6} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-extrabold text-foreground leading-tight">
+              {rank.my_count} {rank.my_count === 1 ? "reward" : "rewards"} redeemed
+            </p>
+            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5">
+              {rank.total_users === 0 || rank.my_count === 0
+                ? "Redeem your first treat to join the leaderboard ✨"
+                : `Rank #${rank.my_rank} of ${rank.total_users} ${rank.total_users === 1 ? "friend" : "friends"}`}
+            </p>
+          </div>
+          {rank.my_count > 0 && rank.total_users > 0 && (
+            <div className="text-right shrink-0">
+              <p className="text-lg font-extrabold text-primary leading-none">#{rank.my_rank}</p>
+              <p className="text-[10px] font-bold text-muted-foreground mt-0.5">of {rank.total_users}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Rewards header */}
       <div className="flex items-center justify-between px-1">
