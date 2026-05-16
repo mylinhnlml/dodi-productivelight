@@ -724,62 +724,33 @@ const Index = () => {
             <ProfilePage userId={userId} />
           ) : active === "calendar" ? (
             <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Profile card */}
+              {/* Profile card — synced from Profile tab */}
               <div className="px-5 pb-3">
-                <div className="rounded-3xl neu-surface-sm p-3 flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl neu-inset flex items-center justify-center text-2xl shrink-0">
-                    {profile.avatar}
-                  </div>
-                  {editingProfile ? (
-                    <div className="flex-1 min-w-0 space-y-1.5">
-                      <div className="flex gap-1 flex-wrap">
-                        {["🌷","🌼","🐰","🦊","🐻","🌸","☕","🌙"].map((e) => (
-                          <button
-                            key={e}
-                            onClick={() => setProfile((p) => ({ ...p, avatar: e }))}
-                            className={`w-6 h-6 rounded-md text-sm flex items-center justify-center ${
-                              profile.avatar === e ? "neu-pressed" : "neu-surface-sm"
-                            }`}
-                          >
-                            {e}
-                          </button>
-                        ))}
-                      </div>
-                      <input
-                        value={profile.name}
-                        onChange={(e) => { setProfileTouched(true); setProfile((p) => ({ ...p, name: e.target.value })); }}
-                        placeholder="Name"
-                        className="w-full text-sm font-bold bg-transparent neu-inset rounded-lg px-2.5 py-1 outline-none"
-                      />
-                      <input
-                        value={profile.slogan}
-                        onChange={(e) => setProfile((p) => ({ ...p, slogan: e.target.value }))}
-                        placeholder="Slogan"
-                        className="w-full text-xs font-semibold bg-transparent neu-inset rounded-lg px-2.5 py-1 outline-none"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-extrabold text-foreground truncate">{profile.name}</p>
-                      <p className="text-xs text-muted-foreground font-semibold truncate">
-                        {profile.slogan}
-                      </p>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setEditingProfile((v) => !v)}
-                    aria-label="Edit profile"
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                      editingProfile ? "neu-pressed" : "neu-surface-sm"
-                    }`}
-                  >
-                    {editingProfile ? (
-                      <Check className="w-4 h-4 text-primary" strokeWidth={2.6} />
+                <button
+                  type="button"
+                  onClick={() => setActive("profile")}
+                  className="w-full rounded-3xl neu-surface-sm p-3 flex items-center gap-3 text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
+                  aria-label="Edit profile"
+                >
+                  <div className="w-12 h-12 rounded-2xl neu-inset overflow-hidden flex items-center justify-center text-2xl shrink-0">
+                    {dbProfile?.avatar_url ? (
+                      <img src={dbProfile.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <Pencil className="w-4 h-4 text-primary" strokeWidth={2.4} />
+                      <span>{profile.avatar}</span>
                     )}
-                  </button>
-                </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-extrabold text-foreground truncate">
+                      {dbProfile?.display_name || profile.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-semibold truncate">
+                      {dbProfile?.bio || profile.slogan}
+                    </p>
+                  </div>
+                  <div className="w-9 h-9 rounded-xl neu-surface-sm flex items-center justify-center shrink-0">
+                    <Pencil className="w-4 h-4 text-primary" strokeWidth={2.4} />
+                  </div>
+                </button>
               </div>
               {selectedDate ? (
                 <section className="flex-1 px-5 overflow-y-auto pb-4">
