@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X } from "lucide-react";
+import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
