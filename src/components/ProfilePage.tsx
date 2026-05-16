@@ -77,6 +77,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         .order("redeemed_at", { ascending: false })
         .limit(10);
       setRedemptions((h ?? []) as Redemption[]);
+      loadRank();
     })();
   }, [userId]);
 
