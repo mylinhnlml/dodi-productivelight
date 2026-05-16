@@ -56,16 +56,23 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
   useEffect(() => {
     if (!userId) return;
     (async () => {
-      const { data: p } = await supabase
+      let { data: p } = await supabase
         .from("profiles")
         .select("display_name, avatar_url, bio, points")
         .eq("user_id", userId)
         .maybeSingle();
-      if (p) {
-        setProfile(p as Profile);
-        setDraftName(p.display_name ?? "");
-        setDraftBio(p.bio ?? "");
+      if (!p) {
+        // Self-heal: create the row if the signup trigger never ran for this user
+        const { data: created } = await supabase
+          .from("profiles")
+          .insert({ user_id: userId })
+          .select("display_name, avatar_url, bio, points")
+          .single();
+        p = created ?? { display_name: null, avatar_url: null, bio: null, points: 0 };
       }
+      setProfile(p as Profile);
+      setDraftName(p.display_name ?? "");
+      setDraftBio(p.bio ?? "");
       const { data: r } = await supabase
         .from("rewards")
         .select("id, title, emoji, cost")
