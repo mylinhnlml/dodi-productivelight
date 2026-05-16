@@ -6,6 +6,7 @@ import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
 import ProfilePage from "@/components/ProfilePage";
+import FloatingAddButton from "@/components/FloatingAddButton";
 
 const POINTS_PER_TASK = 5;
 
