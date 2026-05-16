@@ -155,7 +155,7 @@ export type Database = {
     }
     Functions: {
       get_redemption_rank: {
-        Args: { _user_id: string }
+        Args: never
         Returns: {
           my_count: number
           my_rank: number
