@@ -183,8 +183,6 @@ const Index = () => {
       if (accountName) setProfile((p) => ({ ...p, name: accountName }));
     });
   }, [profileTouched]);
-  const [editingProfile, _setEditingProfile] = useState(false);
-  void editingProfile;
   const [searchQuery, setSearchQuery] = useState("");
 
   // Load DB-backed profile (avatar_url + bio) so calendar header reflects edits made in Profile tab
