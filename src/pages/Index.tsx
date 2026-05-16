@@ -186,6 +186,20 @@ const Index = () => {
   const [editingProfile, setEditingProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Load DB-backed profile (avatar_url + bio) so calendar header reflects edits made in Profile tab
+  const [dbProfile, setDbProfile] = useState<{ display_name: string | null; avatar_url: string | null; bio: string | null } | null>(null);
+  useEffect(() => {
+    if (!userId) { setDbProfile(null); return; }
+    supabase
+      .from("profiles")
+      .select("display_name, avatar_url, bio")
+      .eq("user_id", userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setDbProfile(data as typeof dbProfile);
+      });
+  }, [userId, active]);
+
   // Load this user's tasks; ensure tasks are scoped per account
   useEffect(() => {
     let active = true;
