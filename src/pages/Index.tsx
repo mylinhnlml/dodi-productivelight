@@ -118,14 +118,6 @@ const Index = () => {
   const [hasCreatedFirst, setHasCreatedFirst] = useState<boolean>(() => {
     try { return localStorage.getItem("dodi.firstReminderCreated") === "1"; } catch { return false; }
   });
-  const [ctaDismissed, setCtaDismissed] = useState<boolean>(() => {
-    try { return localStorage.getItem("dodi.firstCtaDismissed.v2") === "1"; } catch { return false; }
-  });
-  const dismissFirstCta = () => {
-    setCtaDismissed(true);
-    try { localStorage.setItem("dodi.firstCtaDismissed.v2", "1"); } catch {}
-  };
-  const [debugShowCta, setDebugShowCta] = useState<boolean>(false);
 
   const startDrag = (e: React.PointerEvent, id: string) => {
     e.preventDefault();
@@ -712,18 +704,6 @@ const Index = () => {
                 {headerTitle}
               </h1>
             </div>
-            {/* Debug toggle for first-reminder CTA */}
-            <button
-              onClick={() => setDebugShowCta((v) => !v)}
-              className={`shrink-0 text-[10px] font-bold px-2 py-1 rounded-full transition-colors ${
-                debugShowCta
-                  ? "bg-amber-300 text-amber-900"
-                  : "bg-stone-100 text-stone-400 hover:text-stone-600"
-              }`}
-              title="Toggle debug: show first-reminder CTA"
-            >
-              {debugShowCta ? "CTA on" : "CTA off"}
-            </button>
           </header>
 
           {active === "profile" ? (
@@ -1357,73 +1337,6 @@ const Index = () => {
           </>
           )}
 
-          {/* First-reminder CTA — positioned so arrow lands on the + button */}
-          {active === "home" && (tasks.length === 0 || debugShowCta) && !showIntro && !ctaDismissed && (
-            <div className="fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none" style={{ bottom: '9rem' }}>
-              <div className="relative animate-[fade-in_0.5s_ease-out_both] pointer-events-auto">
-                <div
-                  className="flex items-center gap-3.5 rounded-3xl pl-4 pr-3 py-3.5"
-                  style={{
-                    background: "linear-gradient(180deg, hsl(50 100% 96%), hsl(45 100% 92%))",
-                    border: "2.5px solid hsl(45 90% 85%)",
-                    boxShadow: "0 20px 48px -14px hsl(40 90% 50% / 0.28), inset 0 1px 0 hsl(0 0% 100% / 0.7)",
-                  }}
-                >
-                  {/* Sun avatar */}
-                  <div
-                    className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-[1.125rem] text-2xl"
-                    style={{
-                      background: "linear-gradient(135deg, hsl(48 100% 80%), hsl(38 100% 72%))",
-                      boxShadow: "inset 0 -2px 0 hsl(35 90% 60% / 0.35)",
-                    }}
-                    aria-hidden
-                  >
-                    🌞
-                  </div>
-                  {/* Text */}
-                  <div className="flex-1 min-w-0 pr-1">
-                    <div className="text-[13px] font-extrabold text-stone-800 leading-tight">
-                      Hey sunshine! ✨
-                    </div>
-                    <div className="text-[12px] font-medium text-stone-600 leading-snug mt-0.5">
-                      Shine your productive light — tap <span className="font-bold">＋</span> to create your first reminder.
-                    </div>
-                  </div>
-                  {/* Dismiss */}
-                  <button
-                    onClick={dismissFirstCta}
-                    aria-label="Dismiss tip"
-                    className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-stone-500 hover:text-stone-700 hover:bg-white/60 transition-colors"
-                  >
-                    <span className="text-lg leading-none">×</span>
-                  </button>
-                </div>
-                {/* Long arrow reaching down to the + button */}
-                <div
-                  className="absolute left-1/2 -translate-x-1/2 top-full mt-1 pointer-events-none"
-                  style={{ animation: "bounce 1.4s ease-in-out infinite" }}
-                  aria-hidden
-                >
-                  <svg width="58" height="96" viewBox="0 0 58 96" fill="none">
-                    <defs>
-                      <linearGradient id="ctaArrowV3" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(48 100% 80%)" />
-                        <stop offset="100%" stopColor="hsl(35 95% 62%)" />
-                      </linearGradient>
-                    </defs>
-                    <path
-                      d="M29 6 V78 M12 66 L29 94 L46 66"
-                      stroke="url(#ctaArrowV3)"
-                      strokeWidth="6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      fill="none"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Floating Add button — persists across screens */}
           <FloatingAddButton onClick={() => setActive("add")} hidden={active === "add"} />
