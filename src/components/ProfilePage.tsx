@@ -251,23 +251,17 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
       {/* Redemption rank */}
       {rank && (
         <div className="rounded-3xl neu-surface-sm p-4 flex items-center gap-3">
-          <div
-            className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
-            style={{
-              background: "linear-gradient(135deg, hsl(48 100% 80%), hsl(38 100% 72%))",
-              boxShadow: "inset 0 -2px 0 hsl(35 90% 60% / 0.35)",
-            }}
-          >
-            <Trophy className="w-5 h-5 text-[hsl(35,70%,30%)]" strokeWidth={2.6} />
+          <div className="w-11 h-11 rounded-2xl neu-inset flex items-center justify-center shrink-0">
+            <Trophy className="w-4 h-4 text-primary" strokeWidth={2.6} />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-extrabold text-foreground leading-tight">
               {rank.my_count} {rank.my_count === 1 ? "reward" : "rewards"} redeemed
             </p>
-            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5">
+            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5 truncate">
               {rank.total_users === 0 || rank.my_count === 0
-                ? "Redeem your first treat to join the leaderboard ✨"
-                : `Rank #${rank.my_rank} of ${rank.total_users} ${rank.total_users === 1 ? "friend" : "friends"}`}
+                ? "Redeem your first treat to join the leaderboard"
+                : `Rank #${rank.my_rank} of ${rank.total_users}`}
             </p>
           </div>
           {rank.my_count > 0 && rank.total_users > 0 && (
