@@ -6,6 +6,7 @@ import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
 import ProfilePage from "@/components/ProfilePage";
+import FloatingAddButton from "@/components/FloatingAddButton";
 
 const POINTS_PER_TASK = 5;
 
@@ -1424,28 +1425,17 @@ const Index = () => {
             </div>
           )}
 
-          {/* Bottom nav — 4 tabs */}
-          <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-between">
+          {/* Floating Add button — persists across screens */}
+          <FloatingAddButton onClick={() => setActive("add")} hidden={active === "add"} />
+
+          {/* Bottom nav — 3 tabs */}
+          <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around">
             {[
               { id: "home", icon: Bell, label: "Reminder" },
               { id: "calendar", icon: Calendar, label: "Calendar" },
-              { id: "add", icon: Plus, label: "Add", primary: true },
               { id: "profile", icon: User, label: "Profile" },
-            ].map(({ id, icon: Icon, primary }) => {
+            ].map(({ id, icon: Icon }) => {
               const isActive = active === id;
-              if (primary) {
-                return (
-                  <button
-                    key={id}
-                    aria-label="Add reminder"
-                    onClick={() => setActive(id)}
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center neu-surface-sm active:neu-pressed transition-all duration-300 hover:scale-105"
-                    style={{ background: "hsl(var(--primary))" }}
-                  >
-                    <Icon className="w-5 h-5 text-primary-foreground" strokeWidth={2.6} />
-                  </button>
-                );
-              }
               return (
                 <button
                   key={id}
