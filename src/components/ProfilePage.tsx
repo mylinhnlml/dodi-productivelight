@@ -40,6 +40,18 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
   const [newCost, setNewCost] = useState(20);
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [rank, setRank] = useState<{ my_count: number; my_rank: number; total_users: number } | null>(null);
+
+  const loadRank = async () => {
+    const { data, error } = await supabase.rpc("get_redemption_rank");
+    if (!error && data && data[0]) {
+      setRank({
+        my_count: Number(data[0].my_count) || 0,
+        my_rank: Number(data[0].my_rank) || 0,
+        total_users: Number(data[0].total_users) || 0,
+      });
+    }
+  };
 
   useEffect(() => {
     if (!userId) return;
