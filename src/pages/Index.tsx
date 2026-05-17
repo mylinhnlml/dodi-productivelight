@@ -1,4 +1,4 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft, User } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft, User, Trophy } from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -6,7 +6,15 @@ import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
 import ProfilePage from "@/components/ProfilePage";
+import MissionsPage from "@/components/MissionsPage";
 import FloatingAddButton from "@/components/FloatingAddButton";
+import {
+  onAppOpen,
+  onReminderCreated,
+  onReminderCompleted,
+  onProgressUpdate,
+  onStickerUsed,
+} from "@/lib/missionEngine";
 
 const POINTS_PER_TASK = 5;
 
@@ -234,17 +242,29 @@ const Index = () => {
       const uid = data.user?.id ?? null;
       setUserId(uid);
       loadTasks(uid);
+      onAppOpen(uid);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user?.id ?? null;
       setUserId(uid);
       loadTasks(uid);
+      onAppOpen(uid);
     });
     return () => {
       active = false;
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  // Notify mission engine of today's completion %
+  useEffect(() => {
+    if (!userId) return;
+    const today = todayStr();
+    const todayTasks = tasks.filter((t) => t.dueDate === today);
+    const total = todayTasks.length;
+    const done = todayTasks.filter((t) => completed.has(`${t.id}|${today}`)).length;
+    if (total > 0) onProgressUpdate(userId, { totalTasks: total, completedTasks: done });
+  }, [userId, tasks, completed]);
 
   const toggle = (taskId: string, dueIso: string) => {
     const task = tasks.find((t) => t.id === taskId);
@@ -281,6 +301,8 @@ const Index = () => {
             .update({ points: cur + POINTS_PER_TASK })
             .eq("user_id", userId);
         })();
+        // Mission triggers
+        onReminderCompleted(userId, { completedAt: new Date(), isOnTime: true });
       }
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
@@ -522,6 +544,12 @@ const Index = () => {
         toast.error("Couldn't save reminder to your account");
       }
     }
+    // Mission triggers
+    onReminderCreated(userId, {
+      isRecurring: !!newTask.repeat,
+      hour: newTime ? parseInt(newTime.split(":")[0], 10) : new Date().getHours(),
+    });
+    onStickerUsed(userId, newTask.emoji);
     setNewTitle("");
     setNewTime("");
     setNewEmoji("🌸");
@@ -680,11 +708,13 @@ const Index = () => {
     active === "calendar" ? "Your year at a glance"
     : active === "add" ? "Plant a new intention"
     : active === "profile" ? "Your soft little world"
+    : active === "missions" ? "Earn XP, level up, stay glowing"
     : `Good morning, ${profile.name}`;
   const headerTitle =
     active === "calendar" ? "Calendar"
     : active === "add" ? "New Reminder"
     : active === "profile" ? "Profile"
+    : active === "missions" ? "Missions"
     : "Upcoming Tasks";
 
   if (showLoginWall && !userId) {
@@ -721,6 +751,8 @@ const Index = () => {
 
           {active === "profile" ? (
             <ProfilePage userId={userId} />
+          ) : active === "missions" ? (
+            <MissionsPage userId={userId} />
           ) : active === "calendar" ? (
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Profile card — synced from Profile tab */}
@@ -1330,6 +1362,7 @@ const Index = () => {
             {[
               { id: "home", icon: Bell, label: "Reminder" },
               { id: "calendar", icon: Calendar, label: "Calendar" },
+              { id: "missions", icon: Trophy, label: "Missions" },
               { id: "profile", icon: User, label: "Profile" },
             ].map(({ id, icon: Icon }) => {
               const isActive = active === id;

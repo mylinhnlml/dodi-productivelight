@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      mission_progress: {
+        Row: {
+          claimed_at: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          mission_id: string
+          progress: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          mission_id: string
+          progress?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          mission_id?: string
+          progress?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -144,6 +177,42 @@ export type Database = {
           repeat?: string | null
           time?: string
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_xp: {
+        Row: {
+          created_at: string
+          install_date: string
+          last_active_date: string | null
+          perfect_days: string[]
+          stickers_used: string[]
+          streak_count: number
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          install_date?: string
+          last_active_date?: string | null
+          perfect_days?: string[]
+          stickers_used?: string[]
+          streak_count?: number
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          install_date?: string
+          last_active_date?: string | null
+          perfect_days?: string[]
+          stickers_used?: string[]
+          streak_count?: number
+          total_xp?: number
           updated_at?: string
           user_id?: string
         }
