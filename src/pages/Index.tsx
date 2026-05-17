@@ -291,6 +291,8 @@ const Index = () => {
             .update({ points: cur + POINTS_PER_TASK })
             .eq("user_id", userId);
         })();
+        // Mission triggers
+        onReminderCompleted(userId, { completedAt: new Date(), isOnTime: true });
       }
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
