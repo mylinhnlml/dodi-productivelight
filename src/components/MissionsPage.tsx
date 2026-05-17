@@ -1,17 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
-import { Lock, Sparkles, Flame } from "lucide-react";
+import { Lock, Sparkles, Flame, X } from "lucide-react";
 import { MISSIONS, COLOR_STYLES, levelForXp, type MissionDef } from "@/lib/missions";
 import { claimMission, loadMissionState, missionStatus } from "@/lib/missionEngine";
+import type { Sticker } from "@/lib/stickers";
 
 type Tab = "daily" | "journey" | "special";
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
-export default function MissionsPage({ userId }: { userId: string | null }) {
+type Props = {
+  userId: string | null;
+  onUseStickers?: (emojis: string[]) => void;
+};
+
+export default function MissionsPage({ userId, onUseStickers }: Props) {
   const [tab, setTab] = useState<Tab>("daily");
   const [loading, setLoading] = useState(true);
   const [xp, setXp] = useState<{ total_xp: number; streak_count: number; last_active_date: string | null } | null>(null);
   const [progress, setProgress] = useState<Record<string, any>>({});
+  const [reveal, setReveal] = useState<{ mission: MissionDef; stickers: Sticker[] } | null>(null);
 
   const refresh = async () => {
     if (!userId) {
@@ -35,10 +42,9 @@ export default function MissionsPage({ userId }: { userId: string | null }) {
 
   const missions = useMemo(() => MISSIONS.filter((m) => m.category === tab), [tab]);
 
-  // 7-day streak: last 7 days (Sun-Sat of current week)
   const weekDays = useMemo(() => {
     const today = new Date();
-    const day = today.getDay(); // 0=Sun
+    const day = today.getDay();
     const sunday = new Date(today);
     sunday.setDate(today.getDate() - day);
     return Array.from({ length: 7 }, (_, i) => {
@@ -46,7 +52,6 @@ export default function MissionsPage({ userId }: { userId: string | null }) {
       d.setDate(sunday.getDate() + i);
       const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
       const isFuture = d.setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
-      // Filled if within current streak window ending on last_active_date
       const last = xp?.last_active_date;
       let filled = false;
       if (last && !isFuture) {
@@ -61,8 +66,12 @@ export default function MissionsPage({ userId }: { userId: string | null }) {
 
   const handleClaim = async (m: MissionDef) => {
     if (!userId) return;
-    await claimMission(userId, m.id);
+    const result = await claimMission(userId, m.id);
     await refresh();
+    if (result.stickers.length > 0) {
+      // Brief delay so the XP toast plays first
+      window.setTimeout(() => setReveal({ mission: m, stickers: result.stickers }), 600);
+    }
   };
 
   if (loading) {
@@ -74,7 +83,7 @@ export default function MissionsPage({ userId }: { userId: string | null }) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-5 pb-32">
+    <div className="flex-1 overflow-y-auto px-5 pb-32 relative">
       {/* XP pill */}
       <div className="flex items-center justify-end -mt-2 mb-3">
         <div
@@ -153,6 +162,8 @@ export default function MissionsPage({ userId }: { userId: string | null }) {
           const s = missionStatus(m, progress);
           const color = COLOR_STYLES[m.color];
           const faded = s.claimed || s.locked;
+          const rewardShown = (m.rewardStickers ?? []).slice(0, 4);
+          const extraCount = (m.rewardStickers?.length ?? 0) - rewardShown.length;
           return (
             <div
               key={m.id}
@@ -178,6 +189,20 @@ export default function MissionsPage({ userId }: { userId: string | null }) {
                       +{m.xp} XP
                     </span>
                   </div>
+
+                  {/* Sticker rewards */}
+                  {rewardShown.length > 0 && (
+                    <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[10px] font-semibold text-muted-foreground">Unlocks:</span>
+                      {rewardShown.map((e, i) => (
+                        <span key={i} className="text-sm leading-none">{e}</span>
+                      ))}
+                      {extraCount > 0 && (
+                        <span className="text-[10px] font-bold text-muted-foreground">+{extraCount} more</span>
+                      )}
+                    </div>
+                  )}
+
                   {m.target > 1 && !s.claimed && !s.locked && (
                     <div className="mt-2.5">
                       <div className="h-1.5 rounded-full overflow-hidden" style={{ background: color.bg }}>
@@ -212,6 +237,56 @@ export default function MissionsPage({ userId }: { userId: string | null }) {
           );
         })}
       </div>
+
+      {/* Reveal modal */}
+      {reveal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-foreground/30 backdrop-blur-sm animate-fade-in"
+             onClick={() => setReveal(null)}>
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md mx-3 mb-3 sm:mb-0 rounded-3xl bg-background neu-surface-sm p-6 relative animate-fade-in"
+            style={{ animation: "fade-in 0.35s ease-out" }}
+          >
+            <button
+              onClick={() => setReveal(null)}
+              className="absolute top-3 right-3 w-8 h-8 rounded-full neu-surface-sm flex items-center justify-center"
+              aria-label="Close"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+            <p className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground text-center">
+              {reveal.mission.title}
+            </p>
+            <h3 className="text-xl font-extrabold text-foreground text-center mt-1">
+              New stickers unlocked! 🎉
+            </h3>
+            <div className="mt-5 flex items-center justify-center gap-3 flex-wrap">
+              {reveal.stickers.map((s, i) => (
+                <div
+                  key={s.id}
+                  className="w-16 h-16 rounded-2xl neu-inset flex items-center justify-center text-3xl"
+                  style={{
+                    animation: `scale-in 0.45s cubic-bezier(0.34,1.56,0.64,1) ${i * 0.08}s both`,
+                  }}
+                >
+                  {s.emoji}
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => {
+                const emojis = reveal.stickers.map((s) => s.emoji);
+                setReveal(null);
+                onUseStickers?.(emojis);
+              }}
+              className="mt-6 w-full py-3 rounded-2xl text-sm font-extrabold text-primary-foreground transition-transform active:scale-95"
+              style={{ background: "hsl(var(--primary))" }}
+            >
+              Use now ✨
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

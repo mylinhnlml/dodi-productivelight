@@ -3,6 +3,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { MISSIONS, MISSIONS_BY_ID, type MissionDef } from "@/lib/missions";
+import { unlockStickersForMission, type Sticker } from "@/lib/stickers";
 import { toast } from "sonner";
 
 type ProgressRow = {
@@ -120,16 +121,19 @@ async function addXp(userId: string, amount: number) {
 }
 
 /** Claim an already-completed mission and award XP. Returns awarded XP or 0. */
-export async function claimMission(userId: string, missionId: string): Promise<number> {
+export async function claimMission(
+  userId: string,
+  missionId: string
+): Promise<{ xp: number; stickers: Sticker[] }> {
   const def = MISSIONS_BY_ID[missionId];
-  if (!def) return 0;
+  if (!def) return { xp: 0, stickers: [] };
   const p = await getProgress(userId, missionId);
-  if (!p?.completed_at || p.claimed_at) return 0;
+  if (!p?.completed_at || p.claimed_at) return { xp: 0, stickers: [] };
 
   // Lock check: prerequisite must be claimed
   if (def.unlocksAfter) {
     const pre = await getProgress(userId, def.unlocksAfter);
-    if (!pre?.claimed_at) return 0;
+    if (!pre?.claimed_at) return { xp: 0, stickers: [] };
   }
 
   await supabase
@@ -146,7 +150,8 @@ export async function claimMission(userId: string, missionId: string): Promise<n
     duration: 2500,
   });
 
-  return def.xp;
+  const stickers = await unlockStickersForMission(userId, missionId);
+  return { xp: def.xp, stickers };
 }
 
 // ============ TRIGGERS ============

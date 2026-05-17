@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X, Trophy } from "lucide-react";
+import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X, Trophy, Palette, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MISSIONS_BY_ID } from "@/lib/missions";
 
 type Profile = {
   display_name: string | null;
@@ -41,6 +42,9 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [rank, setRank] = useState<{ my_count: number; my_rank: number; total_users: number } | null>(null);
+  const [stickers, setStickers] = useState<Array<{ id: string; emoji: string; name: string; mission_id: string | null }>>([]);
+  const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
+  const [showGallery, setShowGallery] = useState(false);
 
   const loadRank = async () => {
     const { data, error } = await supabase.rpc("get_redemption_rank");
@@ -85,6 +89,16 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         .limit(10);
       setRedemptions((h ?? []) as Redemption[]);
       loadRank();
+      const { data: cat } = await supabase
+        .from("stickers")
+        .select("id, emoji, name, mission_id")
+        .order("sort_order", { ascending: true });
+      setStickers((cat ?? []) as any);
+      const { data: un } = await supabase
+        .from("user_unlocked_stickers")
+        .select("sticker_id")
+        .eq("user_id", userId);
+      setUnlockedIds(new Set((un ?? []).map((r: any) => r.sticker_id)));
     })();
   }, [userId]);
 
@@ -273,6 +287,26 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         </div>
       )}
 
+      {/* Sticker collection chip */}
+      <button
+        onClick={() => setShowGallery(true)}
+        className="w-full rounded-2xl neu-surface-sm p-3 flex items-center gap-3 transition-transform active:scale-[0.99]"
+        aria-label="View sticker gallery"
+      >
+        <div className="w-10 h-10 rounded-xl neu-inset flex items-center justify-center text-lg shrink-0">
+          🎨
+        </div>
+        <div className="flex-1 text-left min-w-0">
+          <p className="text-sm font-extrabold text-foreground">
+            {unlockedIds.size}/{stickers.length} stickers collected
+          </p>
+          <p className="text-[11px] font-semibold text-muted-foreground">
+            Tap to see your collection
+          </p>
+        </div>
+        <span className="text-[11px] font-bold text-primary">View</span>
+      </button>
+
       {/* Rewards header */}
       <div className="flex items-center justify-between px-1">
         <div>
@@ -406,6 +440,56 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {showGallery && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-foreground/30 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowGallery(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md mx-3 mb-3 sm:mb-0 rounded-3xl bg-background neu-surface-sm p-5 max-h-[80vh] flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-base font-extrabold text-foreground">Sticker collection</h3>
+                <p className="text-[11px] font-semibold text-muted-foreground">
+                  {unlockedIds.size}/{stickers.length} unlocked
+                </p>
+              </div>
+              <button
+                onClick={() => setShowGallery(false)}
+                className="w-8 h-8 rounded-full neu-surface-sm flex items-center justify-center"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="overflow-y-auto -mx-1 px-1">
+              <div className="grid grid-cols-6 gap-2">
+                {stickers.map((s) => {
+                  const isUnlocked = unlockedIds.has(s.id);
+                  const m = s.mission_id ? MISSIONS_BY_ID[s.mission_id] : null;
+                  return (
+                    <div
+                      key={s.id}
+                      title={isUnlocked ? s.name : m ? `Unlock via "${m.title}"` : s.name}
+                      className={`relative aspect-square rounded-xl flex items-center justify-center text-xl ${
+                        isUnlocked ? "neu-surface-sm" : "neu-inset opacity-40"
+                      }`}
+                    >
+                      <span className={isUnlocked ? "" : "grayscale opacity-60"}>{s.emoji}</span>
+                      {!isUnlocked && (
+                        <Lock className="absolute bottom-1 right-1 w-3 h-3 text-muted-foreground" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       )}

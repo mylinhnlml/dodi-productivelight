@@ -15,6 +15,7 @@ import {
   onProgressUpdate,
   onStickerUsed,
 } from "@/lib/missionEngine";
+import { MISSIONS_BY_ID } from "@/lib/missions";
 
 const POINTS_PER_TASK = 5;
 
@@ -162,6 +163,12 @@ const Index = () => {
   const [showStickers, setShowStickers] = useState(false);
   const [recentEmojis, setRecentEmojis] = useState<string[]>(EMOJI_BASIC);
   const [customStickers, setCustomStickers] = useState<string[]>([]);
+  // Sticker collection state (from DB)
+  const [stickerCatalog, setStickerCatalog] = useState<Array<{ id: string; emoji: string; name: string; mission_id: string | null }>>([]);
+  const [unlockedStickerIds, setUnlockedStickerIds] = useState<Set<string>>(new Set());
+  const [highlightedStickers, setHighlightedStickers] = useState<Set<string>>(new Set());
+  const [showStickerGallery, setShowStickerGallery] = useState(false);
+  const [lockedTip, setLockedTip] = useState<{ emoji: string; mission: string } | null>(null);
   const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
   const [customDate, setCustomDate] = useState(todayStr());
   const [newPriority, setNewPriority] = useState<Priority>(0);
@@ -206,6 +213,38 @@ const Index = () => {
         if (data) setDbProfile(data as typeof dbProfile);
       });
   }, [userId, active]);
+
+  // Load sticker catalog + this user's unlocked stickers
+  useEffect(() => {
+    supabase
+      .from("stickers")
+      .select("id, emoji, name, mission_id")
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => {
+        if (data) setStickerCatalog(data as any);
+      });
+  }, []);
+  const refreshUnlocked = (uid: string | null) => {
+    if (!uid) { setUnlockedStickerIds(new Set()); return; }
+    supabase
+      .from("user_unlocked_stickers")
+      .select("sticker_id")
+      .eq("user_id", uid)
+      .then(({ data }) => {
+        setUnlockedStickerIds(new Set((data ?? []).map((r: any) => r.sticker_id)));
+      });
+  };
+  useEffect(() => { refreshUnlocked(userId); }, [userId, active]);
+
+  const handleUseStickers = (emojis: string[]) => {
+    setActive("add");
+    setShowStickers(false);
+    setHighlightedStickers(new Set(emojis));
+    if (emojis[0]) setNewEmoji(emojis[0]);
+    // refresh unlocked list to pick up just-claimed stickers
+    refreshUnlocked(userId);
+    window.setTimeout(() => setHighlightedStickers(new Set()), 4000);
+  };
 
   // Load this user's tasks; ensure tasks are scoped per account
   useEffect(() => {
@@ -752,7 +791,7 @@ const Index = () => {
           {active === "profile" ? (
             <ProfilePage userId={userId} />
           ) : active === "missions" ? (
-            <MissionsPage userId={userId} />
+            <MissionsPage userId={userId} onUseStickers={handleUseStickers} />
           ) : active === "calendar" ? (
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Profile card — synced from Profile tab */}
@@ -904,78 +943,86 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Icon box with sticker toggle */}
-              <div>
-                <div className="flex items-center justify-between px-1">
-                  <label className="text-xs font-bold text-muted-foreground">Pick an icon</label>
-                  <button
-                    onClick={() => setShowStickers((v) => !v)}
-                    className={`flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full transition-all ${
-                      showStickers ? "neu-pressed text-primary" : "neu-surface-sm text-muted-foreground"
-                    }`}
-                  >
-                    <Smile className="w-3 h-3" strokeWidth={2.4} />
-                    More stickers
-                  </button>
-                </div>
-                <div className="neu-surface-sm rounded-2xl mt-1.5 p-3 grid grid-cols-8 gap-1.5">
-                  {recentEmojis.slice(0, 16).map((e, i) => (
+              {/* Sticker picker: Your stickers / Locked / More */}
+              {(() => {
+                const unlocked = stickerCatalog.filter((s) => unlockedStickerIds.has(s.id));
+                const locked = stickerCatalog.filter((s) => !unlockedStickerIds.has(s.id) && s.mission_id);
+                const renderTile = (s: { id: string; emoji: string; mission_id: string | null }, isLocked = false) => {
+                  const highlight = highlightedStickers.has(s.emoji);
+                  return (
                     <button
-                      key={`${e}-${i}`}
+                      key={s.id}
                       onClick={() => {
-                        setNewEmoji(e);
-                        setRecentEmojis((r) => [e, ...r.filter((x) => x !== e)].slice(0, 16));
+                        if (isLocked) {
+                          const m = s.mission_id ? MISSIONS_BY_ID[s.mission_id] : null;
+                          setLockedTip({ emoji: s.emoji, mission: m?.title ?? "a mission" });
+                          window.setTimeout(() => setLockedTip(null), 2400);
+                          return;
+                        }
+                        setNewEmoji(s.emoji);
                       }}
-                      className={`aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
-                        newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-105"
-                      }`}
+                      className={`relative aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
+                        isLocked
+                          ? "neu-inset opacity-40"
+                          : newEmoji === s.emoji
+                          ? "neu-pressed scale-95"
+                          : "neu-surface-sm hover:scale-105"
+                      } ${highlight ? "ring-2 ring-primary animate-pulse" : ""}`}
+                      aria-label={isLocked ? "Locked sticker" : s.emoji}
                     >
-                      {e}
+                      <span className={isLocked ? "grayscale opacity-60" : ""}>{s.emoji}</span>
                     </button>
-                  ))}
-                </div>
+                  );
+                };
+                return (
+                  <div className="space-y-3">
+                    {/* Your stickers */}
+                    <div>
+                      <div className="flex items-center justify-between px-1 mb-1.5">
+                        <label className="text-xs font-bold text-muted-foreground">Your stickers</label>
+                        <span className="text-[10px] font-bold text-muted-foreground">
+                          {unlocked.length}/{stickerCatalog.length}
+                        </span>
+                      </div>
+                      <div className="neu-surface-sm rounded-2xl p-3 grid grid-cols-8 gap-1.5 max-h-44 overflow-y-auto">
+                        {unlocked.length === 0 ? (
+                          <p className="col-span-8 text-center text-[11px] font-semibold text-muted-foreground py-3">
+                            No stickers yet
+                          </p>
+                        ) : (
+                          unlocked.map((s) => renderTile(s, false))
+                        )}
+                      </div>
+                    </div>
 
-                {showStickers && (
-                  <div className="neu-inset rounded-2xl mt-2 p-3">
-                    <div className="flex items-center justify-between mb-2 px-1">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">More stickers</span>
-                      <button
-                        onClick={() => {
-                          if (customStickers.length === 0) {
-                            toast("Create stickers to add yours", {
-                              description: "Make your own stickers in the iOS Stickers keyboard, then come back to add them here.",
-                            });
-                            return;
-                          }
-                          // Move focus to the user's own sticker collection
-                          const first = customStickers[0];
-                          setNewEmoji(first);
-                          setRecentEmojis((r) => [first, ...r.filter((x) => x !== first)].slice(0, 16));
-                        }}
-                        className="text-[10px] font-bold px-2.5 py-1 rounded-full neu-surface-sm text-primary"
-                      >
-                        + add yours
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-8 gap-1.5 max-h-44 overflow-y-auto">
-                      {[...customStickers, ...EMOJI_STICKERS].map((e, i) => (
-                        <button
-                          key={`s-${e}-${i}`}
-                          onClick={() => {
-                            setNewEmoji(e);
-                            setRecentEmojis((r) => [e, ...r.filter((x) => x !== e)].slice(0, 16));
-                          }}
-                          className={`aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
-                            newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm hover:scale-105"
-                          }`}
-                        >
-                          {e}
-                        </button>
-                      ))}
-                    </div>
+                    {/* Locked */}
+                    {locked.length > 0 && (
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground px-1 mb-1.5 block">
+                          Locked
+                        </label>
+                        <div className="neu-inset rounded-2xl p-3 grid grid-cols-8 gap-1.5 max-h-44 overflow-y-auto">
+                          {locked.map((s) => renderTile(s, true))}
+                        </div>
+                        {lockedTip && (
+                          <p className="text-[11px] font-semibold text-primary mt-1.5 px-1">
+                            {lockedTip.emoji} Unlock by completing "{lockedTip.mission}"
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* More stickers → Missions */}
+                    <button
+                      onClick={() => setActive("missions")}
+                      className="w-full py-2.5 rounded-2xl neu-surface-sm text-xs font-extrabold text-primary flex items-center justify-center gap-1.5 transition-transform active:scale-95"
+                    >
+                      <Smile className="w-3.5 h-3.5" strokeWidth={2.4} />
+                      More stickers — see missions
+                    </button>
                   </div>
-                )}
-              </div>
+                );
+              })()}
 
               {/* Date — 3 quick options */}
               <div>
