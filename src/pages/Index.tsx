@@ -741,6 +741,8 @@ const Index = () => {
 
           {active === "profile" ? (
             <ProfilePage userId={userId} />
+          ) : active === "missions" ? (
+            <MissionsPage userId={userId} />
           ) : active === "calendar" ? (
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Profile card — synced from Profile tab */}
