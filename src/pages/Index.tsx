@@ -256,6 +256,16 @@ const Index = () => {
     };
   }, []);
 
+  // Notify mission engine of today's completion %
+  useEffect(() => {
+    if (!userId) return;
+    const today = todayStr();
+    const todayTasks = tasks.filter((t) => t.dueDate === today);
+    const total = todayTasks.length;
+    const done = todayTasks.filter((t) => completed.has(`${t.id}|${today}`)).length;
+    if (total > 0) onProgressUpdate(userId, { totalTasks: total, completedTasks: done });
+  }, [userId, tasks, completed]);
+
   const toggle = (taskId: string, dueIso: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
