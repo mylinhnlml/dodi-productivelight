@@ -15,6 +15,7 @@ import {
   onProgressUpdate,
   onStickerUsed,
 } from "@/lib/missionEngine";
+import { MISSIONS_BY_ID } from "@/lib/missions";
 
 const POINTS_PER_TASK = 5;
 
@@ -953,7 +954,7 @@ const Index = () => {
                       key={s.id}
                       onClick={() => {
                         if (isLocked) {
-                          const m = s.mission_id ? require("@/lib/missions").MISSIONS_BY_ID[s.mission_id] : null;
+                          const m = s.mission_id ? MISSIONS_BY_ID[s.mission_id] : null;
                           setLockedTip({ emoji: s.emoji, mission: m?.title ?? "a mission" });
                           window.setTimeout(() => setLockedTip(null), 2400);
                           return;
