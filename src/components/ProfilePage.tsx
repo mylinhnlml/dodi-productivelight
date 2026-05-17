@@ -287,6 +287,26 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         </div>
       )}
 
+      {/* Sticker collection chip */}
+      <button
+        onClick={() => setShowGallery(true)}
+        className="w-full rounded-2xl neu-surface-sm p-3 flex items-center gap-3 transition-transform active:scale-[0.99]"
+        aria-label="View sticker gallery"
+      >
+        <div className="w-10 h-10 rounded-xl neu-inset flex items-center justify-center text-lg shrink-0">
+          🎨
+        </div>
+        <div className="flex-1 text-left min-w-0">
+          <p className="text-sm font-extrabold text-foreground">
+            {unlockedIds.size}/{stickers.length} stickers collected
+          </p>
+          <p className="text-[11px] font-semibold text-muted-foreground">
+            Tap to see your collection
+          </p>
+        </div>
+        <span className="text-[11px] font-bold text-primary">View</span>
+      </button>
+
       {/* Rewards header */}
       <div className="flex items-center justify-between px-1">
         <div>
