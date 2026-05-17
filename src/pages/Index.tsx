@@ -242,11 +242,13 @@ const Index = () => {
       const uid = data.user?.id ?? null;
       setUserId(uid);
       loadTasks(uid);
+      onAppOpen(uid);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user?.id ?? null;
       setUserId(uid);
       loadTasks(uid);
+      onAppOpen(uid);
     });
     return () => {
       active = false;
