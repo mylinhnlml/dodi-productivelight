@@ -78,7 +78,7 @@ const EMOJI_STICKERS = [
   "🧸","🪞","🎀","🔮","🕯️","🎐","🪄","🗝️","📷","✈️","🚗","🏠",
 ];
 
-const PRIORITY_LABELS = ["None", "!", "!!", "!!!"];
+const PRIORITY_LABELS = ["None", "Low", "Medium", "High"];
 
 const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
