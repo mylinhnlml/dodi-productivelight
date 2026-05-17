@@ -534,6 +534,12 @@ const Index = () => {
         toast.error("Couldn't save reminder to your account");
       }
     }
+    // Mission triggers
+    onReminderCreated(userId, {
+      isRecurring: !!newTask.repeat,
+      hour: newTime ? parseInt(newTime.split(":")[0], 10) : new Date().getHours(),
+    });
+    onStickerUsed(userId, newTask.emoji);
     setNewTitle("");
     setNewTime("");
     setNewEmoji("🌸");
