@@ -213,6 +213,38 @@ const Index = () => {
       });
   }, [userId, active]);
 
+  // Load sticker catalog + this user's unlocked stickers
+  useEffect(() => {
+    supabase
+      .from("stickers")
+      .select("id, emoji, name, mission_id")
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => {
+        if (data) setStickerCatalog(data as any);
+      });
+  }, []);
+  const refreshUnlocked = (uid: string | null) => {
+    if (!uid) { setUnlockedStickerIds(new Set()); return; }
+    supabase
+      .from("user_unlocked_stickers")
+      .select("sticker_id")
+      .eq("user_id", uid)
+      .then(({ data }) => {
+        setUnlockedStickerIds(new Set((data ?? []).map((r: any) => r.sticker_id)));
+      });
+  };
+  useEffect(() => { refreshUnlocked(userId); }, [userId, active]);
+
+  const handleUseStickers = (emojis: string[]) => {
+    setActive("add");
+    setShowStickers(false);
+    setHighlightedStickers(new Set(emojis));
+    if (emojis[0]) setNewEmoji(emojis[0]);
+    // refresh unlocked list to pick up just-claimed stickers
+    refreshUnlocked(userId);
+    window.setTimeout(() => setHighlightedStickers(new Set()), 4000);
+  };
+
   // Load this user's tasks; ensure tasks are scoped per account
   useEffect(() => {
     let active = true;
