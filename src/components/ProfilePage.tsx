@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X, Trophy } from "lucide-react";
+import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X, Trophy, Palette, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MISSIONS_BY_ID } from "@/lib/missions";
 
 type Profile = {
   display_name: string | null;
@@ -41,6 +42,9 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [rank, setRank] = useState<{ my_count: number; my_rank: number; total_users: number } | null>(null);
+  const [stickers, setStickers] = useState<Array<{ id: string; emoji: string; name: string; mission_id: string | null }>>([]);
+  const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
+  const [showGallery, setShowGallery] = useState(false);
 
   const loadRank = async () => {
     const { data, error } = await supabase.rpc("get_redemption_rank");
@@ -85,6 +89,16 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         .limit(10);
       setRedemptions((h ?? []) as Redemption[]);
       loadRank();
+      const { data: cat } = await supabase
+        .from("stickers")
+        .select("id, emoji, name, mission_id")
+        .order("sort_order", { ascending: true });
+      setStickers((cat ?? []) as any);
+      const { data: un } = await supabase
+        .from("user_unlocked_stickers")
+        .select("sticker_id")
+        .eq("user_id", userId);
+      setUnlockedIds(new Set((un ?? []).map((r: any) => r.sticker_id)));
     })();
   }, [userId]);
 
