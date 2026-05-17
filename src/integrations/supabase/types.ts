@@ -140,6 +140,33 @@ export type Database = {
         }
         Relationships: []
       }
+      stickers: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          mission_id: string | null
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id: string
+          mission_id?: string | null
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          mission_id?: string | null
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           created_at: string
@@ -181,6 +208,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_unlocked_stickers: {
+        Row: {
+          id: string
+          sticker_id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          sticker_id: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          sticker_id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_unlocked_stickers_sticker_id_fkey"
+            columns: ["sticker_id"]
+            isOneToOne: false
+            referencedRelation: "stickers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_xp: {
         Row: {
