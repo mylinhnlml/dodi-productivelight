@@ -1348,6 +1348,7 @@ const Index = () => {
             {[
               { id: "home", icon: Bell, label: "Reminder" },
               { id: "calendar", icon: Calendar, label: "Calendar" },
+              { id: "missions", icon: Trophy, label: "Missions" },
               { id: "profile", icon: User, label: "Profile" },
             ].map(({ id, icon: Icon }) => {
               const isActive = active === id;
