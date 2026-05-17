@@ -443,6 +443,56 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
           </div>
         </div>
       )}
+
+      {showGallery && (
+        <div
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-foreground/30 backdrop-blur-sm animate-fade-in"
+          onClick={() => setShowGallery(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md mx-3 mb-3 sm:mb-0 rounded-3xl bg-background neu-surface-sm p-5 max-h-[80vh] flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-base font-extrabold text-foreground">Sticker collection</h3>
+                <p className="text-[11px] font-semibold text-muted-foreground">
+                  {unlockedIds.size}/{stickers.length} unlocked
+                </p>
+              </div>
+              <button
+                onClick={() => setShowGallery(false)}
+                className="w-8 h-8 rounded-full neu-surface-sm flex items-center justify-center"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4 text-muted-foreground" />
+              </button>
+            </div>
+            <div className="overflow-y-auto -mx-1 px-1">
+              <div className="grid grid-cols-6 gap-2">
+                {stickers.map((s) => {
+                  const isUnlocked = unlockedIds.has(s.id);
+                  const m = s.mission_id ? MISSIONS_BY_ID[s.mission_id] : null;
+                  return (
+                    <div
+                      key={s.id}
+                      title={isUnlocked ? s.name : m ? `Unlock via "${m.title}"` : s.name}
+                      className={`relative aspect-square rounded-xl flex items-center justify-center text-xl ${
+                        isUnlocked ? "neu-surface-sm" : "neu-inset opacity-40"
+                      }`}
+                    >
+                      <span className={isUnlocked ? "" : "grayscale opacity-60"}>{s.emoji}</span>
+                      {!isUnlocked && (
+                        <Lock className="absolute bottom-1 right-1 w-3 h-3 text-muted-foreground" />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
