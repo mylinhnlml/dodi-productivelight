@@ -698,11 +698,13 @@ const Index = () => {
     active === "calendar" ? "Your year at a glance"
     : active === "add" ? "Plant a new intention"
     : active === "profile" ? "Your soft little world"
+    : active === "missions" ? "Earn XP, level up, stay glowing"
     : `Good morning, ${profile.name}`;
   const headerTitle =
     active === "calendar" ? "Calendar"
     : active === "add" ? "New Reminder"
     : active === "profile" ? "Profile"
+    : active === "missions" ? "Missions"
     : "Upcoming Tasks";
 
   if (showLoginWall && !userId) {
