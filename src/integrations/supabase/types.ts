@@ -81,6 +81,9 @@ export type Database = {
           points: number
           updated_at: string
           user_id: string
+          vision_images: string[]
+          vision_notification_time: string | null
+          vision_quote: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -91,6 +94,9 @@ export type Database = {
           points?: number
           updated_at?: string
           user_id: string
+          vision_images?: string[]
+          vision_notification_time?: string | null
+          vision_quote?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -100,6 +106,33 @@ export type Database = {
           id?: string
           points?: number
           updated_at?: string
+          user_id?: string
+          vision_images?: string[]
+          vision_notification_time?: string | null
+          vision_quote?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          created_at: string
+          endpoint: string
+          id: string
+          subscription: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint: string
+          id?: string
+          subscription: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string
+          id?: string
+          subscription?: Json
           user_id?: string
         }
         Relationships: []
