@@ -42,7 +42,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
   const finish = () => {
     if (completing) return;
     setCompleting(true);
-    try { localStorage.setItem("dodi.introSeen.v2", "1"); } catch {}
+    try { localStorage.setItem("dodi.introSeen.v3", "1"); } catch {}
     toast("Welcome to Dodi ☀️ Your gentle journey starts now", {
       position: "top-center",
       duration: 3000,
