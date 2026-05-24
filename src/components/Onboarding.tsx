@@ -118,9 +118,6 @@ export default function Onboarding() {
             </button>
           </div>
         )}
-        {isLast && (
-          <CTAFooter signIn={signIn} loading={loading} />
-        )}
       </div>
     </div>
   );
