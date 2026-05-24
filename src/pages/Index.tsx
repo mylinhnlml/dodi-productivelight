@@ -1477,7 +1477,7 @@ const Index = () => {
           {/* Bottom nav — 3 tabs */}
           <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around">
             {[
-              { id: "home", icon: Bell, label: "Reminder" },
+              { id: "home", icon: Bell, label: "Reminders" },
               { id: "calendar", icon: Calendar, label: "Calendar" },
               { id: "missions", icon: Trophy, label: "Missions" },
               { id: "profile", icon: User, label: "Profile" },
