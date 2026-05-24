@@ -39,23 +39,17 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
     else prev();
   };
 
-  const signIn = async (provider: "google" | "apple") => {
-    setLoading(provider);
+  const finish = () => {
+    if (completing) return;
+    setCompleting(true);
     try { localStorage.setItem("dodi.introSeen.v2", "1"); } catch {}
     toast("Welcome to Dodi ☀️ Your gentle journey starts now", {
       position: "top-center",
       duration: 3000,
     });
-    const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error(`Sign-in failed: ${result.error.message}`);
-      setLoading(null);
-      return;
-    }
-    if (result.redirected) return;
+    onComplete?.();
   };
+
 
   const current = SLIDES[index];
   const isLast = current === "cta";
