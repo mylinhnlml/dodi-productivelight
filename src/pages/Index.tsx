@@ -16,6 +16,7 @@ import {
   onStickerUsed,
 } from "@/lib/missionEngine";
 import { MISSIONS_BY_ID } from "@/lib/missions";
+import { useSwipeToDelete } from "@/hooks/useSwipeToDelete";
 
 const POINTS_PER_TASK = 5;
 
