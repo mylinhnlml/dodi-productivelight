@@ -1300,7 +1300,72 @@ const Index = () => {
           <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
             
 
-            {sortedTasks.filter((t) => t.title.toLowerCase().includes(searchQuery.trim().toLowerCase())).map((task, i) => {
+            {(() => {
+              const q = searchQuery.trim().toLowerCase();
+              const filtered = sortedTasks.filter((t) => t.title.toLowerCase().includes(q));
+              if (filtered.length === 0 && q === "") {
+                const chips: { title: string; emoji: string }[] = [
+                  { title: "Drink water", emoji: "💧" },
+                  { title: "Read", emoji: "📚" },
+                  { title: "Stretch", emoji: "🧘" },
+                ];
+                return (
+                  <div className="flex flex-col items-center gap-4 py-8 px-4 animate-fade-in">
+                    <div className="rounded-3xl neu-surface-sm px-6 py-8 flex flex-col items-center gap-4 w-full max-w-[280px]">
+                      <div
+                        className="text-[64px] leading-none"
+                        style={{ animation: "float-gentle 3s ease-in-out infinite" }}
+                        aria-hidden
+                      >
+                        ☀️
+                      </div>
+                      <h2 className="font-extrabold text-foreground text-base text-center">
+                        Your day is wide open ☀️
+                      </h2>
+                      <p className="text-xs text-muted-foreground text-center max-w-[200px] leading-relaxed">
+                        Plant your first intention and watch it bloom.
+                      </p>
+                      <button
+                        onClick={() => setActive("add")}
+                        className="w-full rounded-2xl text-primary-foreground font-extrabold text-sm py-3"
+                        style={{ background: "hsl(var(--primary))" }}
+                      >
+                        Add your first reminder
+                      </button>
+                      <div className="flex flex-row items-center justify-center gap-2 flex-wrap">
+                        {chips.map((c) => (
+                          <button
+                            key={c.title}
+                            onClick={() => {
+                              setNewTitle(c.title);
+                              setNewEmoji(c.emoji);
+                              setActive("add");
+                            }}
+                            className="neu-surface-sm rounded-full px-3 py-1.5 text-xs font-bold text-muted-foreground"
+                          >
+                            {c.emoji} {c.title}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              if (filtered.length === 0 && q !== "") {
+                return (
+                  <div className="flex flex-col items-center gap-2 py-12 px-4 animate-fade-in">
+                    <div className="text-5xl" aria-hidden>🔍</div>
+                    <p className="text-sm font-bold text-foreground text-center">
+                      No reminders match "{searchQuery}"
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Try a different search
+                    </p>
+                  </div>
+                );
+              }
+              return filtered.map((task, i) => {
+
               const offset = swipeOffsets[task.occKey] ?? 0;
               return (
               <div key={task.occKey} className="relative">
@@ -1374,7 +1439,9 @@ const Index = () => {
                 </article>
               </div>
               );
-            })}
+              });
+            })()}
+
           </section>
           </>
           )}

@@ -102,3 +102,8 @@
   border-radius: 1rem !important;
   box-shadow: 0 8px 24px rgba(29, 158, 117, 0.18) !important;
 }
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
