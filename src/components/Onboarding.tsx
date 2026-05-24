@@ -10,7 +10,7 @@ type OnboardingProps = { onComplete?: () => void };
 export default function Onboarding({ onComplete }: OnboardingProps = {}) {
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
-  const [loading, setLoading] = useState<"google" | "apple" | null>(null);
+  const [completing, setCompleting] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
 
