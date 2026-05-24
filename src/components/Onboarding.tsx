@@ -138,7 +138,7 @@ function SlideContent({ slide, keyId, direction }: { slide: SlideKey; keyId: str
       {slide === "vision" && <VisionSlide />}
       {slide === "missions" && <MissionsSlide />}
       {slide === "calendar" && <CalendarSlide />}
-      {slide === "cta" && <CTASlide />}
+      {slide === "cta" && <CTASlide signIn={signIn} loading={loading} />}
     </div>
   );
 }
