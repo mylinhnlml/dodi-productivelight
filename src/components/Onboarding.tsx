@@ -115,7 +115,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
           </div>
         )}
         {isLast && (
-          <CTAFooter signIn={signIn} loading={loading} />
+          <CTAFooter onStart={finish} loading={completing} />
         )}
       </div>
     </div>
