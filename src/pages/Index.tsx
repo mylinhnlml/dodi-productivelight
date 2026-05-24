@@ -253,7 +253,7 @@ const Index = () => {
 
   // Load this user's tasks; ensure tasks are scoped per account
   useEffect(() => {
-    let active = true;
+    let mounted = true;
     const loadTasks = async (uid: string | null) => {
       if (!uid) {
         setTasks(initialTasks);
@@ -264,7 +264,7 @@ const Index = () => {
         .select("*")
         .eq("user_id", uid)
         .order("created_at", { ascending: true });
-      if (!active) return;
+      if (!mounted) return;
       if (error) {
         console.error("Failed to load tasks", error);
         setTasks([]);
@@ -290,7 +290,7 @@ const Index = () => {
       onAppOpen(uid);
     });
     return () => {
-      active = false;
+      mounted = false;
       sub.subscription.unsubscribe();
     };
   }, []);
