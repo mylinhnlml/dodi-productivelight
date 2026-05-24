@@ -981,7 +981,7 @@ const Index = () => {
                         <label className="text-xs font-bold text-muted-foreground px-1 mb-1.5 block">
                           Locked
                         </label>
-                        <div className="neu-inset rounded-2xl p-3 grid grid-cols-8 gap-1.5 max-h-44 overflow-y-auto">
+                        <div className="neu-inset rounded-2xl p-3 grid grid-cols-8 gap-1.5 max-h-28 overflow-y-auto">
                           {locked.map((s) => renderTile(s, true))}
                         </div>
                         {lockedTip && (
