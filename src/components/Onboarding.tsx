@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { lovable } from "@/integrations/lovable";
 
 type SlideKey = "hook" | "reminders" | "vision" | "missions" | "calendar" | "cta";
 const SLIDES: SlideKey[] = ["hook", "reminders", "vision", "missions", "calendar", "cta"];
+
+type OnboardingProps = { onComplete?: () => void };
+
 
 export default function Onboarding() {
   const [index, setIndex] = useState(0);
