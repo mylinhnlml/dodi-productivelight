@@ -51,8 +51,16 @@ export default function VisionBoardViewer({
   const resumeTimer = useRef<number | null>(null);
   const autoTimer = useRef<number | null>(null);
   const [closing, setClosing] = useState(false);
+  const [signedUrls, setSignedUrls] = useState<string[]>([]);
 
   useEffect(() => { if (open) { setIndex(0); setClosing(false); setDraftQuote(quote || ""); } }, [open]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!images.length) { setSignedUrls([]); return; }
+    visionSignedUrls(images).then((urls) => { if (!cancelled) setSignedUrls(urls); });
+    return () => { cancelled = true; };
+  }, [images]);
 
   // Auto-advance
   useEffect(() => {
