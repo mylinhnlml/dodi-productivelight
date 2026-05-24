@@ -652,7 +652,7 @@ const Index = () => {
   const pct = todayTasks.length === 0 ? 0 : Math.round(((todayTasks.length - remaining) / todayTasks.length) * 100);
 
   // Expand all tasks (incl. recurring) across the whole year for calendar
-  const yearOccurrences = useMemo(() => {
+  const expanded = useMemo(() => {
     const year = new Date().getFullYear();
     const startMs = new Date(year, 0, 1).getTime();
     const endMs = new Date(year, 11, 31).getTime();
@@ -665,7 +665,7 @@ const Index = () => {
       const baseMs = base.getTime();
       const pushOcc = (iso: string) => {
         const occKey = `${t.id}|${iso}`;
-        out.push({ ...t, dueDate: iso, done: completed.has(occKey), occKey });
+        out.push({ ...t, dueDate: iso, occKey });
       };
       if (baseMs >= startMs && baseMs <= endMs) {
         pushOcc(fmt(base));
@@ -688,7 +688,12 @@ const Index = () => {
       }
     }
     return out;
-  }, [tasks, completed]);
+  }, [tasks]);
+
+  const yearOccurrences = useMemo(
+    () => expanded.map((t) => ({ ...t, done: completed.has(t.occKey) })),
+    [expanded, completed]
+  );
 
   const calendarByDate = useMemo(() => {
     const map = new Map<string, CalendarTaskInfo>();
