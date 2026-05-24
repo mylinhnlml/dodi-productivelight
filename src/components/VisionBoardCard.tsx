@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { visionSignedUrl } from "@/lib/visionImages";
+
 interface Props {
   images: string[];
   quote: string;
@@ -6,6 +9,15 @@ interface Props {
 
 export default function VisionBoardCard({ images, quote, onOpen }: Props) {
   const first = images[0];
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!first) { setSrc(null); return; }
+    visionSignedUrl(first).then((u) => { if (!cancelled) setSrc(u); });
+    return () => { cancelled = true; };
+  }, [first]);
+
   if (!first) {
     return (
       <button
@@ -22,7 +34,7 @@ export default function VisionBoardCard({ images, quote, onOpen }: Props) {
       onClick={onOpen}
       className="relative w-full h-[200px] rounded-3xl overflow-hidden block text-left"
     >
-      <img src={first} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      {src && <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />}
       <div
         className="absolute inset-0"
         style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%)" }}
