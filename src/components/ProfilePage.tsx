@@ -80,11 +80,13 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
       const { data: r } = await supabase
         .from("rewards")
         .select("id, title, emoji, cost")
+        .eq("user_id", userId)
         .order("created_at", { ascending: true });
       setRewards((r ?? []) as Reward[]);
       const { data: h } = await supabase
         .from("redemptions")
         .select("id, reward_title, reward_emoji, cost, redeemed_at")
+        .eq("user_id", userId)
         .order("redeemed_at", { ascending: false })
         .limit(10);
       setRedemptions((h ?? []) as Redemption[]);

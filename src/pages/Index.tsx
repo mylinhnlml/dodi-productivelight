@@ -257,6 +257,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
+        .eq("user_id", uid)
         .order("created_at", { ascending: true });
       if (!active) return;
       if (error) {
