@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
     const { data: task, error: taskErr } = await admin
       .from("tasks")
-      .select("id,user_id")
+      .select("id,user_id,done")
       .eq("id", taskId)
       .maybeSingle();
     if (taskErr || !task) {
@@ -57,6 +57,12 @@ Deno.serve(async (req) => {
     if (task.user_id !== userId) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!task.done) {
+      return new Response(JSON.stringify({ error: "Task not completed" }), {
+        status: 422,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
