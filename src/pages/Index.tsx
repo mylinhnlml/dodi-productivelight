@@ -723,12 +723,14 @@ const Index = () => {
     return { label: "Coming soon", cls: "bg-[hsl(45,80%,92%)] text-[hsl(45,40%,40%)]" };
   };
 
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
     : active === "add" ? "Plant a new intention"
     : active === "profile" ? "Your soft little world"
     : active === "missions" ? "Earn XP, level up, stay glowing"
-    : `Good morning, ${profile.name}`;
+    : `${greeting}, ${profile.name}`;
   const headerTitle =
     active === "calendar" ? "Calendar"
     : active === "add" ? "New Reminder"
