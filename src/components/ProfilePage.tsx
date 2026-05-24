@@ -111,6 +111,18 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
     })();
   }, [userId]);
 
+  // Auto-open vision viewer when navigated via push notification
+  useEffect(() => {
+    if (!profile) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("vision") === "1") {
+      setShowVision(true);
+      params.delete("vision");
+      const qs = params.toString();
+      window.history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : ""));
+    }
+  }, [profile]);
+
   const saveProfile = async () => {
     if (!userId) return;
     const { error } = await supabase
