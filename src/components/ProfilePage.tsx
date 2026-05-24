@@ -69,7 +69,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
     (async () => {
       let { data: p } = await supabase
         .from("profiles")
-        .select("display_name, avatar_url, bio, points")
+        .select("display_name, avatar_url, bio, points, vision_quote, vision_images, vision_notification_time")
         .eq("user_id", userId)
         .maybeSingle();
       if (!p) {
@@ -77,9 +77,9 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         const { data: created } = await supabase
           .from("profiles")
           .insert({ user_id: userId })
-          .select("display_name, avatar_url, bio, points")
+          .select("display_name, avatar_url, bio, points, vision_quote, vision_images, vision_notification_time")
           .single();
-        p = created ?? { display_name: null, avatar_url: null, bio: null, points: 0 };
+        p = created ?? { display_name: null, avatar_url: null, bio: null, points: 0, vision_quote: null, vision_images: [], vision_notification_time: null };
       }
       setProfile(p as Profile);
       setDraftName(p.display_name ?? "");
