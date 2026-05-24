@@ -129,8 +129,7 @@ export default function VisionBoardViewer({
         .from("vision-board")
         .upload(path, blob, { contentType: "image/jpeg", upsert: false });
       if (upErr) throw upErr;
-      const { data } = supabase.storage.from("vision-board").getPublicUrl(path);
-      const next = [...images, data.publicUrl];
+      const next = [...images, path];
       onImagesChange(next);
       await supabase.from("profiles").update({ vision_images: next }).eq("user_id", userId);
       setTimeout(() => {
@@ -144,14 +143,13 @@ export default function VisionBoardViewer({
 
   const removeAt = async (i: number) => {
     setPendingDelete(null);
-    const url = images[i];
+    const stored = images[i];
     const next = images.filter((_, idx) => idx !== i);
     onImagesChange(next);
     await supabase.from("profiles").update({ vision_images: next }).eq("user_id", userId);
-    // Best-effort delete from storage
     try {
-      const m = url.match(/vision-board\/(.+)$/);
-      if (m) await supabase.storage.from("vision-board").remove([m[1]]);
+      const p = visionPath(stored);
+      if (p) await supabase.storage.from("vision-board").remove([p]);
     } catch {}
   };
 
