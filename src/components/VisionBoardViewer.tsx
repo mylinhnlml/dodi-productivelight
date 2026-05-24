@@ -207,6 +207,7 @@ export default function VisionBoardViewer({
         >
           {images.map((url, i) => {
             const lazyLoad = Math.abs(i - index) > 1;
+            const displaySrc = signedUrls[i] || "";
             return (
               <div
                 key={url + i}
@@ -216,9 +217,9 @@ export default function VisionBoardViewer({
                 onPointerLeave={cancelLongPress}
                 onPointerCancel={cancelLongPress}
               >
-                {!lazyLoad && (
+                {!lazyLoad && displaySrc && (
                   <img
-                    src={url}
+                    src={displaySrc}
                     alt=""
                     loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover"
