@@ -328,6 +328,18 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         <span className="text-[11px] font-bold text-primary">View</span>
       </button>
 
+      {/* Vision Board */}
+      <VisionBoardCard
+        images={profile.vision_images || []}
+        quote={profile.vision_quote || ""}
+        onOpen={() => setShowVision(true)}
+      />
+      <VisionReminderRow
+        userId={userId}
+        time={profile.vision_notification_time}
+        onTimeChange={(t) => setProfile((p) => (p ? { ...p, vision_notification_time: t } : p))}
+      />
+
       {/* Rewards header */}
       <div className="flex items-center justify-between px-1">
         <div>
