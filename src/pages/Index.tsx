@@ -85,7 +85,11 @@ const rand = (min: number, max: number) => Math.random() * (max - min) + min;
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
-  const [active, setActive] = useState("home");
+  const [active, setActive] = useState(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("vision") === "1"
+      ? "profile"
+      : "home"
+  );
   // Per-occurrence completion: keys like `${taskId}|${YYYY-MM-DD}`
   const [completed, setCompleted] = useState<Set<string>>(() => {
     const s = new Set<string>();

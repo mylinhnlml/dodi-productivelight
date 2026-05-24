@@ -3,12 +3,18 @@ import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X, Trophy, Palette
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MISSIONS_BY_ID } from "@/lib/missions";
+import VisionBoardCard from "@/components/VisionBoardCard";
+import VisionBoardViewer from "@/components/VisionBoardViewer";
+import VisionReminderRow from "@/components/VisionReminderRow";
 
 type Profile = {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
   points: number;
+  vision_quote: string | null;
+  vision_images: string[];
+  vision_notification_time: string | null;
 };
 
 type Reward = {
@@ -45,6 +51,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
   const [stickers, setStickers] = useState<Array<{ id: string; emoji: string; name: string; mission_id: string | null }>>([]);
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
   const [showGallery, setShowGallery] = useState(false);
+  const [showVision, setShowVision] = useState(false);
 
   const loadRank = async () => {
     const { data, error } = await supabase.rpc("get_redemption_rank");
@@ -62,7 +69,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
     (async () => {
       let { data: p } = await supabase
         .from("profiles")
-        .select("display_name, avatar_url, bio, points")
+        .select("display_name, avatar_url, bio, points, vision_quote, vision_images, vision_notification_time")
         .eq("user_id", userId)
         .maybeSingle();
       if (!p) {
@@ -70,9 +77,9 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         const { data: created } = await supabase
           .from("profiles")
           .insert({ user_id: userId })
-          .select("display_name, avatar_url, bio, points")
+          .select("display_name, avatar_url, bio, points, vision_quote, vision_images, vision_notification_time")
           .single();
-        p = created ?? { display_name: null, avatar_url: null, bio: null, points: 0 };
+        p = created ?? { display_name: null, avatar_url: null, bio: null, points: 0, vision_quote: null, vision_images: [], vision_notification_time: null };
       }
       setProfile(p as Profile);
       setDraftName(p.display_name ?? "");
@@ -103,6 +110,18 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
       setUnlockedIds(new Set((un ?? []).map((r: any) => r.sticker_id)));
     })();
   }, [userId]);
+
+  // Auto-open vision viewer when navigated via push notification
+  useEffect(() => {
+    if (!profile) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("vision") === "1") {
+      setShowVision(true);
+      params.delete("vision");
+      const qs = params.toString();
+      window.history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : ""));
+    }
+  }, [profile]);
 
   const saveProfile = async () => {
     if (!userId) return;
@@ -309,6 +328,18 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         <span className="text-[11px] font-bold text-primary">View</span>
       </button>
 
+      {/* Vision Board */}
+      <VisionBoardCard
+        images={profile.vision_images || []}
+        quote={profile.vision_quote || ""}
+        onOpen={() => setShowVision(true)}
+      />
+      <VisionReminderRow
+        userId={userId}
+        time={profile.vision_notification_time}
+        onTimeChange={(t) => setProfile((p) => (p ? { ...p, vision_notification_time: t } : p))}
+      />
+
       {/* Rewards header */}
       <div className="flex items-center justify-between px-1">
         <div>
@@ -495,6 +526,15 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
           </div>
         </div>
       )}
+      <VisionBoardViewer
+        userId={userId}
+        open={showVision}
+        onClose={() => setShowVision(false)}
+        images={profile.vision_images || []}
+        quote={profile.vision_quote || ""}
+        onImagesChange={(imgs) => setProfile((p) => (p ? { ...p, vision_images: imgs } : p))}
+        onQuoteChange={(q) => setProfile((p) => (p ? { ...p, vision_quote: q } : p))}
+      />
     </section>
   );
 }
