@@ -418,93 +418,17 @@ const Index = () => {
     });
   };
 
-  const startSwipe = (e: React.PointerEvent, key: string) => {
-    // Only handle mouse / pen here. Touch is handled by native touch listeners
-    // attached via the ref callback below (works reliably on iOS Safari).
-    if (e.pointerType === "touch") return;
-    if (e.button !== undefined && e.button !== 0) return;
-    const startX = e.clientX;
-    const startOffset = swipeOffsets[key] ?? 0;
-    let moved = false;
-    const move = (ev: PointerEvent) => {
-      const dx = ev.clientX - startX;
-      if (Math.abs(dx) > 4) moved = true;
-      const next = Math.max(-96, Math.min(0, startOffset + dx));
-      setSwipeOffsets((s) => ({ ...s, [key]: next }));
-    };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      window.removeEventListener("pointercancel", up);
-      setSwipeOffsets((s) => {
-        const cur = s[key] ?? 0;
-        return { ...s, [key]: cur < -48 ? -88 : 0 };
-      });
-      if (moved) {
-        justSwipedRef.current.add(key);
-        window.setTimeout(() => justSwipedRef.current.delete(key), 350);
-      }
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-    window.addEventListener("pointercancel", up);
-  };
-
-  // Attach native touch listeners (non-passive so we can preventDefault) for iOS Safari.
-  const attachSwipeTouch = (key: string) => (el: HTMLElement | null) => {
-    if (!el) return;
-    if ((el as any).__swipeBound) return;
-    (el as any).__swipeBound = true;
-
-    let startX = 0;
-    let startY = 0;
-    let startOffset = 0;
-    let axis: "x" | "y" | null = null;
-    let moved = false;
-    let active = false;
-
-    const onStart = (ev: TouchEvent) => {
-      if (ev.touches.length !== 1) return;
-      active = true;
-      axis = null;
-      moved = false;
-      startX = ev.touches[0].clientX;
-      startY = ev.touches[0].clientY;
-      startOffset = swipeOffsets[key] ?? 0;
-    };
-    const onMove = (ev: TouchEvent) => {
-      if (!active) return;
-      const dx = ev.touches[0].clientX - startX;
-      const dy = ev.touches[0].clientY - startY;
-      if (axis === null) {
-        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-        axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-        if (axis === "y") { active = false; return; }
-      }
-      if (axis !== "x") return;
-      ev.preventDefault();
-      moved = true;
-      const next = Math.max(-96, Math.min(0, startOffset + dx));
-      setSwipeOffsets((s) => ({ ...s, [key]: next }));
-    };
-    const onEnd = () => {
-      if (!active) return;
-      active = false;
-      setSwipeOffsets((s) => {
-        const cur = s[key] ?? 0;
-        return { ...s, [key]: cur < -48 ? -88 : 0 };
-      });
-      if (moved) {
-        justSwipedRef.current.add(key);
-        window.setTimeout(() => justSwipedRef.current.delete(key), 350);
-      }
-    };
-
-    el.addEventListener("touchstart", onStart, { passive: true });
-    el.addEventListener("touchmove", onMove, { passive: false });
-    el.addEventListener("touchend", onEnd, { passive: true });
-    el.addEventListener("touchcancel", onEnd, { passive: true });
-  };
+  const {
+    ref: swipeRef,
+    onPointerDown: swipePointerDown,
+    getOffset,
+    reset: resetSwipe,
+    resetAll: resetAllSwipes,
+  } = useSwipeToDelete({
+    onDelete: deleteTask,
+    threshold: 48,
+    maxOffset: 88,
+  });
 
   const submitNew = async () => {
     if (!newTitle.trim()) return;
