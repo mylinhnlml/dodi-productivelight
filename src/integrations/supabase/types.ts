@@ -344,6 +344,13 @@ export type Database = {
           total_users: number
         }[]
       }
+      redeem_reward: {
+        Args: { _reward_id: string }
+        Returns: {
+          new_points: number
+          redemption_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

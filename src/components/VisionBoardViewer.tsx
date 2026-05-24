@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { X, Plus, Pencil, Trash2 } from "lucide-react";
+import { visionPath, visionSignedUrls } from "@/lib/visionImages";
 
 interface Props {
   userId: string;
@@ -50,8 +51,16 @@ export default function VisionBoardViewer({
   const resumeTimer = useRef<number | null>(null);
   const autoTimer = useRef<number | null>(null);
   const [closing, setClosing] = useState(false);
+  const [signedUrls, setSignedUrls] = useState<string[]>([]);
 
   useEffect(() => { if (open) { setIndex(0); setClosing(false); setDraftQuote(quote || ""); } }, [open]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!images.length) { setSignedUrls([]); return; }
+    visionSignedUrls(images).then((urls) => { if (!cancelled) setSignedUrls(urls); });
+    return () => { cancelled = true; };
+  }, [images]);
 
   // Auto-advance
   useEffect(() => {
@@ -120,8 +129,7 @@ export default function VisionBoardViewer({
         .from("vision-board")
         .upload(path, blob, { contentType: "image/jpeg", upsert: false });
       if (upErr) throw upErr;
-      const { data } = supabase.storage.from("vision-board").getPublicUrl(path);
-      const next = [...images, data.publicUrl];
+      const next = [...images, path];
       onImagesChange(next);
       await supabase.from("profiles").update({ vision_images: next }).eq("user_id", userId);
       setTimeout(() => {
@@ -135,14 +143,13 @@ export default function VisionBoardViewer({
 
   const removeAt = async (i: number) => {
     setPendingDelete(null);
-    const url = images[i];
+    const stored = images[i];
     const next = images.filter((_, idx) => idx !== i);
     onImagesChange(next);
     await supabase.from("profiles").update({ vision_images: next }).eq("user_id", userId);
-    // Best-effort delete from storage
     try {
-      const m = url.match(/vision-board\/(.+)$/);
-      if (m) await supabase.storage.from("vision-board").remove([m[1]]);
+      const p = visionPath(stored);
+      if (p) await supabase.storage.from("vision-board").remove([p]);
     } catch {}
   };
 
@@ -200,6 +207,7 @@ export default function VisionBoardViewer({
         >
           {images.map((url, i) => {
             const lazyLoad = Math.abs(i - index) > 1;
+            const displaySrc = signedUrls[i] || "";
             return (
               <div
                 key={url + i}
@@ -209,9 +217,9 @@ export default function VisionBoardViewer({
                 onPointerLeave={cancelLongPress}
                 onPointerCancel={cancelLongPress}
               >
-                {!lazyLoad && (
+                {!lazyLoad && displaySrc && (
                   <img
-                    src={url}
+                    src={displaySrc}
                     alt=""
                     loading="lazy"
                     className="absolute inset-0 w-full h-full object-cover"

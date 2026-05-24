@@ -13,64 +13,93 @@ const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') ?? 'mailto:hello@dodi.app';
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
+const supa = createClient(SUPABASE_URL, SERVICE_KEY);
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const supa = createClient(SUPABASE_URL, SERVICE_KEY);
-  const nowHour = new Date().getUTCHours();
-
-  // Find profiles whose hour-of-day matches now (UTC)
-  const { data: profiles, error } = await supa
-    .from('profiles')
-    .select('user_id, vision_quote, vision_notification_time, vision_images')
-    .not('vision_notification_time', 'is', null);
-
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  // --- Auth: require the shared cron secret. --------------------------------
+  try {
+    const provided = req.headers.get('x-cron-secret') ?? '';
+    const { data: secretRow, error: secretErr } = await supa
+      .schema('vault')
+      .from('decrypted_secrets')
+      .select('decrypted_secret')
+      .eq('name', 'cron_secret')
+      .maybeSingle();
+    const expected = (secretRow?.decrypted_secret as string | undefined) ?? '';
+    if (secretErr || !expected || provided !== expected) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  } catch {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
-  const targets = (profiles ?? []).filter((p: any) => {
-    const t: string = p.vision_notification_time;
-    if (!t) return false;
-    const h = parseInt(t.split(':')[0], 10);
-    return h === nowHour;
-  });
+  try {
+    const nowHour = new Date().getUTCHours();
 
-  let sent = 0, removed = 0;
-  for (const p of targets) {
-    const { data: subs } = await supa
-      .from('push_subscriptions')
-      .select('id, subscription')
-      .eq('user_id', p.user_id);
-    if (!subs || !subs.length) continue;
+    const { data: profiles, error } = await supa
+      .from('profiles')
+      .select('user_id, vision_quote, vision_notification_time, vision_images')
+      .not('vision_notification_time', 'is', null);
 
-    const body = (p.vision_quote && String(p.vision_quote).trim())
-      || "Open Dodi to see what you're working toward";
-    const payload = JSON.stringify({
-      title: 'Your vision is waiting ☀️',
-      body,
-      url: '/?vision=1',
+    if (error) {
+      console.error('profiles query failed', error);
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const targets = (profiles ?? []).filter((p: any) => {
+      const t: string = p.vision_notification_time;
+      if (!t) return false;
+      const h = parseInt(t.split(':')[0], 10);
+      return h === nowHour;
     });
 
-    for (const s of subs) {
-      try {
-        await webpush.sendNotification(s.subscription as any, payload);
-        sent++;
-      } catch (e: any) {
-        const code = e?.statusCode;
-        if (code === 404 || code === 410) {
-          await supa.from('push_subscriptions').delete().eq('id', s.id);
-          removed++;
-        } else {
-          console.error('push fail', code, e?.body);
+    let sent = 0, removed = 0;
+    for (const p of targets) {
+      const { data: subs } = await supa
+        .from('push_subscriptions')
+        .select('id, subscription')
+        .eq('user_id', p.user_id);
+      if (!subs || !subs.length) continue;
+
+      const body = (p.vision_quote && String(p.vision_quote).trim())
+        || "Open Dodi to see what you're working toward";
+      const payload = JSON.stringify({
+        title: 'Your vision is waiting ☀️',
+        body,
+        url: '/?vision=1',
+      });
+
+      for (const s of subs) {
+        try {
+          await webpush.sendNotification(s.subscription as any, payload);
+          sent++;
+        } catch (e: any) {
+          const code = e?.statusCode;
+          if (code === 404 || code === 410) {
+            await supa.from('push_subscriptions').delete().eq('id', s.id);
+            removed++;
+          } else {
+            console.error('push fail', code, e?.body);
+          }
         }
       }
     }
-  }
 
-  return new Response(JSON.stringify({ ok: true, hour: nowHour, targets: targets.length, sent, removed }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (e) {
+    console.error('send-vision-notification error', e);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
 });
