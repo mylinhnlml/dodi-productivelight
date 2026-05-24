@@ -141,10 +141,21 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
     if (file.size > 3 * 1024 * 1024) return toast.error("Image too large (max 3MB)");
+    const allowed: Record<string, string> = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+    };
+    if (!allowed[file.type]) {
+      return toast.error("Only JPG, PNG, WEBP or GIF allowed");
+    }
     setUploading(true);
-    const ext = file.name.split(".").pop() ?? "jpg";
+    const ext = allowed[file.type];
     const path = `${userId}/avatar-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
+    const { error: upErr } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true, contentType: file.type });
     if (upErr) {
       setUploading(false);
       return toast.error("Upload failed");
@@ -156,6 +167,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
     setUploading(false);
     toast.success("Avatar updated");
   };
+
 
   const addReward = async () => {
     if (!userId || !newTitle.trim()) return;
