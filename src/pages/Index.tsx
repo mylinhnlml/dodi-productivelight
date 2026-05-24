@@ -323,10 +323,17 @@ const Index = () => {
         const next = guestCompletes + 1;
         setGuestCompletes(next);
         try { localStorage.setItem("dodi.guestCompletes", String(next)); } catch {}
-        if (next >= 3) {
-          window.setTimeout(() => setShowLoginWall(true), 1200);
-        }
+        // First completion as guest → prompt Google sign-in
+        window.setTimeout(async () => {
+          toast("Sign in to save your wins ☀️", { position: "top-center", duration: 2500 });
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: { redirectTo: window.location.origin },
+          });
+          if (error) toast.error(`Sign-in failed: ${error.message}`);
+        }, 1200);
       } else {
+
         // Award points server-side
         const { error: pointsError } = await supabase.functions.invoke("complete-task", {
           body: { task_id: taskId }
@@ -673,7 +680,7 @@ const Index = () => {
 
   return (
     <>
-    {showIntro && <IntroTour onDone={dismissIntro} />}
+    {showIntro && <Onboarding onComplete={dismissIntro} />}
     <main className="min-h-screen flex items-center justify-center p-4 md:p-8">
       <div className="relative w-full max-w-[400px] aspect-[9/19] rounded-[3rem] neu-surface p-3">
         <div className="w-full h-full rounded-[2.5rem] neu-inset overflow-hidden flex flex-col">
