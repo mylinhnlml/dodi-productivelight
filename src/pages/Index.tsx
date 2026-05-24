@@ -1133,6 +1133,12 @@ const Index = () => {
                       </button>
                       <button
                         onClick={() => {
+                          const lastFeedback = localStorage.getItem("dodi.lastFeedback");
+                          if (lastFeedback && Date.now() - Number(lastFeedback) < 60000) {
+                            toast("Please wait a moment before sending again ☀️");
+                            return;
+                          }
+                          localStorage.setItem("dodi.lastFeedback", String(Date.now()));
                           if (feedbackRating === 0) {
                             toast("Please select a star rating");
                             return;
