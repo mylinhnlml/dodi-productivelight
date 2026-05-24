@@ -370,11 +370,7 @@ const Index = () => {
       return next;
     });
     setSettled((s) => s.filter((x) => !x.id.startsWith(`${id}|`)));
-    setSwipeOffsets((s) => {
-      const next = { ...s };
-      Object.keys(next).forEach((k) => { if (k.startsWith(`${id}|`)) delete next[k]; });
-      return next;
-    });
+    resetSwipe(id);
 
     let undone = false;
     const restore = () => {
