@@ -16,6 +16,7 @@ import {
   onStickerUsed,
 } from "@/lib/missionEngine";
 import { MISSIONS_BY_ID } from "@/lib/missions";
+import { useSwipeToDelete } from "@/hooks/useSwipeToDelete";
 
 const POINTS_PER_TASK = 5;
 
@@ -107,8 +108,7 @@ const Index = () => {
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [swipeOffsets, setSwipeOffsets] = useState<Record<string, number>>({});
-  const justSwipedRef = useRef<Set<string>>(new Set());
+  
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [showIntro, setShowIntro] = useState<boolean>(() => {
@@ -370,11 +370,7 @@ const Index = () => {
       return next;
     });
     setSettled((s) => s.filter((x) => !x.id.startsWith(`${id}|`)));
-    setSwipeOffsets((s) => {
-      const next = { ...s };
-      Object.keys(next).forEach((k) => { if (k.startsWith(`${id}|`)) delete next[k]; });
-      return next;
-    });
+    resetSwipe(id);
 
     let undone = false;
     const restore = () => {
@@ -422,93 +418,17 @@ const Index = () => {
     });
   };
 
-  const startSwipe = (e: React.PointerEvent, key: string) => {
-    // Only handle mouse / pen here. Touch is handled by native touch listeners
-    // attached via the ref callback below (works reliably on iOS Safari).
-    if (e.pointerType === "touch") return;
-    if (e.button !== undefined && e.button !== 0) return;
-    const startX = e.clientX;
-    const startOffset = swipeOffsets[key] ?? 0;
-    let moved = false;
-    const move = (ev: PointerEvent) => {
-      const dx = ev.clientX - startX;
-      if (Math.abs(dx) > 4) moved = true;
-      const next = Math.max(-96, Math.min(0, startOffset + dx));
-      setSwipeOffsets((s) => ({ ...s, [key]: next }));
-    };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      window.removeEventListener("pointercancel", up);
-      setSwipeOffsets((s) => {
-        const cur = s[key] ?? 0;
-        return { ...s, [key]: cur < -48 ? -88 : 0 };
-      });
-      if (moved) {
-        justSwipedRef.current.add(key);
-        window.setTimeout(() => justSwipedRef.current.delete(key), 350);
-      }
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-    window.addEventListener("pointercancel", up);
-  };
-
-  // Attach native touch listeners (non-passive so we can preventDefault) for iOS Safari.
-  const attachSwipeTouch = (key: string) => (el: HTMLElement | null) => {
-    if (!el) return;
-    if ((el as any).__swipeBound) return;
-    (el as any).__swipeBound = true;
-
-    let startX = 0;
-    let startY = 0;
-    let startOffset = 0;
-    let axis: "x" | "y" | null = null;
-    let moved = false;
-    let active = false;
-
-    const onStart = (ev: TouchEvent) => {
-      if (ev.touches.length !== 1) return;
-      active = true;
-      axis = null;
-      moved = false;
-      startX = ev.touches[0].clientX;
-      startY = ev.touches[0].clientY;
-      startOffset = swipeOffsets[key] ?? 0;
-    };
-    const onMove = (ev: TouchEvent) => {
-      if (!active) return;
-      const dx = ev.touches[0].clientX - startX;
-      const dy = ev.touches[0].clientY - startY;
-      if (axis === null) {
-        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-        axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-        if (axis === "y") { active = false; return; }
-      }
-      if (axis !== "x") return;
-      ev.preventDefault();
-      moved = true;
-      const next = Math.max(-96, Math.min(0, startOffset + dx));
-      setSwipeOffsets((s) => ({ ...s, [key]: next }));
-    };
-    const onEnd = () => {
-      if (!active) return;
-      active = false;
-      setSwipeOffsets((s) => {
-        const cur = s[key] ?? 0;
-        return { ...s, [key]: cur < -48 ? -88 : 0 };
-      });
-      if (moved) {
-        justSwipedRef.current.add(key);
-        window.setTimeout(() => justSwipedRef.current.delete(key), 350);
-      }
-    };
-
-    el.addEventListener("touchstart", onStart, { passive: true });
-    el.addEventListener("touchmove", onMove, { passive: false });
-    el.addEventListener("touchend", onEnd, { passive: true });
-    el.addEventListener("touchcancel", onEnd, { passive: true });
-  };
+  const {
+    ref: swipeRef,
+    onPointerDown: swipePointerDown,
+    getOffset,
+    reset: resetSwipe,
+    resetAll: resetAllSwipes,
+  } = useSwipeToDelete({
+    onDelete: deleteTask,
+    threshold: 48,
+    maxOffset: 88,
+  });
 
   const submitNew = async () => {
     if (!newTitle.trim()) return;
@@ -829,7 +749,7 @@ const Index = () => {
                   ) : (
                     <div className="space-y-3">
                       {tasksOnSelectedDate.map((task, i) => {
-                        const offset = swipeOffsets[task.occKey] ?? 0;
+                        const offset = getOffset(task.occKey);
                         return (
                           <div key={task.occKey} className="relative">
                             <button
@@ -840,9 +760,9 @@ const Index = () => {
                               <Trash2 className="w-5 h-5 text-destructive-foreground" strokeWidth={2.4} />
                             </button>
                             <article
-                              ref={attachSwipeTouch(task.occKey)}
-                              onPointerDown={(e) => startSwipe(e, task.occKey)}
-                              onClick={() => { if (justSwipedRef.current.has(task.occKey)) return; toggle(task.id, task.dueDate); }}
+                              ref={swipeRef(task.occKey)}
+                              onPointerDown={(e) => swipePointerDown(e, task.occKey)}
+                              onClick={() => { if (getOffset(task.occKey) !== 0) return; toggle(task.id, task.dueDate); }}
                               style={{
                                 animationDelay: `${i * 60}ms`,
                                 transform: `translateX(${offset}px)`,
@@ -1389,7 +1309,7 @@ const Index = () => {
               }
               return filtered.map((task, i) => {
 
-              const offset = swipeOffsets[task.occKey] ?? 0;
+              const offset = getOffset(task.occKey);
               return (
               <div key={task.occKey} className="relative">
                 <button
@@ -1400,9 +1320,9 @@ const Index = () => {
                   <Trash2 className="w-5 h-5 text-destructive-foreground" strokeWidth={2.4} />
                 </button>
                 <article
-                  ref={attachSwipeTouch(task.occKey)}
-                  onPointerDown={(e) => startSwipe(e, task.occKey)}
-                  onClick={() => { if (justSwipedRef.current.has(task.occKey)) return; toggle(task.id, task.dueDate); }}
+                  ref={swipeRef(task.occKey)}
+                  onPointerDown={(e) => swipePointerDown(e, task.occKey)}
+                  onClick={() => { if (getOffset(task.occKey) !== 0) return; toggle(task.id, task.dueDate); }}
                   style={{
                     animationDelay: `${i * 60}ms`,
                     transform: `translateX(${offset}px)`,
