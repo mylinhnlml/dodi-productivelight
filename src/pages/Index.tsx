@@ -1035,80 +1035,10 @@ const Index = () => {
                     />
                   </div>
                 )}
-
-                {/* Repeat — iOS Reminders style */}
-                <button
-                  onClick={() => setShowRepeat((v) => !v)}
-                  className={`w-full mt-2 rounded-2xl px-4 py-2.5 flex items-center justify-between transition-all ${
-                    showRepeat ? "neu-pressed" : "neu-surface-sm"
-                  }`}
-                >
-                  <span className="text-xs font-extrabold text-muted-foreground">Repeat</span>
-                  <span className="text-xs font-bold text-primary">{repeat} ›</span>
-                </button>
-                {showRepeat && (
-                  <div className="neu-inset rounded-2xl mt-2 p-2 space-y-1">
-                    {["Never", "Every Day", "Every Week", "Every 2 Weeks", "Every Month", "Every Year"].map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => {
-                          setRepeat(opt);
-                          setShowRepeat(false);
-                        }}
-                        className={`w-full text-left text-xs font-bold px-3 py-2 rounded-xl flex items-center justify-between transition-all ${
-                          repeat === opt ? "neu-pressed text-primary" : "hover:neu-surface-sm text-foreground"
-                        }`}
-                      >
-                        <span>{opt}</span>
-                        {repeat === opt && <Check className="w-3.5 h-3.5 text-primary" strokeWidth={3} />}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Priority */}
-              <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">Priority</label>
-                <div className="grid grid-cols-4 gap-2 mt-1.5">
-                  {PRIORITY_LABELS.map((label, i) => {
-                    const yellowStyles = [
-                      "bg-[hsl(45,90%,96%)] text-[hsl(45,20%,60%)]",
-                      "bg-[hsl(45,90%,82%)] text-[hsl(45,50%,30%)]",
-                      "bg-[hsl(43,95%,62%)] text-[hsl(40,60%,18%)]",
-                      "bg-[hsl(40,100%,48%)] text-[hsl(40,80%,10%)]",
-                    ];
-                    const selected = newPriority === i;
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => setNewPriority(i as Priority)}
-                        className={`rounded-2xl py-2.5 text-xs font-extrabold transition-all ${yellowStyles[i]} ${
-                          selected ? "neu-pressed scale-95" : "neu-surface-sm"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Time (optional) */}
-              <div>
-                <label className="text-xs font-bold text-muted-foreground px-1">Time (optional)</label>
-                <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
-                  <input
-                    type="time"
-                    value={newTime}
-                    onChange={(e) => setNewTime(e.target.value)}
-                    className="w-full text-sm font-bold bg-transparent outline-none"
-                  />
-                </div>
               </div>
 
               {/* Compact Add Reminder button — right aligned, with Feedback on left */}
-              <div className="flex justify-between items-center gap-2 pt-2 pb-1">
+              <div className="flex justify-between items-center gap-2 pt-1">
                 <button
                   onClick={() => setShowFeedback(true)}
                   className="neu-surface-sm rounded-2xl px-3 py-2 flex items-center gap-1.5 text-[10px] font-extrabold text-muted-foreground uppercase tracking-wide active:neu-pressed transition-all"
@@ -1131,6 +1061,97 @@ const Index = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Advanced options toggle */}
+              <button
+                onClick={() => setShowAdvanced((v) => !v)}
+                className={`w-full rounded-2xl px-4 py-2.5 flex items-center justify-between transition-all ${
+                  showAdvanced ? "neu-pressed" : "neu-surface-sm"
+                }`}
+              >
+                <span className="text-xs font-extrabold text-muted-foreground">Advanced</span>
+                <span className="text-xs font-bold text-primary">
+                  {showAdvanced ? "Hide ›" : "Show ›"}
+                </span>
+              </button>
+
+              {showAdvanced && (
+                <div className="space-y-4 animate-[fade-in_0.25s_ease-out_both]">
+                  {/* Repeat — iOS Reminders style */}
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground px-1">Repeat</label>
+                    <button
+                      onClick={() => setShowRepeat((v) => !v)}
+                      className={`w-full mt-1.5 rounded-2xl px-4 py-2.5 flex items-center justify-between transition-all ${
+                        showRepeat ? "neu-pressed" : "neu-surface-sm"
+                      }`}
+                    >
+                      <span className="text-xs font-extrabold text-muted-foreground">Frequency</span>
+                      <span className="text-xs font-bold text-primary">{repeat} ›</span>
+                    </button>
+                    {showRepeat && (
+                      <div className="neu-inset rounded-2xl mt-2 p-2 space-y-1">
+                        {["Never", "Every Day", "Every Week", "Every 2 Weeks", "Every Month", "Every Year"].map((opt) => (
+                          <button
+                            key={opt}
+                            onClick={() => {
+                              setRepeat(opt);
+                              setShowRepeat(false);
+                            }}
+                            className={`w-full text-left text-xs font-bold px-3 py-2 rounded-xl flex items-center justify-between transition-all ${
+                              repeat === opt ? "neu-pressed text-primary" : "hover:neu-surface-sm text-foreground"
+                            }`}
+                          >
+                            <span>{opt}</span>
+                            {repeat === opt && <Check className="w-3.5 h-3.5 text-primary" strokeWidth={3} />}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Priority */}
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground px-1">Priority</label>
+                    <div className="grid grid-cols-4 gap-2 mt-1.5">
+                      {PRIORITY_LABELS.map((label, i) => {
+                        const yellowStyles = [
+                          "bg-[hsl(45,90%,96%)] text-[hsl(45,20%,60%)]",
+                          "bg-[hsl(45,90%,82%)] text-[hsl(45,50%,30%)]",
+                          "bg-[hsl(43,95%,62%)] text-[hsl(40,60%,18%)]",
+                          "bg-[hsl(40,100%,48%)] text-[hsl(40,80%,10%)]",
+                        ];
+                        const selected = newPriority === i;
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => setNewPriority(i as Priority)}
+                            className={`rounded-2xl py-2.5 text-xs font-extrabold transition-all ${yellowStyles[i]} ${
+                              selected ? "neu-pressed scale-95" : "neu-surface-sm"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Time (optional) */}
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground px-1">Time (optional)</label>
+                    <div className="neu-inset rounded-2xl mt-1.5 px-4 py-3">
+                      <input
+                        type="time"
+                        value={newTime}
+                        onChange={(e) => setNewTime(e.target.value)}
+                        className="w-full text-sm font-bold bg-transparent outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
 
               {/* Feedback modal */}
               {showFeedback && (
