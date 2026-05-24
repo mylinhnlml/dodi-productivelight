@@ -88,7 +88,7 @@ export default function Onboarding() {
 
       {/* Slide stage */}
       <div className="relative w-full h-full">
-        <SlideContent slide={current} keyId={`${current}-${index}`} direction={direction} />
+        <SlideContent slide={current} keyId={`${current}-${index}`} direction={direction} signIn={signIn} loading={loading} />
       </div>
 
       {/* Bottom nav */}
