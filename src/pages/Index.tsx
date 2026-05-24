@@ -328,19 +328,8 @@ const Index = () => {
           window.setTimeout(() => setShowLoginWall(true), 1200);
         }
       } else {
-        // Award points for completing a task
-        (async () => {
-          const { data: p } = await supabase
-            .from("profiles")
-            .select("points")
-            .eq("user_id", userId)
-            .maybeSingle();
-          const cur = (p?.points as number | undefined) ?? 0;
-          await supabase
-            .from("profiles")
-            .update({ points: cur + POINTS_PER_TASK })
-            .eq("user_id", userId);
-        })();
+        // Award points server-side
+        supabase.functions.invoke("complete-task", { body: { task_id: taskId } });
         // Mission triggers
         onReminderCompleted(userId, { completedAt: new Date(), isOnTime: true });
       }
