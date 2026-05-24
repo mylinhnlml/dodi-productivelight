@@ -324,14 +324,13 @@ const Index = () => {
         const next = guestCompletes + 1;
         setGuestCompletes(next);
         try { localStorage.setItem("dodi.guestCompletes", String(next)); } catch {}
-        // First completion as guest → prompt Google sign-in
+        // First completion as guest → prompt Google sign-in (Lovable managed OAuth)
         window.setTimeout(async () => {
           toast("Sign in to save your wins ☀️", { position: "top-center", duration: 2500 });
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider: "google",
-            options: { redirectTo: window.location.origin },
+          const result = await lovable.auth.signInWithOAuth("google", {
+            redirect_uri: window.location.origin,
           });
-          if (error) toast.error(`Sign-in failed: ${error.message}`);
+          if (result.error) toast.error("Sign-in failed. Please try again.");
         }, 1200);
       } else {
 
