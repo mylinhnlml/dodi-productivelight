@@ -526,6 +526,15 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
           </div>
         </div>
       )}
+      <VisionBoardViewer
+        userId={userId}
+        open={showVision}
+        onClose={() => setShowVision(false)}
+        images={profile.vision_images || []}
+        quote={profile.vision_quote || ""}
+        onImagesChange={(imgs) => setProfile((p) => (p ? { ...p, vision_images: imgs } : p))}
+        onQuoteChange={(q) => setProfile((p) => (p ? { ...p, vision_quote: q } : p))}
+      />
     </section>
   );
 }
