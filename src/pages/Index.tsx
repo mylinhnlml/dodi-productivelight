@@ -108,7 +108,7 @@ const Index = () => {
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const [selectedDate_unused_placeholder, setSelectedDate_unused_placeholder] = [null, () => {}] as const;
+  
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [showIntro, setShowIntro] = useState<boolean>(() => {
