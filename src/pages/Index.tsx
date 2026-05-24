@@ -964,7 +964,7 @@ const Index = () => {
                           {unlocked.length}/{stickerCatalog.length}
                         </span>
                       </div>
-                      <div className="neu-surface-sm rounded-2xl p-3 grid grid-cols-8 gap-1.5 max-h-44 overflow-y-auto">
+                      <div className="neu-surface-sm rounded-2xl p-3 grid grid-cols-8 gap-1.5 max-h-28 overflow-y-auto">
                         {unlocked.length === 0 ? (
                           <p className="col-span-8 text-center text-[11px] font-semibold text-muted-foreground py-3">
                             No stickers yet
