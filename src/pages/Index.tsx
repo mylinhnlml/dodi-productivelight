@@ -253,7 +253,7 @@ const Index = () => {
 
   // Load this user's tasks; ensure tasks are scoped per account
   useEffect(() => {
-    let active = true;
+    let mounted = true;
     const loadTasks = async (uid: string | null) => {
       if (!uid) {
         setTasks(initialTasks);
@@ -264,7 +264,7 @@ const Index = () => {
         .select("*")
         .eq("user_id", uid)
         .order("created_at", { ascending: true });
-      if (!active) return;
+      if (!mounted) return;
       if (error) {
         console.error("Failed to load tasks", error);
         setTasks([]);
@@ -290,7 +290,7 @@ const Index = () => {
       onAppOpen(uid);
     });
     return () => {
-      active = false;
+      mounted = false;
       sub.subscription.unsubscribe();
     };
   }, []);
@@ -305,7 +305,7 @@ const Index = () => {
     if (total > 0) onProgressUpdate(userId, { totalTasks: total, completedTasks: done });
   }, [userId, tasks, completed]);
 
-  const toggle = (taskId: string, dueIso: string) => {
+  const toggle = async (taskId: string, dueIso: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
     const occKey = `${taskId}|${dueIso}`;
@@ -328,7 +328,10 @@ const Index = () => {
         }
       } else {
         // Award points server-side
-        supabase.functions.invoke("complete-task", { body: { task_id: taskId } });
+        const { error: pointsError } = await supabase.functions.invoke("complete-task", {
+          body: { task_id: taskId }
+        });
+        if (pointsError) console.warn("Points not awarded:", pointsError.message);
         // Mission triggers
         onReminderCompleted(userId, { completedAt: new Date(), isOnTime: true });
       }
@@ -349,7 +352,7 @@ const Index = () => {
         rot: rand(-20, 20),
       };
       window.setTimeout(() => {
-        setSettled((s) => [...s.filter((x) => x.id !== occKey), newSettled]);
+        setSettled((s) => [...s.filter((x) => x.id !== occKey), newSettled].slice(-8));
       }, 1000);
       window.setTimeout(() => {
         setDrops((d) => d.filter((dd) => !newDrops.some((n) => n.key === dd.key)));
@@ -357,7 +360,10 @@ const Index = () => {
     } else {
       setSettled((s) => s.filter((x) => x.id !== occKey));
       if (userId) {
-        supabase.functions.invoke("remove-task-points", { body: { task_id: taskId } });
+        const { error: removeError } = await supabase.functions.invoke("remove-task-points", {
+          body: { task_id: taskId }
+        });
+        if (removeError) console.warn("Points not removed:", removeError.message);
       }
     }
   };
@@ -1127,6 +1133,12 @@ const Index = () => {
                       </button>
                       <button
                         onClick={() => {
+                          const lastFeedback = localStorage.getItem("dodi.lastFeedback");
+                          if (lastFeedback && Date.now() - Number(lastFeedback) < 60000) {
+                            toast("Please wait a moment before sending again ☀️");
+                            return;
+                          }
+                          localStorage.setItem("dodi.lastFeedback", String(Date.now()));
                           if (feedbackRating === 0) {
                             toast("Please select a star rating");
                             return;
