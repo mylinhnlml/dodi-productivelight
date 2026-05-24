@@ -180,25 +180,29 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
   const redeem = async (reward: Reward) => {
     if (!userId || !profile) return;
     if (profile.points < reward.cost) return toast.error("Not enough points yet ✨");
-    const newPoints = profile.points - reward.cost;
-    const { error: pErr } = await supabase
-      .from("profiles")
-      .update({ points: newPoints })
-      .eq("user_id", userId);
-    if (pErr) return toast.error("Redeem failed");
-    const { data: red } = await supabase
-      .from("redemptions")
-      .insert({
-        user_id: userId,
-        reward_id: reward.id,
-        reward_title: reward.title,
-        reward_emoji: reward.emoji,
-        cost: reward.cost,
-      })
-      .select("id, reward_title, reward_emoji, cost, redeemed_at")
-      .single();
+    const { data, error } = await supabase.rpc("redeem_reward", { _reward_id: reward.id });
+    if (error) {
+      if (error.message?.toLowerCase().includes("insufficient")) {
+        return toast.error("Not enough points yet ✨");
+      }
+      return toast.error("Redeem failed");
+    }
+    const row = Array.isArray(data) ? data[0] : data;
+    const newPoints = (row?.new_points as number | undefined) ?? profile.points - reward.cost;
     setProfile({ ...profile, points: newPoints });
-    if (red) setRedemptions((h) => [red as Redemption, ...h].slice(0, 10));
+    const redId = row?.redemption_id as string | undefined;
+    if (redId) {
+      setRedemptions((h) => [
+        {
+          id: redId,
+          reward_title: reward.title,
+          reward_emoji: reward.emoji,
+          cost: reward.cost,
+          redeemed_at: new Date().toISOString(),
+        },
+        ...h,
+      ].slice(0, 10));
+    }
     loadRank();
     toast.success(`Redeemed ${reward.emoji} ${reward.title}`);
   };
