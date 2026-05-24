@@ -1439,7 +1439,9 @@ const Index = () => {
                 </article>
               </div>
               );
-            })}
+              });
+            })()}
+
           </section>
           </>
           )}
