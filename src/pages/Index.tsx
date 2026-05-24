@@ -1309,7 +1309,7 @@ const Index = () => {
               }
               return filtered.map((task, i) => {
 
-              const offset = swipeOffsets[task.occKey] ?? 0;
+              const offset = getOffset(task.occKey);
               return (
               <div key={task.occKey} className="relative">
                 <button
@@ -1320,9 +1320,9 @@ const Index = () => {
                   <Trash2 className="w-5 h-5 text-destructive-foreground" strokeWidth={2.4} />
                 </button>
                 <article
-                  ref={attachSwipeTouch(task.occKey)}
-                  onPointerDown={(e) => startSwipe(e, task.occKey)}
-                  onClick={() => { if (justSwipedRef.current.has(task.occKey)) return; toggle(task.id, task.dueDate); }}
+                  ref={swipeRef(task.occKey)}
+                  onPointerDown={(e) => swipePointerDown(e, task.occKey)}
+                  onClick={() => { if (getOffset(task.occKey) !== 0) return; toggle(task.id, task.dueDate); }}
                   style={{
                     animationDelay: `${i * 60}ms`,
                     transform: `translateX(${offset}px)`,
