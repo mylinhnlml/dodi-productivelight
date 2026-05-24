@@ -680,7 +680,7 @@ const Index = () => {
 
   return (
     <>
-    {showIntro && <IntroTour onDone={dismissIntro} />}
+    {showIntro && <Onboarding onComplete={dismissIntro} />}
     <main className="min-h-screen flex items-center justify-center p-4 md:p-8">
       <div className="relative w-full max-w-[400px] aspect-[9/19] rounded-[3rem] neu-surface p-3">
         <div className="w-full h-full rounded-[2.5rem] neu-inset overflow-hidden flex flex-col">
