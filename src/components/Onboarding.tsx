@@ -123,7 +123,7 @@ export default function Onboarding() {
   );
 }
 
-function SlideContent({ slide, keyId, direction }: { slide: SlideKey; keyId: string; direction: 1 | -1 }) {
+function SlideContent({ slide, keyId, direction, signIn, loading }: { slide: SlideKey; keyId: string; direction: 1 | -1; signIn: (p: "google" | "apple") => void; loading: "google" | "apple" | null }) {
   const enterAnim = direction === 1 ? "slide-from-right" : "slide-from-left";
   return (
     <div key={keyId} className={`absolute inset-0 ${enterAnim}`}>
