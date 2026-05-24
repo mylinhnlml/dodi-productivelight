@@ -47,6 +47,30 @@ export type Database = {
         }
         Relationships: []
       }
+      point_events: {
+        Row: {
+          awarded_at: string
+          awarded_date: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          awarded_date?: string
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          awarded_at?: string
+          awarded_date?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
