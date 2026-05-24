@@ -51,6 +51,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
   const [stickers, setStickers] = useState<Array<{ id: string; emoji: string; name: string; mission_id: string | null }>>([]);
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
   const [showGallery, setShowGallery] = useState(false);
+  const [showVision, setShowVision] = useState(false);
 
   const loadRank = async () => {
     const { data, error } = await supabase.rpc("get_redemption_rank");
