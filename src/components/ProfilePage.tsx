@@ -3,12 +3,18 @@ import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X, Trophy, Palette
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MISSIONS_BY_ID } from "@/lib/missions";
+import VisionBoardCard from "@/components/VisionBoardCard";
+import VisionBoardViewer from "@/components/VisionBoardViewer";
+import VisionReminderRow from "@/components/VisionReminderRow";
 
 type Profile = {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
   points: number;
+  vision_quote: string | null;
+  vision_images: string[];
+  vision_notification_time: string | null;
 };
 
 type Reward = {
