@@ -412,6 +412,17 @@ function CTAFooter({ onStart, loading }: { onStart: () => void; loading: boolean
         Start my gentle journey ☀️
       </button>
       <p className="text-center text-[11px] text-stone-500 pt-1">Free to start · No credit card needed</p>
+      <p className="text-center text-[11px] text-stone-500 pt-1">
+        By continuing, you agree to our{" "}
+        <a
+          href="https://tungsten-robe-8ed.notion.site/Dodi-Privacy-Policy-36f63200016a80ba89cded6d69bf5778?source=copy_link"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          Terms & Privacy
+        </a>
+      </p>
     </div>
   );
 }
