@@ -157,6 +157,19 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
     toast.success("Name updated ✨");
   };
 
+  const saveSlogan = async () => {
+    if (!userId) return;
+    const next = draftSlogan.trim().slice(0, 80) || null;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ bio: next })
+      .eq("user_id", userId);
+    if (error) return toast.error("Couldn't save");
+    setProfile((p) => (p ? { ...p, bio: next } : p));
+    setEditSloganOpen(false);
+    toast.success("Slogan updated ✨");
+  };
+
   const saveQuote = async () => {
     if (!userId) return;
     const next = draftQuote.trim().slice(0, 100) || null;
