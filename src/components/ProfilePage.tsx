@@ -278,7 +278,12 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
           </button>
           <input ref={fileRef} type="file" accept="image/*" onChange={onAvatarFile} className="hidden" />
           <p className="text-base font-extrabold text-foreground mt-1">{displayName}</p>
-          {email && <p className="text-xs text-muted-foreground">{email}</p>}
+          {profile.bio && (
+            <p className="text-xs text-muted-foreground text-center max-w-[16rem] truncate">
+              {profile.bio}
+            </p>
+          )}
+          {email && <p className="text-xs text-muted-foreground/60">{email}</p>}
         </div>
 
         <div className="px-5 mt-6 space-y-3">
@@ -295,6 +300,25 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
             <div className="flex-1 text-left min-w-0">
               <p className="text-xs font-bold text-foreground">Display name</p>
               <p className="text-xs text-muted-foreground truncate mt-0.5">{displayName}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-amber-400" />
+          </button>
+
+          <button
+            onClick={() => {
+              setDraftSlogan(profile.bio ?? "");
+              setEditSloganOpen(true);
+            }}
+            className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3 transition-transform active:scale-[0.98]"
+          >
+            <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center">
+              <Pencil className="w-4 h-4 text-amber-400" strokeWidth={2.6} />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-xs font-bold text-foreground">Slogan</p>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                {profile.bio || "Tap to set your slogan"}
+              </p>
             </div>
             <ChevronRight className="w-4 h-4 text-amber-400" />
           </button>
