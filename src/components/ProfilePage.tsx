@@ -392,6 +392,18 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
             </div>
             <ChevronRight className="w-4 h-4 text-amber-400" />
           </button>
+
+          <button
+            onClick={() => setDeleteOpen(true)}
+            className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3 transition-transform active:scale-[0.98]"
+          >
+            <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center">
+              <Trash2 className="w-4 h-4 text-destructive opacity-60" strokeWidth={2.6} />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-bold text-destructive opacity-60">Delete account</p>
+            </div>
+          </button>
         </div>
 
         {editSloganOpen && (
