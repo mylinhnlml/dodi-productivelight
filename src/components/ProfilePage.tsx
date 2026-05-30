@@ -9,6 +9,8 @@ import {
   Lock,
   X,
   Camera,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -51,6 +53,8 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [editSloganOpen, setEditSloganOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [editQuoteOpen, setEditQuoteOpen] = useState(false);
   const [showVision, setShowVision] = useState(false);
 
@@ -189,6 +193,59 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
       localStorage.removeItem("dodi.introSeen.v3");
     } catch {}
     window.location.reload();
+  };
+
+  const doDeleteAccount = async () => {
+    if (!userId || deleting) return;
+    setDeleting(true);
+    try {
+      // 1. Delete vision board images from Storage (paths stored on profile)
+      try {
+        const imgs = profile?.vision_images ?? [];
+        const paths: string[] = [];
+        for (const url of imgs) {
+          const p = url.includes("/vision-board/") ? url.split("/vision-board/")[1] : url;
+          if (p) paths.push(p);
+        }
+        if (paths.length) await supabase.storage.from("vision-board").remove(paths);
+      } catch (e) { console.warn("vision storage cleanup failed", e); }
+
+      // 2. Delete DB rows. Wrap each individually so a missing table doesn't block.
+      const tables = [
+        "user_unlocked_stickers",
+        "mission_progress",
+        "point_events",
+        "push_subscriptions",
+        "rewards",
+        "redemptions",
+        "user_xp",
+        "tasks",
+        "profiles",
+      ] as const;
+      for (const table of tables) {
+        try {
+          await supabase.from(table as any).delete().eq("user_id", userId);
+        } catch (e) {
+          console.warn(`delete from ${table} failed`, e);
+        }
+      }
+
+      // 3. Sign out
+      await supabase.auth.signOut();
+
+      try {
+        ["dodi.introSeen.v2", "dodi.introSeen.v3", "dodi.guestCompletes", "dodi.firstReminderCreated", "dodi.lastFeedback"].forEach(
+          (k) => localStorage.removeItem(k)
+        );
+      } catch {}
+
+      toast.success("Account deleted. Goodbye ☀️", { duration: 3000 });
+      setTimeout(() => window.location.reload(), 300);
+    } catch (e) {
+      console.error(e);
+      toast.error("Something went wrong. Please try again or contact support.");
+      setDeleting(false);
+    }
   };
 
   const onPickAvatar = () => fileRef.current?.click();
@@ -335,6 +392,18 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
             </div>
             <ChevronRight className="w-4 h-4 text-amber-400" />
           </button>
+
+          <button
+            onClick={() => setDeleteOpen(true)}
+            className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3 transition-transform active:scale-[0.98]"
+          >
+            <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center">
+              <Trash2 className="w-4 h-4 text-destructive opacity-60" strokeWidth={2.6} />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-sm font-bold text-destructive opacity-60">Delete account</p>
+            </div>
+          </button>
         </div>
 
         {editSloganOpen && (
@@ -396,6 +465,37 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
               >
                 Log out
               </button>
+            </div>
+          </BottomSheet>
+        )}
+
+        {deleteOpen && (
+          <BottomSheet onClose={() => !deleting && setDeleteOpen(false)} title="">
+            <div className="flex flex-col items-center">
+              <div className="text-3xl mb-2">🗑️</div>
+              <p className="font-extrabold text-center text-foreground">Delete your account?</p>
+              <div className="h-2" />
+              <p className="text-xs text-muted-foreground text-center leading-relaxed px-4">
+                This will permanently delete all your data — reminders, missions, vision board, and stickers. This cannot be undone.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 w-full">
+                <button
+                  onClick={doDeleteAccount}
+                  disabled={deleting}
+                  className="w-full rounded-2xl py-3 text-sm font-extrabold text-white flex items-center justify-center gap-2 disabled:opacity-80"
+                  style={{ background: "hsl(var(--destructive))" }}
+                >
+                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {deleting ? "Deleting…" : "Yes, delete everything"}
+                </button>
+                <button
+                  onClick={() => !deleting && setDeleteOpen(false)}
+                  disabled={deleting}
+                  className="text-xs text-muted-foreground text-center py-2"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </BottomSheet>
         )}
