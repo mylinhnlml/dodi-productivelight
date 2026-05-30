@@ -470,7 +470,7 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
         )}
 
         {deleteOpen && (
-          <BottomSheet onClose={() => !deleting && setDeleteOpen(false)}>
+          <BottomSheet onClose={() => !deleting && setDeleteOpen(false)} title="">
             <div className="flex flex-col items-center">
               <div className="text-3xl mb-2">🗑️</div>
               <p className="font-extrabold text-center text-foreground">Delete your account?</p>
