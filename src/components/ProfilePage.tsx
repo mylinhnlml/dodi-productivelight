@@ -337,6 +337,28 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
           </button>
         </div>
 
+        {editSloganOpen && (
+          <BottomSheet onClose={() => setEditSloganOpen(false)} title="Slogan">
+            <input
+              value={draftSlogan}
+              onChange={(e) => setDraftSlogan(e.target.value.slice(0, 80))}
+              placeholder="Your personal slogan"
+              autoFocus
+              className="w-full text-sm font-bold bg-transparent neu-inset rounded-2xl px-4 py-3 outline-none"
+            />
+            <div className="mt-1 text-right text-[10px] font-bold text-muted-foreground">
+              {draftSlogan.length}/80
+            </div>
+            <button
+              onClick={saveSlogan}
+              className="mt-3 w-full rounded-2xl py-3 text-sm font-extrabold text-white"
+              style={{ background: "hsl(40, 100%, 55%)" }}
+            >
+              Save
+            </button>
+          </BottomSheet>
+        )}
+
         {editNameOpen && (
           <BottomSheet onClose={() => setEditNameOpen(false)} title="Display name">
             <input
