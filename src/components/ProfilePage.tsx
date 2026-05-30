@@ -447,7 +447,10 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
           }`}
         >
           <div className="rounded-3xl neu-surface-sm p-4">
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+            <div
+              className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
+            >
               {stickers.map((s) => {
                 const isUnlocked = unlockedIds.has(s.id);
                 return (
