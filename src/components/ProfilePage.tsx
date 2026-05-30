@@ -49,12 +49,14 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [view, setView] = useState<"profile" | "account">("profile");
   const [expanded, setExpanded] = useState<"tasks" | "stickers" | null>(null);
   const [editNameOpen, setEditNameOpen] = useState(false);
+  const [editSloganOpen, setEditSloganOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [editQuoteOpen, setEditQuoteOpen] = useState(false);
   const [showVision, setShowVision] = useState(false);
 
   // Drafts
   const [draftName, setDraftName] = useState("");
+  const [draftSlogan, setDraftSlogan] = useState("");
   const [draftQuote, setDraftQuote] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -85,6 +87,7 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
       }
       setProfile(p as Profile);
       setDraftName(p.display_name ?? "");
+      setDraftSlogan(p.bio ?? "");
       setDraftQuote(p.vision_quote ?? "");
 
       const { data: u } = await supabase.auth.getUser();
@@ -152,6 +155,19 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
     setProfile((p) => (p ? { ...p, display_name: next } : p));
     setEditNameOpen(false);
     toast.success("Name updated ✨");
+  };
+
+  const saveSlogan = async () => {
+    if (!userId) return;
+    const next = draftSlogan.trim().slice(0, 80) || null;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ bio: next })
+      .eq("user_id", userId);
+    if (error) return toast.error("Couldn't save");
+    setProfile((p) => (p ? { ...p, bio: next } : p));
+    setEditSloganOpen(false);
+    toast.success("Slogan updated ✨");
   };
 
   const saveQuote = async () => {
@@ -262,7 +278,12 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
           </button>
           <input ref={fileRef} type="file" accept="image/*" onChange={onAvatarFile} className="hidden" />
           <p className="text-base font-extrabold text-foreground mt-1">{displayName}</p>
-          {email && <p className="text-xs text-muted-foreground">{email}</p>}
+          {profile.bio && (
+            <p className="text-xs text-muted-foreground text-center max-w-[16rem] truncate">
+              {profile.bio}
+            </p>
+          )}
+          {email && <p className="text-xs text-muted-foreground/60">{email}</p>}
         </div>
 
         <div className="px-5 mt-6 space-y-3">
@@ -284,6 +305,25 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
           </button>
 
           <button
+            onClick={() => {
+              setDraftSlogan(profile.bio ?? "");
+              setEditSloganOpen(true);
+            }}
+            className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3 transition-transform active:scale-[0.98]"
+          >
+            <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center">
+              <Pencil className="w-4 h-4 text-amber-400" strokeWidth={2.6} />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-xs font-bold text-foreground">Slogan</p>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">
+                {profile.bio || "Tap to set your slogan"}
+              </p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-amber-400" />
+          </button>
+
+          <button
             onClick={() => setLogoutOpen(true)}
             className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3 transition-transform active:scale-[0.98]"
           >
@@ -296,6 +336,28 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
             <ChevronRight className="w-4 h-4 text-amber-400" />
           </button>
         </div>
+
+        {editSloganOpen && (
+          <BottomSheet onClose={() => setEditSloganOpen(false)} title="Slogan">
+            <input
+              value={draftSlogan}
+              onChange={(e) => setDraftSlogan(e.target.value.slice(0, 80))}
+              placeholder="Your personal slogan"
+              autoFocus
+              className="w-full text-sm font-bold bg-transparent neu-inset rounded-2xl px-4 py-3 outline-none"
+            />
+            <div className="mt-1 text-right text-[10px] font-bold text-muted-foreground">
+              {draftSlogan.length}/80
+            </div>
+            <button
+              onClick={saveSlogan}
+              className="mt-3 w-full rounded-2xl py-3 text-sm font-extrabold text-white"
+              style={{ background: "hsl(40, 100%, 55%)" }}
+            >
+              Save
+            </button>
+          </BottomSheet>
+        )}
 
         {editNameOpen && (
           <BottomSheet onClose={() => setEditNameOpen(false)} title="Display name">
