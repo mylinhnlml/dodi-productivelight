@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, Pencil, Check, Plus, Gift, Sparkles, Trash2, X, Trophy, Palette, Lock } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronLeft,
+  Pencil,
+  LogOut,
+  Trophy,
+  Smile,
+  Lock,
+  X,
+  Camera,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { MISSIONS_BY_ID } from "@/lib/missions";
-import VisionBoardCard from "@/components/VisionBoardCard";
 import VisionBoardViewer from "@/components/VisionBoardViewer";
-import VisionReminderRow from "@/components/VisionReminderRow";
 
 type Profile = {
   display_name: string | null;
@@ -17,52 +24,40 @@ type Profile = {
   vision_notification_time: string | null;
 };
 
-type Reward = {
+type TaskLite = {
   id: string;
   title: string;
   emoji: string;
-  cost: number;
 };
 
-type Redemption = {
-  id: string;
-  reward_title: string;
-  reward_emoji: string;
-  cost: number;
-  redeemed_at: string;
+type Props = {
+  userId: string | null;
+  tasks?: TaskLite[];
+  completed?: Set<string>;
 };
 
-const REWARD_EMOJIS = ["🎁", "🍰", "☕", "🛁", "🎬", "🛍️", "🍦", "💆", "📚", "🌷", "🍷", "✨"];
+const AMBER_LABEL = "text-[10px] font-bold uppercase tracking-widest text-amber-400";
 
-export default function ProfilePage({ userId }: { userId: string | null }) {
+export default function ProfilePage({ userId, tasks = [], completed = new Set() }: Props) {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [editing, setEditing] = useState(false);
-  const [draftName, setDraftName] = useState("");
-  const [draftBio, setDraftBio] = useState("");
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [redemptions, setRedemptions] = useState<Redemption[]>([]);
-  const [showAdd, setShowAdd] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newEmoji, setNewEmoji] = useState("🎁");
-  const [newCost, setNewCost] = useState(20);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [rank, setRank] = useState<{ my_count: number; my_rank: number; total_users: number } | null>(null);
-  const [stickers, setStickers] = useState<Array<{ id: string; emoji: string; name: string; mission_id: string | null }>>([]);
+  const [email, setEmail] = useState<string>("");
+  const [stickers, setStickers] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
-  const [showGallery, setShowGallery] = useState(false);
+  const [redeemedCount, setRedeemedCount] = useState<number>(0);
+
+  // UI state
+  const [view, setView] = useState<"profile" | "account">("profile");
+  const [expanded, setExpanded] = useState<"tasks" | "stickers" | null>(null);
+  const [editNameOpen, setEditNameOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const [editQuoteOpen, setEditQuoteOpen] = useState(false);
   const [showVision, setShowVision] = useState(false);
 
-  const loadRank = async () => {
-    const { data, error } = await supabase.rpc("get_redemption_rank");
-    if (!error && data && data[0]) {
-      setRank({
-        my_count: Number(data[0].my_count) || 0,
-        my_rank: Number(data[0].my_rank) || 0,
-        total_users: Number(data[0].total_users) || 0,
-      });
-    }
-  };
+  // Drafts
+  const [draftName, setDraftName] = useState("");
+  const [draftQuote, setDraftQuote] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -73,36 +68,40 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
         .eq("user_id", userId)
         .maybeSingle();
       if (!p) {
-        // Self-heal: create the row if the signup trigger never ran for this user
         const { data: created } = await supabase
           .from("profiles")
           .insert({ user_id: userId })
           .select("display_name, avatar_url, bio, points, vision_quote, vision_images, vision_notification_time")
           .single();
-        p = created ?? { display_name: null, avatar_url: null, bio: null, points: 0, vision_quote: null, vision_images: [], vision_notification_time: null };
+        p = created ?? {
+          display_name: null,
+          avatar_url: null,
+          bio: null,
+          points: 0,
+          vision_quote: null,
+          vision_images: [],
+          vision_notification_time: null,
+        };
       }
       setProfile(p as Profile);
       setDraftName(p.display_name ?? "");
-      setDraftBio(p.bio ?? "");
-      const { data: r } = await supabase
-        .from("rewards")
-        .select("id, title, emoji, cost")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: true });
-      setRewards((r ?? []) as Reward[]);
-      const { data: h } = await supabase
-        .from("redemptions")
-        .select("id, reward_title, reward_emoji, cost, redeemed_at")
-        .eq("user_id", userId)
-        .order("redeemed_at", { ascending: false })
-        .limit(10);
-      setRedemptions((h ?? []) as Redemption[]);
-      loadRank();
+      setDraftQuote(p.vision_quote ?? "");
+
+      const { data: u } = await supabase.auth.getUser();
+      setEmail(u.user?.email ?? "");
+
+      const { count } = await supabase
+        .from("point_events")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId);
+      setRedeemedCount(count ?? 0);
+
       const { data: cat } = await supabase
         .from("stickers")
-        .select("id, emoji, name, mission_id")
+        .select("id, emoji, name")
         .order("sort_order", { ascending: true });
       setStickers((cat ?? []) as any);
+
       const { data: un } = await supabase
         .from("user_unlocked_stickers")
         .select("sticker_id")
@@ -111,7 +110,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
     })();
   }, [userId]);
 
-  // Auto-open vision viewer when navigated via push notification
+  // Auto-open vision viewer via push notification
   useEffect(() => {
     if (!profile) return;
     const params = new URLSearchParams(window.location.search);
@@ -123,20 +122,60 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
     }
   }, [profile]);
 
-  const saveProfile = async () => {
+  // Top 3 completed task titles
+  const titleStats = (() => {
+    const counts: Record<string, { count: number; emoji: string }> = {};
+    completed.forEach((key) => {
+      const taskId = key.split("|")[0];
+      const t = tasks.find((x) => x.id === taskId);
+      if (!t) return;
+      if (!counts[t.title]) counts[t.title] = { count: 0, emoji: t.emoji };
+      counts[t.title].count += 1;
+    });
+    const sorted = Object.entries(counts)
+      .map(([title, v]) => ({ title, count: v.count, emoji: v.emoji }))
+      .sort((a, b) => b.count - a.count);
+    const top3 = sorted.slice(0, 3);
+    const others = sorted.slice(3).reduce((s, x) => s + x.count, 0);
+    const max = top3[0]?.count || 1;
+    return { top3, others, max };
+  })();
+
+  const saveName = async () => {
     if (!userId) return;
+    const next = draftName.trim() || null;
     const { error } = await supabase
       .from("profiles")
-      .update({ display_name: draftName.trim() || null, bio: draftBio.trim() || null })
+      .update({ display_name: next })
       .eq("user_id", userId);
     if (error) return toast.error("Couldn't save");
-    setProfile((p) => (p ? { ...p, display_name: draftName, bio: draftBio } : p));
-    setEditing(false);
-    toast.success("Saved");
+    setProfile((p) => (p ? { ...p, display_name: next } : p));
+    setEditNameOpen(false);
+    toast.success("Name updated ✨");
+  };
+
+  const saveQuote = async () => {
+    if (!userId) return;
+    const next = draftQuote.trim().slice(0, 100) || null;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ vision_quote: next })
+      .eq("user_id", userId);
+    if (error) return toast.error("Couldn't save");
+    setProfile((p) => (p ? { ...p, vision_quote: next } : p));
+    setEditQuoteOpen(false);
+    toast.success("Mantra saved ✨");
+  };
+
+  const doLogout = async () => {
+    await supabase.auth.signOut();
+    try {
+      localStorage.removeItem("dodi.introSeen.v3");
+    } catch {}
+    window.location.reload();
   };
 
   const onPickAvatar = () => fileRef.current?.click();
-
   const onAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !userId) return;
@@ -147,9 +186,7 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
       "image/webp": "webp",
       "image/gif": "gif",
     };
-    if (!allowed[file.type]) {
-      return toast.error("Only JPG, PNG, WEBP or GIF allowed");
-    }
+    if (!allowed[file.type]) return toast.error("Only JPG, PNG, WEBP or GIF allowed");
     setUploading(true);
     const ext = allowed[file.type];
     const path = `${userId}/avatar-${Date.now()}.${ext}`;
@@ -165,392 +202,411 @@ export default function ProfilePage({ userId }: { userId: string | null }) {
     await supabase.from("profiles").update({ avatar_url: url }).eq("user_id", userId);
     setProfile((p) => (p ? { ...p, avatar_url: url } : p));
     setUploading(false);
-    toast.success("Avatar updated");
-  };
-
-
-  const addReward = async () => {
-    if (!userId || !newTitle.trim()) return;
-    const { data, error } = await supabase
-      .from("rewards")
-      .insert({ user_id: userId, title: newTitle.trim(), emoji: newEmoji, cost: newCost })
-      .select("id, title, emoji, cost")
-      .single();
-    if (error || !data) return toast.error("Couldn't add");
-    setRewards((r) => [...r, data as Reward]);
-    setNewTitle("");
-    setNewCost(20);
-    setNewEmoji("🎁");
-    setShowAdd(false);
-  };
-
-  const deleteReward = async (id: string) => {
-    await supabase.from("rewards").delete().eq("id", id);
-    setRewards((r) => r.filter((x) => x.id !== id));
-  };
-
-  const redeem = async (reward: Reward) => {
-    if (!userId || !profile) return;
-    if (profile.points < reward.cost) return toast.error("Not enough points yet ✨");
-    const { data, error } = await supabase.rpc("redeem_reward", { _reward_id: reward.id });
-    if (error) {
-      if (error.message?.toLowerCase().includes("insufficient")) {
-        return toast.error("Not enough points yet ✨");
-      }
-      return toast.error("Redeem failed");
-    }
-    const row = Array.isArray(data) ? data[0] : data;
-    const newPoints = (row?.new_points as number | undefined) ?? profile.points - reward.cost;
-    setProfile({ ...profile, points: newPoints });
-    const redId = row?.redemption_id as string | undefined;
-    if (redId) {
-      setRedemptions((h) => [
-        {
-          id: redId,
-          reward_title: reward.title,
-          reward_emoji: reward.emoji,
-          cost: reward.cost,
-          redeemed_at: new Date().toISOString(),
-        },
-        ...h,
-      ].slice(0, 10));
-    }
-    loadRank();
-    toast.success(`Redeemed ${reward.emoji} ${reward.title}`);
+    toast.success("Avatar updated ✨");
   };
 
   if (!userId) {
     return (
-      <div className="flex-1 px-6 pb-6 flex items-center justify-center">
-        <div className="neu-inset rounded-2xl p-6 text-center text-xs font-bold text-muted-foreground">
-          Sign in to save your profile and rewards 🌷
+      <div className="flex-1 px-6 pb-6 flex items-center justify-center" style={{ background: "hsl(45, 60%, 97%)" }}>
+        <div className="rounded-3xl neu-surface-sm p-6 text-center text-xs font-bold text-muted-foreground">
+          Sign in to save your profile 🌷
         </div>
       </div>
     );
   }
 
   if (!profile) {
-    return <div className="flex-1 px-6 pb-6 text-xs font-bold text-muted-foreground">Loading…</div>;
+    return (
+      <div className="flex-1 px-6 pb-6 text-xs font-bold text-muted-foreground" style={{ background: "hsl(45, 60%, 97%)" }}>
+        Loading…
+      </div>
+    );
   }
 
-  return (
-    <section className="flex-1 px-5 overflow-y-auto pb-4 space-y-4">
-      {/* Profile card */}
-      <div className="rounded-3xl neu-surface-sm p-4 flex items-start gap-3">
-        <button
-          onClick={onPickAvatar}
-          disabled={uploading}
-          className="relative w-16 h-16 rounded-2xl neu-inset overflow-hidden flex items-center justify-center text-2xl shrink-0"
-          aria-label="Change avatar"
-        >
-          {profile.avatar_url ? (
-            <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-          ) : (
-            <span>🌷</span>
-          )}
-          <span className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-            <Camera className="w-3 h-3" strokeWidth={2.6} />
-          </span>
-        </button>
-        <input ref={fileRef} type="file" accept="image/*" onChange={onAvatarFile} className="hidden" />
+  const displayName = profile.display_name || "Friend";
+  const avatarNode = profile.avatar_url ? (
+    <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+  ) : (
+    <span className="text-xl">🌷</span>
+  );
 
-        {editing ? (
-          <div className="flex-1 min-w-0 space-y-1.5">
+  /* ───────── ACCOUNT CENTER VIEW ───────── */
+  if (view === "account") {
+    return (
+      <section
+        className="flex-1 overflow-y-auto pb-6"
+        style={{ background: "hsl(45, 60%, 97%)" }}
+      >
+        <div className="px-5 pt-2 flex items-center">
+          <button
+            onClick={() => setView("profile")}
+            className="w-9 h-9 rounded-2xl neu-surface-sm flex items-center justify-center transition-transform active:scale-[0.95]"
+            aria-label="Back"
+          >
+            <ChevronLeft className="w-4 h-4 text-amber-400" strokeWidth={2.6} />
+          </button>
+          <h2 className="ml-3 text-sm font-extrabold text-foreground">Account Center</h2>
+        </div>
+
+        <div className="px-5 mt-5 flex flex-col items-center gap-2 animate-[fade-in_0.4s_ease-out_both]">
+          <button
+            onClick={onPickAvatar}
+            disabled={uploading}
+            className="relative w-20 h-20 rounded-3xl neu-inset overflow-hidden flex items-center justify-center transition-transform active:scale-[0.98]"
+            aria-label="Change avatar"
+          >
+            {avatarNode}
+            <span className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-amber-400 text-white flex items-center justify-center">
+              <Camera className="w-3 h-3" strokeWidth={2.6} />
+            </span>
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" onChange={onAvatarFile} className="hidden" />
+          <p className="text-base font-extrabold text-foreground mt-1">{displayName}</p>
+          {email && <p className="text-xs text-muted-foreground">{email}</p>}
+        </div>
+
+        <div className="px-5 mt-6 space-y-3">
+          <button
+            onClick={() => {
+              setDraftName(profile.display_name ?? "");
+              setEditNameOpen(true);
+            }}
+            className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3 transition-transform active:scale-[0.98]"
+          >
+            <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center">
+              <Pencil className="w-4 h-4 text-amber-400" strokeWidth={2.6} />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-xs font-bold text-foreground">Display name</p>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{displayName}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-amber-400" />
+          </button>
+
+          <button
+            onClick={() => setLogoutOpen(true)}
+            className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3 transition-transform active:scale-[0.98]"
+          >
+            <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center">
+              <LogOut className="w-4 h-4 text-destructive" strokeWidth={2.6} />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-xs font-bold text-destructive">Log out</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-amber-400" />
+          </button>
+        </div>
+
+        {editNameOpen && (
+          <BottomSheet onClose={() => setEditNameOpen(false)} title="Display name">
             <input
               value={draftName}
               onChange={(e) => setDraftName(e.target.value)}
-              placeholder="Name"
-              className="w-full text-sm font-bold bg-transparent neu-inset rounded-lg px-2.5 py-1.5 outline-none"
+              placeholder="Your name"
+              autoFocus
+              className="w-full text-sm font-bold bg-transparent neu-inset rounded-2xl px-4 py-3 outline-none"
             />
-            <input
-              value={draftBio}
-              onChange={(e) => setDraftBio(e.target.value)}
-              placeholder="A soft bio…"
-              className="w-full text-xs font-semibold bg-transparent neu-inset rounded-lg px-2.5 py-1.5 outline-none"
-            />
-          </div>
-        ) : (
-          <div className="flex-1 min-w-0">
-            <p className="text-base font-extrabold text-foreground truncate">
-              {profile.display_name || "Friend"}
-            </p>
-            <p className="text-xs text-muted-foreground font-semibold truncate mt-0.5">
-              {profile.bio || "Soft days, gentle wins ✨"}
-            </p>
-            <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[hsl(45,90%,82%)] text-[hsl(45,50%,25%)] text-[11px] font-extrabold">
-              <Sparkles className="w-3 h-3" strokeWidth={2.6} />
-              {profile.points} pts
-            </div>
-          </div>
+            <button
+              onClick={saveName}
+              className="mt-4 w-full rounded-2xl py-3 text-sm font-extrabold text-white"
+              style={{ background: "hsl(40, 100%, 55%)" }}
+            >
+              Save
+            </button>
+          </BottomSheet>
         )}
 
-        <button
-          onClick={() => (editing ? saveProfile() : setEditing(true))}
-          aria-label={editing ? "Save profile" : "Edit profile"}
-          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-            editing ? "neu-pressed" : "neu-surface-sm"
-          }`}
-        >
-          {editing ? (
-            <Check className="w-4 h-4 text-primary" strokeWidth={2.6} />
-          ) : (
-            <Pencil className="w-4 h-4 text-primary" strokeWidth={2.4} />
-          )}
-        </button>
-      </div>
-
-      {/* Redemption rank */}
-      {rank && (
-        <div className="rounded-3xl neu-surface-sm p-4 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl neu-inset flex items-center justify-center shrink-0">
-            <Trophy className="w-4 h-4 text-primary" strokeWidth={2.6} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-extrabold text-foreground leading-tight">
-              {rank.my_count} {rank.my_count === 1 ? "reward" : "rewards"} redeemed
+        {logoutOpen && (
+          <BottomSheet onClose={() => setLogoutOpen(false)} title="Log out?">
+            <p className="text-xs text-muted-foreground">
+              You'll need to sign in again to access your reminders and rewards.
             </p>
-            <p className="text-[11px] font-semibold text-muted-foreground mt-0.5 truncate">
-              {rank.total_users === 0 || rank.my_count === 0
-                ? "Redeem your first treat to join the leaderboard"
-                : `Rank #${rank.my_rank} of ${rank.total_users}`}
-            </p>
-          </div>
-          {rank.my_count > 0 && rank.total_users > 0 && (
-            <div className="text-right shrink-0">
-              <p className="text-lg font-extrabold text-primary leading-none">#{rank.my_rank}</p>
-              <p className="text-[10px] font-bold text-muted-foreground mt-0.5">of {rank.total_users}</p>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setLogoutOpen(false)}
+                className="flex-1 rounded-2xl py-3 text-sm font-extrabold neu-surface-sm text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={doLogout}
+                className="flex-1 rounded-2xl py-3 text-sm font-extrabold text-white bg-destructive"
+              >
+                Log out
+              </button>
             </div>
-          )}
-        </div>
-      )}
+          </BottomSheet>
+        )}
+      </section>
+    );
+  }
 
-      {/* Sticker collection chip */}
+  /* ───────── MAIN PROFILE VIEW ───────── */
+  const totalStickers = stickers.length;
+  const unlockedCount = unlockedIds.size;
+  const visionImages = profile.vision_images || [];
+
+  return (
+    <section
+      className="flex-1 overflow-y-auto pb-6 px-5 space-y-4"
+      style={{ background: "hsl(45, 60%, 97%)" }}
+    >
+      {/* SECTION 1 — Account Center shortcut */}
       <button
-        onClick={() => setShowGallery(true)}
-        className="w-full rounded-2xl neu-surface-sm p-3 flex items-center gap-3 transition-transform active:scale-[0.99]"
-        aria-label="View sticker gallery"
+        onClick={() => setView("account")}
+        className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3 transition-transform active:scale-[0.98] animate-[fade-in_0.4s_ease-out_both]"
       >
-        <div className="w-10 h-10 rounded-xl neu-inset flex items-center justify-center text-lg shrink-0">
-          🎨
+        <div className="w-12 h-12 rounded-2xl neu-inset overflow-hidden flex items-center justify-center shrink-0">
+          {avatarNode}
         </div>
-        <div className="flex-1 text-left min-w-0">
-          <p className="text-sm font-extrabold text-foreground">
-            {unlockedIds.size}/{stickers.length} stickers collected
-          </p>
-          <p className="text-[11px] font-semibold text-muted-foreground">
-            Tap to see your collection
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-sm font-extrabold text-foreground truncate">{displayName}</p>
+          <p className="text-xs text-muted-foreground truncate mt-0.5">
+            {profile.bio || "Soft days, gentle wins ✨"}
           </p>
         </div>
-        <span className="text-[11px] font-bold text-primary">View</span>
+        <ChevronRight className="w-4 h-4 text-amber-400" />
       </button>
 
-      {/* Vision Board */}
-      <VisionBoardCard
-        images={profile.vision_images || []}
-        quote={profile.vision_quote || ""}
-        onOpen={() => setShowVision(true)}
-      />
-      <VisionReminderRow
-        userId={userId}
-        time={profile.vision_notification_time}
-        onTimeChange={(t) => setProfile((p) => (p ? { ...p, vision_notification_time: t } : p))}
-      />
-
-      {/* Rewards header */}
-      <div className="flex items-center justify-between px-1">
-        <div>
-          <h2 className="text-sm font-extrabold text-foreground flex items-center gap-1.5">
-            <Gift className="w-4 h-4 text-primary" strokeWidth={2.6} />
-            Rewards
-          </h2>
-          <p className="text-[10px] font-semibold text-muted-foreground">
-            Earn 5 pts per completed task
-          </p>
+      {/* SECTION 2 — Achievements */}
+      <div className="space-y-3 animate-[fade-in_0.4s_ease-out_both]" style={{ animationDelay: "100ms" }}>
+        <p className={AMBER_LABEL}>Achievements ✨</p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => setExpanded(expanded === "tasks" ? null : "tasks")}
+            className="rounded-3xl neu-surface-sm p-4 flex flex-col items-start gap-2 transition-transform active:scale-[0.98]"
+          >
+            <Trophy className="w-5 h-5 text-amber-400" strokeWidth={2.6} />
+            <p className="text-2xl font-extrabold text-foreground leading-none">{redeemedCount}</p>
+            <p className="text-xs text-muted-foreground">Tasks redeemed</p>
+          </button>
+          <button
+            onClick={() => setExpanded(expanded === "stickers" ? null : "stickers")}
+            className="rounded-3xl neu-surface-sm p-4 flex flex-col items-start gap-2 transition-transform active:scale-[0.98]"
+          >
+            <Smile className="w-5 h-5 text-amber-400" strokeWidth={2.6} />
+            <p className="leading-none">
+              <span className="text-2xl font-extrabold text-foreground">{unlockedCount}</span>
+              <span className="text-sm font-bold text-muted-foreground">/{totalStickers}</span>
+            </p>
+            <p className="text-xs text-muted-foreground">Stickers collected</p>
+          </button>
         </div>
-        <button
-          onClick={() => setShowAdd((v) => !v)}
-          className={`text-[10px] font-extrabold px-2.5 py-1.5 rounded-full transition-all flex items-center gap-1 ${
-            showAdd ? "neu-pressed text-primary" : "neu-surface-sm text-primary"
+
+        {/* Expand: Tasks */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            expanded === "tasks" ? "max-h-96" : "max-h-0"
           }`}
         >
-          <Plus className="w-3 h-3" strokeWidth={3} />
-          New
-        </button>
+          <div className="rounded-3xl neu-surface-sm p-4 space-y-3">
+            <p className="text-xs font-bold text-foreground">Top completed</p>
+            {titleStats.top3.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">No completed tasks yet</p>
+            ) : (
+              <div className="space-y-2">
+                {titleStats.top3.map((t) => (
+                  <div key={t.title} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{t.emoji}</span>
+                      <span className="text-xs font-bold text-foreground flex-1 truncate">
+                        {t.title}
+                      </span>
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">
+                        {t.count}
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-amber-50 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${(t.count / titleStats.max) * 100}%`,
+                          background: "hsl(40, 100%, 55%)",
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+                {titleStats.others > 0 && (
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-xs text-muted-foreground">Others</span>
+                    <span className="text-[10px] font-bold text-muted-foreground">
+                      {titleStats.others}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Expand: Stickers */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+            expanded === "stickers" ? "max-h-96" : "max-h-0"
+          }`}
+        >
+          <div className="rounded-3xl neu-surface-sm p-4">
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+              {stickers.map((s) => {
+                const isUnlocked = unlockedIds.has(s.id);
+                return (
+                  <div
+                    key={s.id}
+                    title={s.name}
+                    className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-lg ${
+                      isUnlocked ? "neu-surface-sm" : "neu-inset opacity-30"
+                    }`}
+                  >
+                    {isUnlocked ? s.emoji : <Lock className="w-3 h-3 text-muted-foreground" />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* New reward form */}
-      {showAdd && (
-        <div className="neu-inset rounded-2xl p-3 space-y-2">
-          <input
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="e.g. Boba treat"
-            className="w-full text-sm font-bold bg-transparent neu-surface-sm rounded-xl px-3 py-2 outline-none"
-          />
-          <div className="flex flex-wrap gap-1.5">
-            {REWARD_EMOJIS.map((e) => (
-              <button
-                key={e}
-                onClick={() => setNewEmoji(e)}
-                className={`w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all ${
-                  newEmoji === e ? "neu-pressed scale-95" : "neu-surface-sm"
-                }`}
-              >
-                {e}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold text-muted-foreground uppercase">Cost</span>
-            <input
-              type="number"
-              min={1}
-              value={newCost}
-              onChange={(e) => setNewCost(Math.max(1, Number(e.target.value) || 1))}
-              className="w-20 text-sm font-bold bg-transparent neu-surface-sm rounded-xl px-2.5 py-1.5 outline-none text-center"
-            />
-            <span className="text-[10px] font-bold text-muted-foreground">pts</span>
-            <button
-              onClick={addReward}
-              disabled={!newTitle.trim()}
-              className="ml-auto rounded-xl px-3 py-1.5 text-[11px] font-extrabold text-primary-foreground disabled:opacity-50"
-              style={{ background: "hsl(var(--primary))" }}
-            >
-              Add
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Reward list */}
-      {rewards.length === 0 ? (
-        <div className="neu-inset rounded-2xl p-6 text-center text-xs font-bold text-muted-foreground">
-          No rewards yet — create one to redeem 🎁
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {rewards.map((r) => {
-            const canAfford = profile.points >= r.cost;
-            return (
-              <article
-                key={r.id}
-                className="neu-surface-sm rounded-2xl p-3 flex items-center gap-3"
-              >
-                <div className="w-11 h-11 rounded-2xl neu-inset flex items-center justify-center text-xl shrink-0">
-                  {r.emoji}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-foreground truncate">{r.title}</p>
-                  <p className="text-[11px] font-extrabold text-muted-foreground mt-0.5">
-                    {r.cost} pts
-                  </p>
-                </div>
-                <button
-                  onClick={() => deleteReward(r.id)}
-                  aria-label="Delete reward"
-                  className="w-8 h-8 rounded-full neu-surface-sm flex items-center justify-center text-destructive"
-                >
-                  <Trash2 className="w-3.5 h-3.5" strokeWidth={2.4} />
-                </button>
-                <button
-                  onClick={() => redeem(r)}
-                  disabled={!canAfford}
-                  className={`rounded-xl px-3 py-2 text-[11px] font-extrabold transition-all ${
-                    canAfford ? "text-primary-foreground" : "text-muted-foreground neu-inset"
-                  }`}
-                  style={canAfford ? { background: "hsl(var(--primary))" } : undefined}
-                >
-                  Redeem
-                </button>
-              </article>
-            );
-          })}
-        </div>
-      )}
-
-      {/* History */}
-      {redemptions.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-wide px-1">
-            Recent treats
-          </h3>
-          <div className="space-y-1.5">
-            {redemptions.map((h) => (
-              <div
-                key={h.id}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-xl neu-surface-sm"
-              >
-                <span className="text-base">{h.reward_emoji}</span>
-                <span className="text-xs font-bold text-foreground flex-1 truncate">
-                  {h.reward_title}
-                </span>
-                <span className="text-[10px] font-extrabold text-muted-foreground">
-                  −{h.cost} pts
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {showGallery && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-foreground/30 backdrop-blur-sm animate-fade-in"
-          onClick={() => setShowGallery(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md mx-3 mb-3 sm:mb-0 rounded-3xl bg-background neu-surface-sm p-5 max-h-[80vh] flex flex-col"
+      {/* SECTION 3 — Vision Board */}
+      <div className="space-y-3 animate-[fade-in_0.4s_ease-out_both]" style={{ animationDelay: "200ms" }}>
+        <p className={AMBER_LABEL}>Vision Board 🌅</p>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Widget 1: Quote */}
+          <button
+            onClick={() => {
+              setDraftQuote(profile.vision_quote ?? "");
+              setEditQuoteOpen(true);
+            }}
+            className="rounded-3xl neu-surface-sm p-4 flex flex-col justify-between h-40 text-left transition-transform active:scale-[0.98]"
           >
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-base font-extrabold text-foreground">Sticker collection</h3>
-                <p className="text-[11px] font-semibold text-muted-foreground">
-                  {unlockedIds.size}/{stickers.length} unlocked
-                </p>
-              </div>
-              <button
-                onClick={() => setShowGallery(false)}
-                className="w-8 h-8 rounded-full neu-surface-sm flex items-center justify-center"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4 text-muted-foreground" />
-              </button>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-amber-400">
+              My mantra
+            </span>
+            <p
+              className={`text-sm font-extrabold leading-snug line-clamp-3 ${
+                profile.vision_quote ? "text-foreground" : "text-muted-foreground italic"
+              }`}
+            >
+              {profile.vision_quote || "Tap to add your mantra ✨"}
+            </p>
+            <div className="flex justify-end">
+              <Pencil className="w-3.5 h-3.5 text-amber-400" strokeWidth={2.6} />
             </div>
-            <div className="overflow-y-auto -mx-1 px-1">
-              <div className="grid grid-cols-6 gap-2">
-                {stickers.map((s) => {
-                  const isUnlocked = unlockedIds.has(s.id);
-                  const m = s.mission_id ? MISSIONS_BY_ID[s.mission_id] : null;
-                  return (
-                    <div
-                      key={s.id}
-                      title={isUnlocked ? s.name : m ? `Unlock via "${m.title}"` : s.name}
-                      className={`relative aspect-square rounded-xl flex items-center justify-center text-xl ${
-                        isUnlocked ? "neu-surface-sm" : "neu-inset opacity-40"
-                      }`}
-                    >
-                      <span className={isUnlocked ? "" : "grayscale opacity-60"}>{s.emoji}</span>
-                      {!isUnlocked && (
-                        <Lock className="absolute bottom-1 right-1 w-3 h-3 text-muted-foreground" />
-                      )}
-                    </div>
-                  );
-                })}
+          </button>
+
+          {/* Widget 2: Image Catalogue */}
+          <button
+            onClick={() => setShowVision(true)}
+            className="rounded-3xl overflow-hidden h-40 relative transition-transform active:scale-[0.98]"
+          >
+            {visionImages.length > 0 ? (
+              <>
+                <img
+                  src={visionImages[0]}
+                  alt="Vision board"
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)",
+                  }}
+                />
+                <div className="absolute bottom-3 left-3 text-[10px] font-bold text-white">
+                  {visionImages.length} {visionImages.length === 1 ? "photo" : "photos"}
+                </div>
+                <div className="absolute bottom-3 right-3 text-[10px] font-bold text-white/80">
+                  View all →
+                </div>
+              </>
+            ) : (
+              <div className="neu-inset h-full w-full flex flex-col items-center justify-center gap-1">
+                <span className="text-3xl">🌅</span>
+                <span className="text-xs text-muted-foreground">Add photos</span>
               </div>
-            </div>
-          </div>
+            )}
+          </button>
         </div>
+      </div>
+
+      {/* Quote edit bottom sheet */}
+      {editQuoteOpen && (
+        <BottomSheet onClose={() => setEditQuoteOpen(false)} title="My mantra">
+          <textarea
+            value={draftQuote}
+            onChange={(e) => setDraftQuote(e.target.value.slice(0, 100))}
+            placeholder="What keeps you going? ✨"
+            autoFocus
+            className="w-full text-sm font-bold bg-transparent neu-inset rounded-2xl px-4 py-3 min-h-20 outline-none resize-none"
+          />
+          <div className="mt-1 text-right text-[10px] font-bold text-muted-foreground">
+            {draftQuote.length}/100
+          </div>
+          <button
+            onClick={saveQuote}
+            className="mt-3 w-full rounded-2xl py-3 text-sm font-extrabold text-white"
+            style={{ background: "hsl(40, 100%, 55%)" }}
+          >
+            Save
+          </button>
+        </BottomSheet>
       )}
+
       <VisionBoardViewer
         userId={userId}
         open={showVision}
         onClose={() => setShowVision(false)}
-        images={profile.vision_images || []}
+        images={visionImages}
         quote={profile.vision_quote || ""}
         onImagesChange={(imgs) => setProfile((p) => (p ? { ...p, vision_images: imgs } : p))}
         onQuoteChange={(q) => setProfile((p) => (p ? { ...p, vision_quote: q } : p))}
       />
     </section>
+  );
+}
+
+/* ───────── Bottom sheet helper ───────── */
+function BottomSheet({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md mx-3 mb-3 rounded-3xl p-5"
+        style={{
+          background: "hsl(45, 60%, 97%)",
+          animation: "slide-in-bottom 280ms cubic-bezier(0.32, 0.72, 0, 1) both",
+        }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-extrabold text-foreground">{title}</h3>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full neu-surface-sm flex items-center justify-center"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+        {children}
+      </div>
+      <style>{`
+        @keyframes slide-in-bottom {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+      `}</style>
+    </div>
   );
 }
