@@ -707,7 +707,7 @@ const Index = () => {
           </header>
 
           {active === "profile" ? (
-            <ProfilePage userId={userId} />
+            <ProfilePage userId={userId} tasks={tasks} completed={completed} />
           ) : active === "missions" ? (
             <MissionsPage userId={userId} onUseStickers={handleUseStickers} />
           ) : active === "calendar" ? (
