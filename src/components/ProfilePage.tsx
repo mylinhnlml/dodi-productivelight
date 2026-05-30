@@ -468,6 +468,37 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
             </div>
           </BottomSheet>
         )}
+
+        {deleteOpen && (
+          <BottomSheet onClose={() => !deleting && setDeleteOpen(false)}>
+            <div className="flex flex-col items-center">
+              <div className="text-3xl mb-2">🗑️</div>
+              <p className="font-extrabold text-center text-foreground">Delete your account?</p>
+              <div className="h-2" />
+              <p className="text-xs text-muted-foreground text-center leading-relaxed px-4">
+                This will permanently delete all your data — reminders, missions, vision board, and stickers. This cannot be undone.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 w-full">
+                <button
+                  onClick={doDeleteAccount}
+                  disabled={deleting}
+                  className="w-full rounded-2xl py-3 text-sm font-extrabold text-white flex items-center justify-center gap-2 disabled:opacity-80"
+                  style={{ background: "hsl(var(--destructive))" }}
+                >
+                  {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {deleting ? "Deleting…" : "Yes, delete everything"}
+                </button>
+                <button
+                  onClick={() => !deleting && setDeleteOpen(false)}
+                  disabled={deleting}
+                  className="text-xs text-muted-foreground text-center py-2"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </BottomSheet>
+        )}
       </section>
     );
   }
