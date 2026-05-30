@@ -49,12 +49,14 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [view, setView] = useState<"profile" | "account">("profile");
   const [expanded, setExpanded] = useState<"tasks" | "stickers" | null>(null);
   const [editNameOpen, setEditNameOpen] = useState(false);
+  const [editSloganOpen, setEditSloganOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [editQuoteOpen, setEditQuoteOpen] = useState(false);
   const [showVision, setShowVision] = useState(false);
 
   // Drafts
   const [draftName, setDraftName] = useState("");
+  const [draftSlogan, setDraftSlogan] = useState("");
   const [draftQuote, setDraftQuote] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
