@@ -53,6 +53,8 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [editNameOpen, setEditNameOpen] = useState(false);
   const [editSloganOpen, setEditSloganOpen] = useState(false);
   const [logoutOpen, setLogoutOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [editQuoteOpen, setEditQuoteOpen] = useState(false);
   const [showVision, setShowVision] = useState(false);
 
