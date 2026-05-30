@@ -195,6 +195,59 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
     window.location.reload();
   };
 
+  const doDeleteAccount = async () => {
+    if (!userId || deleting) return;
+    setDeleting(true);
+    try {
+      // 1. Delete vision board images from Storage (paths stored on profile)
+      try {
+        const imgs = profile?.vision_images ?? [];
+        const paths: string[] = [];
+        for (const url of imgs) {
+          const p = url.includes("/vision-board/") ? url.split("/vision-board/")[1] : url;
+          if (p) paths.push(p);
+        }
+        if (paths.length) await supabase.storage.from("vision-board").remove(paths);
+      } catch (e) { console.warn("vision storage cleanup failed", e); }
+
+      // 2. Delete DB rows. Wrap each individually so a missing table doesn't block.
+      const tables = [
+        "user_unlocked_stickers",
+        "mission_progress",
+        "point_events",
+        "push_subscriptions",
+        "rewards",
+        "redemptions",
+        "user_xp",
+        "tasks",
+        "profiles",
+      ] as const;
+      for (const table of tables) {
+        try {
+          await supabase.from(table as any).delete().eq("user_id", userId);
+        } catch (e) {
+          console.warn(`delete from ${table} failed`, e);
+        }
+      }
+
+      // 3. Sign out
+      await supabase.auth.signOut();
+
+      try {
+        ["dodi.introSeen.v2", "dodi.introSeen.v3", "dodi.guestCompletes", "dodi.firstReminderCreated", "dodi.lastFeedback"].forEach(
+          (k) => localStorage.removeItem(k)
+        );
+      } catch {}
+
+      toast.success("Account deleted. Goodbye ☀️", { duration: 3000 });
+      setTimeout(() => window.location.reload(), 300);
+    } catch (e) {
+      console.error(e);
+      toast.error("Something went wrong. Please try again or contact support.");
+      setDeleting(false);
+    }
+  };
+
   const onPickAvatar = () => fileRef.current?.click();
   const onAvatarFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
