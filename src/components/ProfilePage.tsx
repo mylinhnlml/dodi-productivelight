@@ -87,6 +87,7 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
       }
       setProfile(p as Profile);
       setDraftName(p.display_name ?? "");
+      setDraftSlogan(p.bio ?? "");
       setDraftQuote(p.vision_quote ?? "");
 
       const { data: u } = await supabase.auth.getUser();
