@@ -47,6 +47,27 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_logs: {
+        Row: {
+          id: string
+          sent_at: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          sent_at?: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          sent_at?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       point_events: {
         Row: {
           awarded_at: string
@@ -78,6 +99,7 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          notification_enabled: boolean
           points: number
           updated_at: string
           user_id: string
@@ -91,6 +113,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          notification_enabled?: boolean
           points?: number
           updated_at?: string
           user_id: string
@@ -104,6 +127,7 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          notification_enabled?: boolean
           points?: number
           updated_at?: string
           user_id?: string

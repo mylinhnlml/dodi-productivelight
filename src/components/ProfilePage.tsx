@@ -15,6 +15,16 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VisionBoardViewer from "@/components/VisionBoardViewer";
+import { Switch } from "@/components/ui/switch";
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
+  return out;
+}
 
 type Profile = {
   display_name: string | null;
@@ -64,6 +74,8 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [draftQuote, setDraftQuote] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [notifEnabled, setNotifEnabled] = useState(false);
+  const [notifBusy, setNotifBusy] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -116,6 +128,69 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
       setUnlockedIds(new Set((un ?? []).map((r: any) => r.sticker_id)));
     })();
   }, [userId]);
+
+  // Load notification preference
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("notification_enabled")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (data) setNotifEnabled((data as any).notification_enabled ?? false);
+    })();
+  }, [userId]);
+
+  const toggleNotification = async (next: boolean) => {
+    if (!userId || notifBusy) return;
+    setNotifBusy(true);
+    try {
+      if (next) {
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+          toast.error("Notifications aren't supported on this device");
+          return;
+        }
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") {
+          toast.error("Please enable notifications in your browser settings ☀️");
+          return;
+        }
+        const reg = await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.ready;
+        const { data: vapidData, error: vapidErr } = await supabase.functions.invoke("vapid-public-key");
+        const vapid = (vapidData as any)?.key;
+        if (vapidErr || !vapid) {
+          toast.error("Push setup unavailable");
+          return;
+        }
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapid),
+          });
+        }
+        const json: any = sub.toJSON();
+        await supabase.from("push_subscriptions").upsert(
+          { user_id: userId, subscription: json, endpoint: json.endpoint },
+          { onConflict: "endpoint" }
+        );
+        await supabase.from("profiles").update({ notification_enabled: true }).eq("user_id", userId);
+        setNotifEnabled(true);
+        toast.success("Morning reminders on! See you at 9AM ☀️");
+      } else {
+        await supabase.from("profiles").update({ notification_enabled: false }).eq("user_id", userId);
+        setNotifEnabled(false);
+        toast("Morning reminders turned off");
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Something went wrong");
+    } finally {
+      setNotifBusy(false);
+    }
+  };
 
   // Auto-open vision viewer via push notification
   useEffect(() => {
@@ -379,6 +454,23 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
             </div>
             <ChevronRight className="w-4 h-4 text-amber-400" />
           </button>
+
+          <div className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center text-base">
+              ☀️
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-xs font-bold text-foreground">Morning reminder</p>
+              <p className="text-[11px] text-muted-foreground truncate mt-0.5">Daily nudge at 9AM</p>
+            </div>
+            <Switch
+              checked={notifEnabled}
+              onCheckedChange={toggleNotification}
+              disabled={notifBusy}
+            />
+          </div>
+
+
 
           <button
             onClick={() => setLogoutOpen(true)}
