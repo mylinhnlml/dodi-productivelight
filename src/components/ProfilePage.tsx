@@ -129,6 +129,69 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
     })();
   }, [userId]);
 
+  // Load notification preference
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("notification_enabled")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (data) setNotifEnabled((data as any).notification_enabled ?? false);
+    })();
+  }, [userId]);
+
+  const toggleNotification = async (next: boolean) => {
+    if (!userId || notifBusy) return;
+    setNotifBusy(true);
+    try {
+      if (next) {
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+          toast.error("Notifications aren't supported on this device");
+          return;
+        }
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") {
+          toast.error("Please enable notifications in your browser settings ☀️");
+          return;
+        }
+        const reg = await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.ready;
+        const { data: vapidData, error: vapidErr } = await supabase.functions.invoke("vapid-public-key");
+        const vapid = (vapidData as any)?.key;
+        if (vapidErr || !vapid) {
+          toast.error("Push setup unavailable");
+          return;
+        }
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapid),
+          });
+        }
+        const json: any = sub.toJSON();
+        await supabase.from("push_subscriptions").upsert(
+          { user_id: userId, subscription: json, endpoint: json.endpoint },
+          { onConflict: "endpoint" }
+        );
+        await supabase.from("profiles").update({ notification_enabled: true }).eq("user_id", userId);
+        setNotifEnabled(true);
+        toast.success("Morning reminders on! See you at 9AM ☀️");
+      } else {
+        await supabase.from("profiles").update({ notification_enabled: false }).eq("user_id", userId);
+        setNotifEnabled(false);
+        toast("Morning reminders turned off");
+      }
+    } catch (e: any) {
+      console.error(e);
+      toast.error("Something went wrong");
+    } finally {
+      setNotifBusy(false);
+    }
+  };
+
   // Auto-open vision viewer via push notification
   useEffect(() => {
     if (!profile) return;
