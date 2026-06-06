@@ -74,6 +74,8 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [draftQuote, setDraftQuote] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [notifEnabled, setNotifEnabled] = useState(false);
+  const [notifBusy, setNotifBusy] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
