@@ -455,6 +455,23 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
             <ChevronRight className="w-4 h-4 text-amber-400" />
           </button>
 
+          <div className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center text-base">
+              ☀️
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-xs font-bold text-foreground">Morning reminder</p>
+              <p className="text-[11px] text-muted-foreground truncate mt-0.5">Daily nudge at 9AM</p>
+            </div>
+            <Switch
+              checked={notifEnabled}
+              onCheckedChange={toggleNotification}
+              disabled={notifBusy}
+            />
+          </div>
+
+
+
           <button
             onClick={() => setLogoutOpen(true)}
             className="w-full rounded-3xl neu-surface-sm p-4 flex items-center gap-3 transition-transform active:scale-[0.98]"
