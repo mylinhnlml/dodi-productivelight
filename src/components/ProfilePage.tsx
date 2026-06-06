@@ -15,6 +15,16 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VisionBoardViewer from "@/components/VisionBoardViewer";
+import { Switch } from "@/components/ui/switch";
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
+  return out;
+}
 
 type Profile = {
   display_name: string | null;
