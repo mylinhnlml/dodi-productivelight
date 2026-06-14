@@ -108,7 +108,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
             <button
               onClick={next}
               className="h-11 px-4 text-sm font-extrabold"
-              style={{ color: current === "vision" ? "#FFD24D" : "#B45309" }}
+              style={{ color: (current === "vision" || current === "deepwork") ? "#FFD24D" : "#B45309" }}
             >
               Next →
             </button>
