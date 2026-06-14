@@ -208,6 +208,34 @@ const Index = () => {
   }, [profileTouched]);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Deep Work state
+  const [deepWorkMode, setDeepWorkMode] = useState(false);
+  const [deepWorkRemaining, setDeepWorkRemaining] = useState(28 * 60);
+  const [deepWorkRunning, setDeepWorkRunning] = useState(false);
+  const [showCompleteSheet, setShowCompleteSheet] = useState(false);
+  const deepWorkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (deepWorkRunning && deepWorkRemaining > 0) {
+      deepWorkIntervalRef.current = setInterval(() => {
+        setDeepWorkRemaining((s) => Math.max(0, s - 1));
+      }, 1000);
+    }
+    return () => {
+      if (deepWorkIntervalRef.current) clearInterval(deepWorkIntervalRef.current);
+    };
+  }, [deepWorkRunning, deepWorkRemaining]);
+
+  useEffect(() => {
+    if (deepWorkRemaining === 0 && deepWorkRunning) {
+      setDeepWorkRunning(false);
+      setShowCompleteSheet(true);
+      if (userId) onDeepWorkCompleted(userId);
+      toast("Deep work session complete ☀️ +15 XP", { position: "top-center" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepWorkRemaining, deepWorkRunning]);
+
   // Load DB-backed profile (avatar_url + bio) so calendar header reflects edits made in Profile tab
   const [dbProfile, setDbProfile] = useState<{ display_name: string | null; avatar_url: string | null; bio: string | null } | null>(null);
   useEffect(() => {
