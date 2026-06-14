@@ -15,9 +15,11 @@ import {
   onReminderCompleted,
   onProgressUpdate,
   onStickerUsed,
+  onDeepWorkCompleted,
 } from "@/lib/missionEngine";
 import { MISSIONS_BY_ID } from "@/lib/missions";
 import { useSwipeToDelete } from "@/hooks/useSwipeToDelete";
+import DeepWorkMode from "@/components/DeepWorkMode";
 
 const POINTS_PER_TASK = 5;
 
@@ -206,6 +208,34 @@ const Index = () => {
   }, [profileTouched]);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Deep Work state
+  const [deepWorkMode, setDeepWorkMode] = useState(false);
+  const [deepWorkRemaining, setDeepWorkRemaining] = useState(28 * 60);
+  const [deepWorkRunning, setDeepWorkRunning] = useState(false);
+  const [showCompleteSheet, setShowCompleteSheet] = useState(false);
+  const deepWorkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (deepWorkRunning && deepWorkRemaining > 0) {
+      deepWorkIntervalRef.current = setInterval(() => {
+        setDeepWorkRemaining((s) => Math.max(0, s - 1));
+      }, 1000);
+    }
+    return () => {
+      if (deepWorkIntervalRef.current) clearInterval(deepWorkIntervalRef.current);
+    };
+  }, [deepWorkRunning, deepWorkRemaining]);
+
+  useEffect(() => {
+    if (deepWorkRemaining === 0 && deepWorkRunning) {
+      setDeepWorkRunning(false);
+      setShowCompleteSheet(true);
+      if (userId) onDeepWorkCompleted(userId);
+      toast("Deep work session complete ☀️ +15 XP", { position: "top-center" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepWorkRemaining, deepWorkRunning]);
+
   // Load DB-backed profile (avatar_url + bio) so calendar header reflects edits made in Profile tab
   const [dbProfile, setDbProfile] = useState<{ display_name: string | null; avatar_url: string | null; bio: string | null } | null>(null);
   useEffect(() => {
@@ -359,7 +389,13 @@ const Index = () => {
         });
         if (pointsError) console.warn("Points not awarded:", pointsError.message);
         // Mission triggers
-        onReminderCompleted(userId, { completedAt: new Date(), isOnTime: true });
+        const hasScheduledTime = !!task.time;
+        let isOnTime = false;
+        if (hasScheduledTime) {
+          const scheduled = new Date(`${dueIso} ${task.time}`);
+          isOnTime = Math.abs(Date.now() - scheduled.getTime()) <= 15 * 60 * 1000;
+        }
+        onReminderCompleted(userId, { completedAt: new Date(), isOnTime, hasScheduledTime });
       }
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
@@ -723,6 +759,24 @@ const Index = () => {
                 {headerTitle}
               </h1>
             </div>
+            {active === "home" && (
+              <button
+                onClick={() => setDeepWorkMode((v) => !v)}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-all ${
+                  deepWorkMode ? "bg-[hsl(30,40%,20%)]" : "neu-surface-sm"
+                }`}
+                aria-label="Toggle focus mode"
+              >
+                <span className="text-xs">🧠</span>
+                <span
+                  className={`text-[10px] font-extrabold uppercase tracking-wide ${
+                    deepWorkMode ? "text-amber-300" : "text-muted-foreground"
+                  }`}
+                >
+                  Focus
+                </span>
+              </button>
+            )}
           </header>
 
           {active === "profile" ? (
@@ -1185,6 +1239,20 @@ const Index = () => {
                 </div>
               )}
             </section>
+          ) : deepWorkMode ? (
+            <DeepWorkMode
+              remaining={deepWorkRemaining}
+              running={deepWorkRunning}
+              setRemaining={setDeepWorkRemaining}
+              setRunning={setDeepWorkRunning}
+              showCompleteSheet={showCompleteSheet}
+              setShowCompleteSheet={setShowCompleteSheet}
+              onExit={() => {
+                setDeepWorkMode(false);
+                setDeepWorkRunning(false);
+                setDeepWorkRemaining(28 * 60);
+              }}
+            />
           ) : (
           <>
           {/* Search */}
@@ -1433,7 +1501,7 @@ const Index = () => {
 
 
           {/* Floating Add button — persists across screens */}
-          <FloatingAddButton onClick={() => setActive("add")} hidden={active === "add"} />
+          <FloatingAddButton onClick={() => setActive("add")} hidden={active === "add" || (active === "home" && deepWorkMode)} />
 
           {/* Bottom nav — 3 tabs */}
           <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around">

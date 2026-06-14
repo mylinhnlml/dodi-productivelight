@@ -181,10 +181,8 @@ export async function onAppOpen(userId: string | null) {
   await bumpMission(userId, "journey_streak_7", newStreak, "set");
   await bumpMission(userId, "journey_streak_30", newStreak, "set");
 
-  // Early morning open
-  if (new Date().getHours() < 10) {
-    await bumpMission(userId, "daily_open", 1, "set");
-  }
+  // (Removed morning-open mission — replaced by Deep Work mission)
+
 
   // Founding star — within first 7 days from install
   const sinceInstall = daysBetween(xp.install_date, today);
@@ -213,13 +211,18 @@ export async function onReminderCreated(
 
 export async function onReminderCompleted(
   userId: string | null,
-  opts: { completedAt?: Date; isOnTime?: boolean } = {}
+  opts: { completedAt?: Date; isOnTime?: boolean; hasScheduledTime?: boolean } = {}
 ) {
   if (!userId) return;
   const when = opts.completedAt ?? new Date();
   await bumpMission(userId, "daily_first_complete", 1, "set");
   if (when.getHours() < 8) await bumpMission(userId, "special_early_bird", 1, "set");
-  if (opts.isOnTime) await bumpMission(userId, "journey_on_time_10", 1, "inc");
+  if (opts.hasScheduledTime && opts.isOnTime) await bumpMission(userId, "journey_on_time_10", 1, "inc");
+}
+
+export async function onDeepWorkCompleted(userId: string | null) {
+  if (!userId) return;
+  await bumpMission(userId, "daily_deepwork", 1, "inc");
 }
 
 export async function onProgressUpdate(
