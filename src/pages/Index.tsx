@@ -389,7 +389,13 @@ const Index = () => {
         });
         if (pointsError) console.warn("Points not awarded:", pointsError.message);
         // Mission triggers
-        onReminderCompleted(userId, { completedAt: new Date(), isOnTime: true });
+        const hasScheduledTime = !!task.time;
+        let isOnTime = false;
+        if (hasScheduledTime) {
+          const scheduled = new Date(`${dueIso} ${task.time}`);
+          isOnTime = Math.abs(Date.now() - scheduled.getTime()) <= 15 * 60 * 1000;
+        }
+        onReminderCompleted(userId, { completedAt: new Date(), isOnTime, hasScheduledTime });
       }
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
