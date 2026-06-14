@@ -345,14 +345,16 @@ const Index = () => {
           (async () => {
             try {
               const answers = JSON.parse(savedSurvey!);
-              const { error } = await supabase.from("profiles").update({
+              const { error } = await supabase.from("profiles").upsert({
+                user_id: uid,
                 age_range: answers.ageRange,
                 goal_completion_rate: answers.goalCompletionRate,
                 life_goal: answers.lifeGoal,
                 life_goal_other: answers.lifeGoalOther,
-              }).eq("user_id", uid);
+              }, { onConflict: "user_id" });
               if (error) {
                 console.error("Failed to save survey answers:", error.message);
+                // Keep localStorage so it retries next time
               } else {
                 try { localStorage.removeItem("dodi.onboardingSurvey"); } catch {}
               }
