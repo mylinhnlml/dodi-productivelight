@@ -1239,6 +1239,20 @@ const Index = () => {
                 </div>
               )}
             </section>
+          ) : deepWorkMode ? (
+            <DeepWorkMode
+              remaining={deepWorkRemaining}
+              running={deepWorkRunning}
+              setRemaining={setDeepWorkRemaining}
+              setRunning={setDeepWorkRunning}
+              showCompleteSheet={showCompleteSheet}
+              setShowCompleteSheet={setShowCompleteSheet}
+              onExit={() => {
+                setDeepWorkMode(false);
+                setDeepWorkRunning(false);
+                setDeepWorkRemaining(28 * 60);
+              }}
+            />
           ) : (
           <>
           {/* Search */}
