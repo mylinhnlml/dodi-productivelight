@@ -101,6 +101,7 @@ export type Database = {
           id: string
           notification_enabled: boolean
           points: number
+          referral_code: string | null
           updated_at: string
           user_id: string
           vision_images: string[]
@@ -115,6 +116,7 @@ export type Database = {
           id?: string
           notification_enabled?: boolean
           points?: number
+          referral_code?: string | null
           updated_at?: string
           user_id: string
           vision_images?: string[]
@@ -129,6 +131,7 @@ export type Database = {
           id?: string
           notification_enabled?: boolean
           points?: number
+          referral_code?: string | null
           updated_at?: string
           user_id?: string
           vision_images?: string[]
@@ -188,6 +191,30 @@ export type Database = {
           reward_id?: string | null
           reward_title?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_granted: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_user_id: string
+          reward_granted?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_user_id?: string
+          reward_granted?: boolean
         }
         Relationships: []
       }
