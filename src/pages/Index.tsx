@@ -345,12 +345,20 @@ const Index = () => {
           (async () => {
             try {
               const answers = JSON.parse(savedSurvey!);
-              const { error } = await supabase.from("profiles").update({
+              const payload = {
                 age_range: answers.ageRange,
                 goal_completion_rate: answers.goalCompletionRate,
                 life_goal: answers.lifeGoal,
                 life_goal_other: answers.lifeGoalOther,
-              }).eq("user_id", uid);
+              };
+              const [{ error }, { error: surveyError }] = await Promise.all([
+                supabase.from("profiles").update(payload).eq("user_id", uid),
+                supabase.from("survey").upsert(
+                  { user_id: uid, ...payload },
+                  { onConflict: "user_id" }
+                ),
+              ]);
+              if (surveyError) console.error("Failed to save survey row:", surveyError.message);
               if (error) {
                 console.error("Failed to save survey answers:", error.message);
               } else {
