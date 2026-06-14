@@ -15,9 +15,11 @@ import {
   onReminderCompleted,
   onProgressUpdate,
   onStickerUsed,
+  onDeepWorkCompleted,
 } from "@/lib/missionEngine";
 import { MISSIONS_BY_ID } from "@/lib/missions";
 import { useSwipeToDelete } from "@/hooks/useSwipeToDelete";
+import DeepWorkMode from "@/components/DeepWorkMode";
 
 const POINTS_PER_TASK = 5;
 
