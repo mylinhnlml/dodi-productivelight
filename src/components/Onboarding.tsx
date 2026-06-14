@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-type SlideKey = "hook" | "reminders" | "vision" | "missions" | "calendar" | "cta";
-const SLIDES: SlideKey[] = ["hook", "reminders", "vision", "missions", "calendar", "cta"];
+type SlideKey = "hook" | "reminders" | "vision" | "missions" | "calendar" | "deepwork" | "cta";
+const SLIDES: SlideKey[] = ["hook", "reminders", "vision", "missions", "calendar", "deepwork", "cta"];
 
 type OnboardingProps = { onComplete?: () => void };
 
