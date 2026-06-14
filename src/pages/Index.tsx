@@ -337,6 +337,31 @@ const Index = () => {
               try { localStorage.removeItem("dodi.pendingReferral"); } catch {}
             });
         }
+
+        // Persist onboarding survey answers (if any) to profiles
+        let savedSurvey: string | null = null;
+        try { savedSurvey = localStorage.getItem("dodi.onboardingSurvey"); } catch {}
+        if (savedSurvey) {
+          (async () => {
+            try {
+              const answers = JSON.parse(savedSurvey!);
+              const { error } = await supabase.from("profiles").update({
+                age_range: answers.ageRange,
+                goal_completion_rate: answers.goalCompletionRate,
+                life_goal: answers.lifeGoal,
+                life_goal_other: answers.lifeGoalOther,
+              }).eq("user_id", uid);
+              if (error) {
+                console.error("Failed to save survey answers:", error.message);
+              } else {
+                try { localStorage.removeItem("dodi.onboardingSurvey"); } catch {}
+              }
+            } catch (e) {
+              console.error("Failed to parse survey answers", e);
+              try { localStorage.removeItem("dodi.onboardingSurvey"); } catch {}
+            }
+          })();
+        }
       }
     });
     return () => {

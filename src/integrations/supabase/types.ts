@@ -94,11 +94,15 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age_range: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string
           display_name: string | null
+          goal_completion_rate: string | null
           id: string
+          life_goal: string | null
+          life_goal_other: string | null
           notification_enabled: boolean
           points: number
           referral_code: string | null
@@ -109,11 +113,15 @@ export type Database = {
           vision_quote: string | null
         }
         Insert: {
+          age_range?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          goal_completion_rate?: string | null
           id?: string
+          life_goal?: string | null
+          life_goal_other?: string | null
           notification_enabled?: boolean
           points?: number
           referral_code?: string | null
@@ -124,11 +132,15 @@ export type Database = {
           vision_quote?: string | null
         }
         Update: {
+          age_range?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          goal_completion_rate?: string | null
           id?: string
+          life_goal?: string | null
+          life_goal_other?: string | null
           notification_enabled?: boolean
           points?: number
           referral_code?: string | null
