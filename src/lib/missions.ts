@@ -27,7 +27,7 @@ export const COLOR_STYLES: Record<MissionColor, { bg: string; text: string; bar:
 
 export const MISSIONS: MissionDef[] = [
   // ---------- DAILY ----------
-  { id: "daily_open",            category: "daily", title: "Early riser",      description: "Open Dodi before 10:00 AM",         xp: 10, emoji: "🌅", color: "amber",  target: 1 },
+  { id: "daily_deepwork",        category: "daily", title: "Deep work",        description: "Finish 1 deep work session",         xp: 15, emoji: "🧠", color: "purple", target: 1 },
   { id: "daily_first_complete",  category: "daily", title: "First check-off",  description: "Complete 1 reminder today",         xp: 15, emoji: "🌸", color: "pink",   target: 1, rewardStickers: ["🎵","🎶","🎸","🎹"] },
   { id: "daily_half_day",        category: "daily", title: "Halfway bloom",    description: "Complete 50% of today's tasks",     xp: 20, emoji: "🌿", color: "green",  target: 50 },
   { id: "daily_perfect",         category: "daily", title: "100% club",        description: "Complete 100% of today's tasks",    xp: 40, emoji: "🌞", color: "amber",  target: 100, rewardStickers: ["🌈","🎉","🎊","🦋"] },
