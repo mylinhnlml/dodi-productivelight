@@ -1,11 +1,38 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-type SlideKey = "hook" | "reminders" | "vision" | "missions" | "calendar" | "deepwork" | "cta";
-const SLIDES: SlideKey[] = ["hook", "reminders", "vision", "missions", "calendar", "deepwork", "cta"];
+type SlideKey =
+  | "hook"
+  | "reminders"
+  | "vision"
+  | "missions"
+  | "calendar"
+  | "deepwork"
+  | "survey_age"
+  | "survey_goal_rate"
+  | "survey_life_goal"
+  | "cta";
+const SLIDES: SlideKey[] = [
+  "hook",
+  "reminders",
+  "vision",
+  "missions",
+  "calendar",
+  "deepwork",
+  "survey_age",
+  "survey_goal_rate",
+  "survey_life_goal",
+  "cta",
+];
 
 type OnboardingProps = { onComplete?: () => void };
 
+type SurveyAnswers = {
+  ageRange: string | null;
+  goalCompletionRate: string | null;
+  lifeGoal: string | null;
+  lifeGoalOther: string | null;
+};
 
 export default function Onboarding({ onComplete }: OnboardingProps = {}) {
   const [index, setIndex] = useState(0);
@@ -14,6 +41,15 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
 
+  const [surveyAnswers, setSurveyAnswers] = useState<SurveyAnswers>({
+    ageRange: null,
+    goalCompletionRate: null,
+    lifeGoal: null,
+    lifeGoalOther: null,
+  });
+  const [showOtherInput, setShowOtherInput] = useState(false);
+  const [lifeGoalOtherText, setLifeGoalOtherText] = useState("");
+
   const goTo = (next: number, dir: 1 | -1 = 1) => {
     if (next < 0 || next >= SLIDES.length) return;
     setDirection(dir);
@@ -21,7 +57,31 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
   };
   const next = () => goTo(index + 1, 1);
   const prev = () => goTo(index - 1, -1);
-  const skip = () => goTo(SLIDES.length - 1, 1);
+
+  const persist = (updated: SurveyAnswers) => {
+    setSurveyAnswers(updated);
+    try { localStorage.setItem("dodi.onboardingSurvey", JSON.stringify(updated)); } catch {}
+  };
+
+  const handleSelect = (key: keyof SurveyAnswers, value: string) => {
+    const updated: SurveyAnswers = {
+      ...surveyAnswers,
+      [key]: value,
+      ...(key === "lifeGoal" ? { lifeGoalOther: null } : {}),
+    };
+    persist(updated);
+    setTimeout(() => next(), 250);
+  };
+
+  const handleSelectOther = (text: string) => {
+    const updated: SurveyAnswers = {
+      ...surveyAnswers,
+      lifeGoal: "other",
+      lifeGoalOther: text.trim(),
+    };
+    persist(updated);
+    setTimeout(() => next(), 150);
+  };
 
   const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -50,9 +110,10 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
     onComplete?.();
   };
 
-
   const current = SLIDES[index];
   const isLast = current === "cta";
+  const isSurvey = current.startsWith("survey_");
+  const darkBg = current === "vision" || current === "deepwork";
 
   return (
     <div
@@ -72,19 +133,23 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
             ‹
           </button>
         ) : <span className="h-11 w-11" />}
-        {!isLast ? (
-          <button
-            onClick={skip}
-            className="h-11 px-3 flex items-center text-xs text-stone-500 font-semibold"
-          >
-            Skip
-          </button>
-        ) : <span className="h-11 w-11" />}
+        <span className="h-11 w-11" />
       </div>
 
       {/* Slide stage */}
       <div className="relative w-full h-full">
-        <SlideContent slide={current} keyId={`${current}-${index}`} direction={direction} />
+        <SlideContent
+          slide={current}
+          keyId={`${current}-${index}`}
+          direction={direction}
+          surveyAnswers={surveyAnswers}
+          onSelect={handleSelect}
+          showOtherInput={showOtherInput}
+          setShowOtherInput={setShowOtherInput}
+          lifeGoalOtherText={lifeGoalOtherText}
+          setLifeGoalOtherText={setLifeGoalOtherText}
+          onSelectOther={handleSelectOther}
+        />
       </div>
 
       {/* Bottom nav */}
@@ -97,18 +162,18 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
               style={{
                 width: i === index ? 20 : 6,
                 background: i === index
-                  ? ((current === "vision" || current === "deepwork") ? "#FFD24D" : "hsl(45 95% 58%)")
-                  : ((current === "vision" || current === "deepwork") ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.18)"),
+                  ? (darkBg ? "#FFD24D" : "hsl(45 95% 58%)")
+                  : (darkBg ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.18)"),
               }}
             />
           ))}
         </div>
-        {!isLast && (
+        {!isLast && !isSurvey && (
           <div className="flex justify-end">
             <button
               onClick={next}
               className="h-11 px-4 text-sm font-extrabold"
-              style={{ color: (current === "vision" || current === "deepwork") ? "#FFD24D" : "#B45309" }}
+              style={{ color: darkBg ? "#FFD24D" : "#B45309" }}
             >
               Next →
             </button>
@@ -122,7 +187,29 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
   );
 }
 
-function SlideContent({ slide, keyId, direction }: { slide: SlideKey; keyId: string; direction: 1 | -1 }) {
+function SlideContent({
+  slide,
+  keyId,
+  direction,
+  surveyAnswers,
+  onSelect,
+  showOtherInput,
+  setShowOtherInput,
+  lifeGoalOtherText,
+  setLifeGoalOtherText,
+  onSelectOther,
+}: {
+  slide: SlideKey;
+  keyId: string;
+  direction: 1 | -1;
+  surveyAnswers: SurveyAnswers;
+  onSelect: (key: keyof SurveyAnswers, value: string) => void;
+  showOtherInput: boolean;
+  setShowOtherInput: (v: boolean) => void;
+  lifeGoalOtherText: string;
+  setLifeGoalOtherText: (v: string) => void;
+  onSelectOther: (text: string) => void;
+}) {
   const enterAnim = direction === 1 ? "slide-from-right" : "slide-from-left";
   return (
     <div key={keyId} className={`absolute inset-0 ${enterAnim}`}>
@@ -138,7 +225,151 @@ function SlideContent({ slide, keyId, direction }: { slide: SlideKey; keyId: str
       {slide === "missions" && <MissionsSlide />}
       {slide === "calendar" && <CalendarSlide />}
       {slide === "deepwork" && <DeepWorkSlide />}
+      {slide === "survey_age" && (
+        <SurveySlide
+          question="How old are you?"
+          questionKey="ageRange"
+          selected={surveyAnswers.ageRange}
+          options={[
+            { emoji: "🌱", label: "Under 18", value: "under_18" },
+            { emoji: "🌿", label: "18–24", value: "18_24" },
+            { emoji: "🌳", label: "25–34", value: "25_34" },
+            { emoji: "🌻", label: "35–44", value: "35_44" },
+            { emoji: "🌟", label: "45+", value: "45_plus" },
+          ]}
+          onSelect={onSelect}
+        />
+      )}
+      {slide === "survey_goal_rate" && (
+        <SurveySlide
+          question="How often do you finish what you set out to do?"
+          questionKey="goalCompletionRate"
+          selected={surveyAnswers.goalCompletionRate}
+          options={[
+            { emoji: "😅", label: "Almost none", value: "almost_none" },
+            { emoji: "🙂", label: "About half of what I planned", value: "about_half" },
+            { emoji: "🔥", label: "Almost everything", value: "almost_everything" },
+          ]}
+          onSelect={onSelect}
+        />
+      )}
+      {slide === "survey_life_goal" && (
+        <SurveySlide
+          question="What are you working toward right now?"
+          questionKey="lifeGoal"
+          selected={surveyAnswers.lifeGoal}
+          options={[
+            { emoji: "💰", label: "Make more money", value: "make_money" },
+            { emoji: "✨", label: "Upgrade my life", value: "upgrade_life" },
+            { emoji: "🎯", label: "Train my discipline", value: "discipline" },
+            { emoji: "📚", label: "Learn new knowledge", value: "learn" },
+            { emoji: "📅", label: "I have an important test/event coming up", value: "important_event" },
+          ]}
+          onSelect={onSelect}
+          otherEnabled
+          showOtherInput={showOtherInput}
+          setShowOtherInput={setShowOtherInput}
+          lifeGoalOtherText={lifeGoalOtherText}
+          setLifeGoalOtherText={setLifeGoalOtherText}
+          onSelectOther={onSelectOther}
+        />
+      )}
       {slide === "cta" && <CTASlide />}
+    </div>
+  );
+}
+
+/* ============ Survey ============ */
+
+function SurveySlide({
+  question,
+  questionKey,
+  selected,
+  options,
+  onSelect,
+  otherEnabled,
+  showOtherInput,
+  setShowOtherInput,
+  lifeGoalOtherText,
+  setLifeGoalOtherText,
+  onSelectOther,
+}: {
+  question: string;
+  questionKey: keyof SurveyAnswers;
+  selected: string | null;
+  options: { emoji: string; label: string; value: string }[];
+  onSelect: (key: keyof SurveyAnswers, value: string) => void;
+  otherEnabled?: boolean;
+  showOtherInput?: boolean;
+  setShowOtherInput?: (v: boolean) => void;
+  lifeGoalOtherText?: string;
+  setLifeGoalOtherText?: (v: string) => void;
+  onSelectOther?: (text: string) => void;
+}) {
+  return (
+    <div
+      className="w-full h-full flex flex-col pt-20 pb-40 overflow-y-auto"
+      style={{ background: "linear-gradient(160deg, #FFF8EE 0%, #FFF3DC 100%)" }}
+    >
+      <div className="flex flex-col items-center justify-center flex-1 px-6">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-2">
+          Getting to know you 🌱
+        </span>
+        <h2 className="text-xl font-extrabold text-foreground text-center mb-6 max-w-[260px]">
+          {question}
+        </h2>
+        <div className="w-full max-w-[300px] flex flex-col gap-2.5">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => onSelect(questionKey, opt.value)}
+              className={`w-full rounded-2xl px-4 py-3.5 text-left transition-all flex items-center gap-3 ${
+                selected === opt.value ? "neu-pressed border-2 border-primary" : "neu-surface-sm"
+              }`}
+            >
+              <span className="text-lg">{opt.emoji}</span>
+              <span className="text-sm font-bold text-foreground">{opt.label}</span>
+            </button>
+          ))}
+          {otherEnabled && (
+            <button
+              onClick={() => setShowOtherInput?.(true)}
+              className={`w-full rounded-2xl px-4 py-3.5 text-left transition-all flex items-center gap-3 ${
+                selected === "other" ? "neu-pressed border-2 border-primary" : "neu-surface-sm"
+              }`}
+            >
+              <span className="text-lg opacity-50">✏️</span>
+              <span className="text-sm font-bold text-muted-foreground italic">
+                Others — tell us in your own words
+              </span>
+            </button>
+          )}
+        </div>
+        {otherEnabled && showOtherInput && (
+          <div className="w-full max-w-[300px] mt-3 animate-[fade-in_0.25s_ease-out_both]">
+            <div className="neu-inset rounded-2xl px-4 py-3">
+              <input
+                value={lifeGoalOtherText ?? ""}
+                onChange={(e) => setLifeGoalOtherText?.(e.target.value.slice(0, 60))}
+                placeholder="e.g. Becoming more present with my family"
+                autoFocus
+                className="w-full text-sm font-bold bg-transparent outline-none placeholder:text-muted-foreground/60 placeholder:font-medium placeholder:italic"
+              />
+            </div>
+            <div className="flex justify-between items-center mt-1 px-1">
+              <span className="text-[10px] text-muted-foreground">{(lifeGoalOtherText ?? "").length}/60</span>
+            </div>
+            <button
+              onClick={() => onSelectOther?.(lifeGoalOtherText ?? "")}
+              disabled={!(lifeGoalOtherText ?? "").trim()}
+              className="w-full mt-3 rounded-2xl py-3 font-extrabold text-sm text-primary-foreground disabled:opacity-40"
+              style={{ background: "hsl(var(--primary))" }}
+            >
+              Continue
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -512,4 +743,3 @@ function CTAFooter({ onStart, loading }: { onStart: () => void; loading: boolean
     </div>
   );
 }
-
