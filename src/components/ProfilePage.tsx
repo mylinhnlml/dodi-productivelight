@@ -146,6 +146,43 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
     })();
   }, [userId]);
 
+  // Load referral code (generate if missing) + friends count
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("referral_code")
+        .eq("user_id", userId)
+        .maybeSingle();
+      let code = (data as any)?.referral_code as string | null | undefined;
+      if (!code) {
+        const base = userId.replace(/-/g, "").slice(0, 8).toUpperCase();
+        const { error } = await supabase
+          .from("profiles")
+          .update({ referral_code: base })
+          .eq("user_id", userId);
+        if (error) {
+          const retry = base.slice(0, 7) + Math.floor(Math.random() * 10).toString();
+          const { error: e2 } = await supabase
+            .from("profiles")
+            .update({ referral_code: retry })
+            .eq("user_id", userId);
+          if (!e2) code = retry;
+        } else {
+          code = base;
+        }
+      }
+      if (code) setReferralCode(code);
+
+      const { count } = await supabase
+        .from("referrals")
+        .select("*", { count: "exact", head: true })
+        .eq("referrer_user_id", userId);
+      setFriendsJoinedCount(count ?? 0);
+    })();
+  }, [userId]);
+
   const toggleNotification = async (next: boolean) => {
     if (!userId || notifBusy) return;
     setNotifBusy(true);
