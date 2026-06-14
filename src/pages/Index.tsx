@@ -338,14 +338,14 @@ const Index = () => {
             });
         }
 
-        // Persist onboarding survey answers (if any) to profiles
+        // Persist onboarding survey answers (if any) to the survey table
         let savedSurvey: string | null = null;
         try { savedSurvey = localStorage.getItem("dodi.onboardingSurvey"); } catch {}
         if (savedSurvey) {
           (async () => {
             try {
               const answers = JSON.parse(savedSurvey!);
-              const { error } = await supabase.from("profiles").upsert({
+              const { error } = await supabase.from("survey").upsert({
                 user_id: uid,
                 age_range: answers.ageRange,
                 goal_completion_rate: answers.goalCompletionRate,
