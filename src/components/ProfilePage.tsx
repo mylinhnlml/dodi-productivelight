@@ -11,11 +11,13 @@ import {
   Camera,
   Trash2,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VisionBoardViewer from "@/components/VisionBoardViewer";
 import { Switch } from "@/components/ui/switch";
+import { getShareMessage } from "@/lib/shareConfig";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -76,6 +78,8 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [uploading, setUploading] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifBusy, setNotifBusy] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [friendsJoinedCount, setFriendsJoinedCount] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
