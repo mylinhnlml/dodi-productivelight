@@ -54,6 +54,29 @@ function getNoMantraNotification() {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
+  // --- Auth: require the shared cron secret. --------------------------------
+  try {
+    const provided = req.headers.get('x-cron-secret') ?? '';
+    const { data: secretRow, error: secretErr } = await supa
+      .schema('vault' as any)
+      .from('decrypted_secrets')
+      .select('decrypted_secret')
+      .eq('name', 'cron_secret')
+      .maybeSingle();
+    const expected = ((secretRow as any)?.decrypted_secret as string | undefined) ?? '';
+    if (secretErr || !expected || provided !== expected) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  } catch {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+
+
   try {
     const { data: users, error } = await supa
       .from('profiles')
