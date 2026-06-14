@@ -11,11 +11,13 @@ import {
   Camera,
   Trash2,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VisionBoardViewer from "@/components/VisionBoardViewer";
 import { Switch } from "@/components/ui/switch";
+import { getShareMessage } from "@/lib/shareConfig";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -76,6 +78,8 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [uploading, setUploading] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifBusy, setNotifBusy] = useState(false);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [friendsJoinedCount, setFriendsJoinedCount] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
@@ -139,6 +143,43 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
         .eq("user_id", userId)
         .maybeSingle();
       if (data) setNotifEnabled((data as any).notification_enabled ?? false);
+    })();
+  }, [userId]);
+
+  // Load referral code (generate if missing) + friends count
+  useEffect(() => {
+    if (!userId) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("referral_code")
+        .eq("user_id", userId)
+        .maybeSingle();
+      let code = (data as any)?.referral_code as string | null | undefined;
+      if (!code) {
+        const base = userId.replace(/-/g, "").slice(0, 8).toUpperCase();
+        const { error } = await supabase
+          .from("profiles")
+          .update({ referral_code: base })
+          .eq("user_id", userId);
+        if (error) {
+          const retry = base.slice(0, 7) + Math.floor(Math.random() * 10).toString();
+          const { error: e2 } = await supabase
+            .from("profiles")
+            .update({ referral_code: retry })
+            .eq("user_id", userId);
+          if (!e2) code = retry;
+        } else {
+          code = base;
+        }
+      }
+      if (code) setReferralCode(code);
+
+      const { count } = await supabase
+        .from("referrals")
+        .select("*", { count: "exact", head: true })
+        .eq("referrer_user_id", userId);
+      setFriendsJoinedCount(count ?? 0);
     })();
   }, [userId]);
 
@@ -496,6 +537,46 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
               <p className="text-sm font-bold text-destructive opacity-60">Delete account</p>
             </div>
           </button>
+
+          {referralCode && (
+            <div className="rounded-3xl neu-surface-sm p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-amber-400" strokeWidth={2.6} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-foreground">Invite a friend</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Share Dodi — you both get a sticker pack ✨
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  const msg = getShareMessage(referralCode);
+                  try {
+                    if (typeof navigator !== "undefined" && (navigator as any).share) {
+                      await (navigator as any).share({ text: msg });
+                    } else {
+                      await navigator.clipboard.writeText(msg);
+                      toast("Link copied! Share it with a friend ☀️");
+                    }
+                  } catch {
+                    /* user cancelled */
+                  }
+                }}
+                className="w-full rounded-2xl text-primary-foreground font-extrabold text-sm py-3 transition-transform active:scale-[0.98]"
+                style={{ background: "hsl(var(--primary))" }}
+              >
+                Share my link
+              </button>
+              {friendsJoinedCount > 0 && (
+                <p className="text-[11px] text-center text-muted-foreground">
+                  {friendsJoinedCount} friend{friendsJoinedCount > 1 ? "s" : ""} joined via your link 🎉
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {editSloganOpen && (

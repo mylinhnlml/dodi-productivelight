@@ -252,6 +252,14 @@ const Index = () => {
     window.setTimeout(() => setHighlightedStickers(new Set()), 4000);
   };
 
+  // Capture ?ref= param on app load and stash it for after sign-in
+  useEffect(() => {
+    try {
+      const ref = new URLSearchParams(window.location.search).get("ref");
+      if (ref) localStorage.setItem("dodi.pendingReferral", ref);
+    } catch {}
+  }, []);
+
   // Load this user's tasks; ensure tasks are scoped per account
   useEffect(() => {
     let mounted = true;
@@ -289,6 +297,17 @@ const Index = () => {
       setUserId(uid);
       loadTasks(uid);
       onAppOpen(uid);
+      if (uid) {
+        let pendingRef: string | null = null;
+        try { pendingRef = localStorage.getItem("dodi.pendingReferral"); } catch {}
+        if (pendingRef) {
+          supabase.functions
+            .invoke("process-referral", { body: { ref_code: pendingRef } })
+            .finally(() => {
+              try { localStorage.removeItem("dodi.pendingReferral"); } catch {}
+            });
+        }
+      }
     });
     return () => {
       mounted = false;
