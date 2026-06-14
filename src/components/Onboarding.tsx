@@ -379,6 +379,91 @@ function CalendarSlide() {
   );
 }
 
+function DeepWorkSlide() {
+  return (
+    <div
+      className="w-full h-full flex flex-col px-6 pt-20"
+      style={{ background: "linear-gradient(165deg, #1A1208 0%, #2A1D0E 60%, #1F1509 100%)" }}
+    >
+      <div
+        className="flex flex-col items-center justify-center"
+        style={{ height: "45%", animation: "onb-dw-in 500ms ease-out both" }}
+      >
+        <style>{`
+          @keyframes onb-dw-in { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
+        `}</style>
+        <div className="relative" style={{ width: 130, height: 130 }}>
+          <div className="absolute inset-0 pointer-events-none">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="absolute left-1/2 top-1/2"
+                style={{
+                  width: 0,
+                  height: 0,
+                  borderLeft: "3px solid transparent",
+                  borderRight: "3px solid transparent",
+                  borderBottom: "6px solid hsl(40,80%,45%)",
+                  transform: `translate(-50%, -50%) rotate(${i * 30}deg) translateY(-70px)`,
+                }}
+              />
+            ))}
+          </div>
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: `conic-gradient(hsl(40,90%,55%) 180deg, rgba(255,255,255,0.06) 0)`,
+              padding: 5,
+            }}
+          >
+            <div className="w-full h-full rounded-full" style={{ background: "#1A1208" }} />
+          </div>
+          <div
+            className="absolute rounded-full flex items-center justify-center"
+            style={{
+              inset: 14,
+              background: "radial-gradient(circle at 35% 35%, #FFD580, #E8A325)",
+              boxShadow: "0 0 30px rgba(232,163,37,0.4)",
+            }}
+          >
+            <div className="flex items-center gap-1.5 mt-1">
+              <div style={{ width: 12, height: 2.5, borderRadius: 99, background: "#5C3A0E", transform: "rotate(-8deg)" }} />
+              <div style={{ width: 12, height: 2.5, borderRadius: 99, background: "#5C3A0E", transform: "rotate(8deg)" }} />
+            </div>
+            <div className="absolute" style={{ bottom: "32%", width: 16, height: 2, borderRadius: 99, background: "#5C3A0E" }} />
+          </div>
+        </div>
+        <p
+          className="mt-4 text-3xl font-extrabold tabular-nums tracking-wider"
+          style={{ color: "#FFE9C2" }}
+        >
+          13:42
+        </p>
+        <div
+          className="mt-3 flex items-center gap-1.5 rounded-full px-3 py-1.5"
+          style={{ background: "hsl(40,90%,55%)" }}
+        >
+          <span className="text-xs">🧠</span>
+          <span className="text-[10px] font-extrabold uppercase tracking-wide" style={{ color: "#1A1208" }}>
+            Focus
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-6 px-2">
+        <div className="text-xs font-bold uppercase tracking-wider" style={{ color: "#FAEEDA" }}>Step 5</div>
+        <h2 className="font-extrabold mt-1 text-white" style={{ fontSize: 22 }}>Lock in when it counts</h2>
+        <p className="mt-3 text-white/70" style={{ fontSize: 13, lineHeight: 1.7 }}>
+          Flip on Focus mode for a 28-minute deep work session. No distractions — just you, a quiet timer, and a sun that's working as hard as you are ☀️
+        </p>
+        <p className="mt-3 italic" style={{ fontSize: 11, color: "#FFD24D" }}>
+          💡 Find the Focus toggle right on your Reminders screen
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function CTASlide() {
   return (
     <div
