@@ -211,13 +211,18 @@ export async function onReminderCreated(
 
 export async function onReminderCompleted(
   userId: string | null,
-  opts: { completedAt?: Date; isOnTime?: boolean } = {}
+  opts: { completedAt?: Date; isOnTime?: boolean; hasScheduledTime?: boolean } = {}
 ) {
   if (!userId) return;
   const when = opts.completedAt ?? new Date();
   await bumpMission(userId, "daily_first_complete", 1, "set");
   if (when.getHours() < 8) await bumpMission(userId, "special_early_bird", 1, "set");
-  if (opts.isOnTime) await bumpMission(userId, "journey_on_time_10", 1, "inc");
+  if (opts.hasScheduledTime && opts.isOnTime) await bumpMission(userId, "journey_on_time_10", 1, "inc");
+}
+
+export async function onDeepWorkCompleted(userId: string | null) {
+  if (!userId) return;
+  await bumpMission(userId, "daily_deepwork", 1, "inc");
 }
 
 export async function onProgressUpdate(
