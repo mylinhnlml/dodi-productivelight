@@ -1501,7 +1501,7 @@ const Index = () => {
 
 
           {/* Floating Add button — persists across screens */}
-          <FloatingAddButton onClick={() => setActive("add")} hidden={active === "add"} />
+          <FloatingAddButton onClick={() => setActive("add")} hidden={active === "add" || (active === "home" && deepWorkMode)} />
 
           {/* Bottom nav — 3 tabs */}
           <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around">
