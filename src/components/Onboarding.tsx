@@ -97,8 +97,8 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
               style={{
                 width: i === index ? 20 : 6,
                 background: i === index
-                  ? (current === "vision" ? "#FFD24D" : "hsl(45 95% 58%)")
-                  : (current === "vision" ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.18)"),
+                  ? ((current === "vision" || current === "deepwork") ? "#FFD24D" : "hsl(45 95% 58%)")
+                  : ((current === "vision" || current === "deepwork") ? "rgba(255,255,255,0.35)" : "rgba(0,0,0,0.18)"),
               }}
             />
           ))}
