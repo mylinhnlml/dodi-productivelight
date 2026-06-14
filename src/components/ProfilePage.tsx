@@ -537,6 +537,46 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
               <p className="text-sm font-bold text-destructive opacity-60">Delete account</p>
             </div>
           </button>
+
+          {referralCode && (
+            <div className="rounded-3xl neu-surface-sm p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-2xl neu-inset flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-amber-400" strokeWidth={2.6} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-foreground">Invite a friend</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Share Dodi — you both get a sticker pack ✨
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  const msg = getShareMessage(referralCode);
+                  try {
+                    if (typeof navigator !== "undefined" && (navigator as any).share) {
+                      await (navigator as any).share({ text: msg });
+                    } else {
+                      await navigator.clipboard.writeText(msg);
+                      toast("Link copied! Share it with a friend ☀️");
+                    }
+                  } catch {
+                    /* user cancelled */
+                  }
+                }}
+                className="w-full rounded-2xl text-primary-foreground font-extrabold text-sm py-3 transition-transform active:scale-[0.98]"
+                style={{ background: "hsl(var(--primary))" }}
+              >
+                Share my link
+              </button>
+              {friendsJoinedCount > 0 && (
+                <p className="text-[11px] text-center text-muted-foreground">
+                  {friendsJoinedCount} friend{friendsJoinedCount > 1 ? "s" : ""} joined via your link 🎉
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {editSloganOpen && (
