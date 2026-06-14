@@ -287,39 +287,6 @@ export type Database = {
         }
         Relationships: []
       }
-      survey: {
-        Row: {
-          age_range: string | null
-          created_at: string
-          goal_completion_rate: string | null
-          id: string
-          life_goal: string | null
-          life_goal_other: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          age_range?: string | null
-          created_at?: string
-          goal_completion_rate?: string | null
-          id?: string
-          life_goal?: string | null
-          life_goal_other?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          age_range?: string | null
-          created_at?: string
-          goal_completion_rate?: string | null
-          id?: string
-          life_goal?: string | null
-          life_goal_other?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       tasks: {
         Row: {
           created_at: string
