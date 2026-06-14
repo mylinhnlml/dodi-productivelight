@@ -759,6 +759,24 @@ const Index = () => {
                 {headerTitle}
               </h1>
             </div>
+            {active === "home" && (
+              <button
+                onClick={() => setDeepWorkMode((v) => !v)}
+                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-all ${
+                  deepWorkMode ? "bg-[hsl(30,40%,20%)]" : "neu-surface-sm"
+                }`}
+                aria-label="Toggle focus mode"
+              >
+                <span className="text-xs">🧠</span>
+                <span
+                  className={`text-[10px] font-extrabold uppercase tracking-wide ${
+                    deepWorkMode ? "text-amber-300" : "text-muted-foreground"
+                  }`}
+                >
+                  Focus
+                </span>
+              </button>
+            )}
           </header>
 
           {active === "profile" ? (
