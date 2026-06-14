@@ -762,15 +762,17 @@ const Index = () => {
             {active === "home" && (
               <button
                 onClick={() => setDeepWorkMode((v) => !v)}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 transition-all ${
-                  deepWorkMode ? "bg-[hsl(30,40%,20%)]" : "neu-surface-sm"
+                className={`flex items-center gap-2 rounded-full px-5 py-2.5 transition-all ${
+                  deepWorkMode
+                    ? "bg-[hsl(30,40%,20%)] ring-2 ring-amber-400/60"
+                    : "neu-surface-sm bg-amber-50 ring-2 ring-primary/40"
                 }`}
                 aria-label="Toggle focus mode"
               >
-                <span className="text-xs">🧠</span>
+                <span className="text-sm">🧠</span>
                 <span
-                  className={`text-[10px] font-extrabold uppercase tracking-wide ${
-                    deepWorkMode ? "text-amber-300" : "text-muted-foreground"
+                  className={`text-xs font-extrabold uppercase tracking-wide ${
+                    deepWorkMode ? "text-amber-300" : "text-foreground"
                   }`}
                 >
                   Focus
