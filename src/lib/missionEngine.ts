@@ -181,10 +181,8 @@ export async function onAppOpen(userId: string | null) {
   await bumpMission(userId, "journey_streak_7", newStreak, "set");
   await bumpMission(userId, "journey_streak_30", newStreak, "set");
 
-  // Early morning open
-  if (new Date().getHours() < 10) {
-    await bumpMission(userId, "daily_open", 1, "set");
-  }
+  // (Removed morning-open mission — replaced by Deep Work mission)
+
 
   // Founding star — within first 7 days from install
   const sinceInstall = daysBetween(xp.install_date, today);
