@@ -760,9 +760,16 @@ const Index = () => {
     : active === "missions" ? "Missions"
     : "Upcoming Tasks";
 
+  const getRedirectUri = () => {
+    if (Capacitor.isNativePlatform()) {
+      return "dodi://auth-callback";
+    }
+    return window.location.origin;
+  };
+
   const handleGoogleSignIn = async () => {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: getRedirectUri(),
     });
     if (result.error) toast.error("Sign-in failed. Please try again.");
   };
