@@ -817,7 +817,38 @@ const Index = () => {
           </header>
 
           {active === "profile" ? (
-            <ProfilePage userId={userId} tasks={tasks} completed={completed} />
+            userId === null ? (
+              <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 gap-5">
+                <div
+                  className="text-[56px] leading-none"
+                  style={{ animation: "float-gentle 3s ease-in-out infinite" }}
+                  aria-hidden
+                >
+                  🌷
+                </div>
+
+                <div className="text-center">
+                  <h2 className="font-extrabold text-foreground text-lg mb-1.5">
+                    Sign in to see your profile
+                  </h2>
+                  <p className="text-xs text-muted-foreground max-w-[240px] leading-relaxed">
+                    Your missions, stickers, and vision board are waiting for you ☀️
+                  </p>
+                </div>
+
+                <div className="w-full max-w-[280px] mt-2">
+                  <button
+                    onClick={handleGoogleSignIn}
+                    className="w-full rounded-2xl neu-surface-sm py-3 flex items-center justify-center gap-2.5 font-bold text-sm text-foreground active:neu-pressed transition-all"
+                  >
+                    <GoogleIcon className="w-4 h-4" />
+                    Continue with Google
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <ProfilePage userId={userId} tasks={tasks} completed={completed} />
+            )
           ) : active === "missions" ? (
             <MissionsPage userId={userId} onUseStickers={handleUseStickers} />
           ) : active === "calendar" ? (
