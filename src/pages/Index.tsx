@@ -2,6 +2,35 @@ import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star
 import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { Capacitor } from "@capacitor/core";
+import { Browser } from "@capacitor/browser";
+import { App as CapacitorApp } from "@capacitor/app";
+
+const DEPLOYED_WEB_URL = "https://dodi-productivelight.lovable.app/";
+
+async function startGoogleSignIn() {
+  if (Capacitor.isNativePlatform()) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: DEPLOYED_WEB_URL,
+        skipBrowserRedirect: true,
+      },
+    });
+    if (error) {
+      toast.error("Sign-in failed. Please try again.");
+      return;
+    }
+    if (data?.url) {
+      await Browser.open({ url: data.url });
+    }
+  } else {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) toast.error("Sign-in failed. Please try again.");
+  }
+}
 import { toast } from "sonner";
 
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
@@ -374,6 +403,24 @@ const Index = () => {
     };
   }, []);
 
+  // Native: when app returns to foreground after OAuth in-app browser, refresh session
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let handle: { remove: () => Promise<void> } | null = null;
+    (async () => {
+      handle = await CapacitorApp.addListener("appStateChange", async ({ isActive }) => {
+        if (isActive) {
+          try { await Browser.close(); } catch {}
+          const { data } = await supabase.auth.getSession();
+          if (data.session) setUserId(data.session.user.id);
+        }
+      });
+    })();
+    return () => { handle?.remove(); };
+  }, []);
+
+
+
   // Notify mission engine of today's completion %
   useEffect(() => {
     if (!userId) return;
@@ -406,10 +453,7 @@ const Index = () => {
         if (next === 1) {
           window.setTimeout(async () => {
             toast("Sign in to save your wins ☀️", { position: "top-center", duration: 2500 });
-            const result = await lovable.auth.signInWithOAuth("google", {
-              redirect_uri: window.location.origin,
-            });
-            if (result.error) toast.error("Sign-in failed. Please try again.");
+            await startGoogleSignIn();
           }, 1200);
         }
       } else {
@@ -762,10 +806,7 @@ const Index = () => {
 
 
   const handleGoogleSignIn = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) toast.error("Sign-in failed. Please try again.");
+    await startGoogleSignIn();
   };
 
   if (showLoginWall && !userId) {
