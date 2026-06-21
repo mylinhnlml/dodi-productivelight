@@ -3,7 +3,7 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
-import { Capacitor } from "@capacitor/core";
+
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
