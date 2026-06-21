@@ -3,8 +3,6 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Capacitor } from "@capacitor/core";
-import { Browser } from "@capacitor/browser";
-import { App as CapacitorApp } from "@capacitor/app";
 
 const DEPLOYED_WEB_URL = "https://dodi-productivelight.lovable.app/";
 
@@ -23,7 +21,8 @@ async function startGoogleSignIn() {
     }
     if (data?.url) {
       console.log("[Dodi OAuth] Opening native OAuth URL:", data.url);
-      await Browser.open({ url: data.url });
+      window.open(data.url, "_system");
+      toast("After signing in, return to this app to continue.", { position: "top-center", duration: 3500 });
     }
   } else {
     const result = await lovable.auth.signInWithOAuth("google", {
@@ -403,24 +402,6 @@ const Index = () => {
       sub.subscription.unsubscribe();
     };
   }, []);
-
-  // Native: when app returns to foreground after OAuth in-app browser, refresh session
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    let handle: { remove: () => Promise<void> } | null = null;
-    (async () => {
-      handle = await CapacitorApp.addListener("appStateChange", async ({ isActive }) => {
-        if (isActive) {
-          try { await Browser.close(); } catch {}
-          const { data } = await supabase.auth.getSession();
-          if (data.session) setUserId(data.session.user.id);
-        }
-      });
-    })();
-    return () => { handle?.remove(); };
-  }, []);
-
-
 
   // Notify mission engine of today's completion %
   useEffect(() => {
@@ -809,6 +790,7 @@ const Index = () => {
   const handleGoogleSignIn = async () => {
     await startGoogleSignIn();
   };
+  const isNativePlatform = Capacitor.isNativePlatform();
 
   if (showLoginWall && !userId) {
     return <Onboarding />;
@@ -890,6 +872,11 @@ const Index = () => {
                     <GoogleIcon className="w-4 h-4" />
                     Continue with Google
                   </button>
+                  {isNativePlatform && (
+                    <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
+                      After signing in, return to this app to continue.
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (
