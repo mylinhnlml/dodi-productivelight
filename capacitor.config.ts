@@ -7,14 +7,6 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'https',
   },
-  plugins: {
-    // custom URL scheme for OAuth redirect
-    App: {
-      appUrlOpen: {
-        urlScheme: 'dodi',
-      },
-    },
-  },
 };
 
 export default config;

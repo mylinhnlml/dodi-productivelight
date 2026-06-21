@@ -3,7 +3,7 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
-import { Capacitor } from "@capacitor/core";
+
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
@@ -407,7 +407,7 @@ const Index = () => {
           window.setTimeout(async () => {
             toast("Sign in to save your wins ☀️", { position: "top-center", duration: 2500 });
             const result = await lovable.auth.signInWithOAuth("google", {
-              redirect_uri: getRedirectUri(),
+              redirect_uri: window.location.origin,
             });
             if (result.error) toast.error("Sign-in failed. Please try again.");
           }, 1200);
@@ -760,16 +760,10 @@ const Index = () => {
     : active === "missions" ? "Missions"
     : "Upcoming Tasks";
 
-  const getRedirectUri = () => {
-    if (Capacitor.isNativePlatform()) {
-      return "dodi://auth-callback";
-    }
-    return window.location.origin;
-  };
 
   const handleGoogleSignIn = async () => {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: getRedirectUri(),
+      redirect_uri: window.location.origin,
     });
     if (result.error) toast.error("Sign-in failed. Please try again.");
   };
