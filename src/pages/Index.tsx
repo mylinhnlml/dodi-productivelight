@@ -403,6 +403,24 @@ const Index = () => {
     };
   }, []);
 
+  // Native: when app returns to foreground after OAuth in-app browser, refresh session
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let handle: { remove: () => Promise<void> } | null = null;
+    (async () => {
+      handle = await CapacitorApp.addListener("appStateChange", async ({ isActive }) => {
+        if (isActive) {
+          try { await Browser.close(); } catch {}
+          const { data } = await supabase.auth.getSession();
+          if (data.session) setUserId(data.session.user.id);
+        }
+      });
+    })();
+    return () => { handle?.remove(); };
+  }, []);
+
+
+
   // Notify mission engine of today's completion %
   useEffect(() => {
     if (!userId) return;
