@@ -8,6 +8,7 @@ import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
 import ProfilePage from "@/components/ProfilePage";
 import MissionsPage from "@/components/MissionsPage";
+import { GoogleIcon } from "@/components/GoogleIcon";
 import FloatingAddButton from "@/components/FloatingAddButton";
 import {
   onAppOpen,
