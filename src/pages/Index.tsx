@@ -22,6 +22,7 @@ async function startGoogleSignIn() {
       return;
     }
     if (data?.url) {
+      console.log("[Dodi OAuth] Opening native OAuth URL:", data.url);
       await Browser.open({ url: data.url });
     }
   } else {
