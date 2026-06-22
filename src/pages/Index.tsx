@@ -401,9 +401,9 @@ const Index = () => {
         setGuestCompletes(next);
         try { localStorage.setItem("dodi.guestCompletes", String(next)); } catch {}
         if (next === 1) {
-          window.setTimeout(() => {
-            toast("Sign in to save your progress ☀️", { position: "top-center", duration: 2500 });
-          }, 1200);
+          toast("Sign in to save your first completed task ☀️", { position: "top-center", duration: 2500 });
+          setActive("profile");
+          return;
         }
       } else {
 
