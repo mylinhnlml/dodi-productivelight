@@ -1150,7 +1150,14 @@ const Index = () => {
 
                     {/* More stickers → Missions */}
                     <button
-                      onClick={() => setActive("missions")}
+                      onClick={() => {
+                        if (!userId) {
+                          toast("Sign in to unlock more stickers ☀️", { position: "top-center", duration: 2500 });
+                          setActive("profile");
+                          return;
+                        }
+                        setActive("missions");
+                      }}
                       className="w-full py-2.5 rounded-2xl neu-surface-sm text-xs font-extrabold text-primary flex items-center justify-center gap-1.5 transition-transform active:scale-95"
                     >
                       <Smile className="w-3.5 h-3.5" strokeWidth={2.4} />
