@@ -1,36 +1,6 @@
 import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft, User, Trophy } from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
-import { Capacitor } from "@capacitor/core";
-
-const DEPLOYED_WEB_URL = "https://dodi-productivelight.lovable.app/";
-
-async function startGoogleSignIn() {
-  if (Capacitor.isNativePlatform()) {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: DEPLOYED_WEB_URL,
-        skipBrowserRedirect: true,
-      },
-    });
-    if (error) {
-      toast.error("Sign-in failed. Please try again.");
-      return;
-    }
-    if (data?.url) {
-      console.log("[Dodi OAuth] Opening native OAuth URL:", data.url);
-      window.open(data.url, "_system");
-      toast("After signing in, return to this app to continue.", { position: "top-center", duration: 3500 });
-    }
-  } else {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) toast.error("Sign-in failed. Please try again.");
-  }
-}
 import { toast } from "sonner";
 
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
@@ -38,7 +8,6 @@ import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
 import ProfilePage from "@/components/ProfilePage";
 import MissionsPage from "@/components/MissionsPage";
-import { GoogleIcon } from "@/components/GoogleIcon";
 import FloatingAddButton from "@/components/FloatingAddButton";
 import {
   onAppOpen,
@@ -431,11 +400,9 @@ const Index = () => {
         const next = guestCompletes + 1;
         setGuestCompletes(next);
         try { localStorage.setItem("dodi.guestCompletes", String(next)); } catch {}
-        // Only prompt sign-in on the very first guest completion
         if (next === 1) {
-          window.setTimeout(async () => {
-            toast("Sign in to save your wins ☀️", { position: "top-center", duration: 2500 });
-            await startGoogleSignIn();
+          window.setTimeout(() => {
+            toast("Sign in to save your progress ☀️", { position: "top-center", duration: 2500 });
           }, 1200);
         }
       } else {
@@ -787,10 +754,53 @@ const Index = () => {
     : "Upcoming Tasks";
 
 
-  const handleGoogleSignIn = async () => {
-    await startGoogleSignIn();
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authConfirm, setAuthConfirm] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
+
+  const handleEmailSignIn = async () => {
+    if (authBusy) return;
+    setAuthBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: authEmail.trim(),
+      password: authPassword,
+    });
+    setAuthBusy(false);
+    if (error) {
+      toast.error("Incorrect email or password");
+    } else {
+      setAuthEmail(""); setAuthPassword("");
+    }
   };
-  const isNativePlatform = Capacitor.isNativePlatform();
+
+  const handleEmailSignUp = async () => {
+    if (authBusy) return;
+    if (authPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (authPassword !== authConfirm) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setAuthBusy(true);
+    const { error } = await supabase.auth.signUp({
+      email: authEmail.trim(),
+      password: authPassword,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
+    setAuthBusy(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast("Account created! Please check your email to verify ☀️");
+      setAuthPassword(""); setAuthConfirm("");
+      setAuthMode("signin");
+    }
+  };
+
 
   if (showLoginWall && !userId) {
     return <Onboarding />;
@@ -864,20 +874,54 @@ const Index = () => {
                   </p>
                 </div>
 
-                <div className="w-full max-w-[280px] mt-2">
-                  <button
-                    onClick={handleGoogleSignIn}
-                    className="w-full rounded-2xl neu-surface-sm py-3 flex items-center justify-center gap-2.5 font-bold text-sm text-foreground active:neu-pressed transition-all"
-                  >
-                    <GoogleIcon className="w-4 h-4" />
-                    Continue with Google
-                  </button>
-                  {isNativePlatform && (
-                    <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
-                      After signing in, return to this app to continue.
-                    </p>
+                <div className="w-full max-w-[280px] mt-2 flex flex-col gap-3">
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    placeholder="Your email"
+                    className="neu-inset rounded-2xl px-4 py-3 text-sm font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  />
+                  <input
+                    type="password"
+                    autoComplete={authMode === "signin" ? "current-password" : "new-password"}
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    placeholder="Password"
+                    className="neu-inset rounded-2xl px-4 py-3 text-sm font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  />
+                  {authMode === "signup" && (
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={authConfirm}
+                      onChange={(e) => setAuthConfirm(e.target.value)}
+                      placeholder="Confirm password"
+                      className="neu-inset rounded-2xl px-4 py-3 text-sm font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
+                    />
                   )}
+                  <button
+                    onClick={authMode === "signin" ? handleEmailSignIn : handleEmailSignUp}
+                    disabled={authBusy || !authEmail || !authPassword || (authMode === "signup" && !authConfirm)}
+                    className="w-full rounded-2xl bg-amber-400 hover:bg-amber-500 disabled:opacity-60 py-3 font-extrabold text-sm text-foreground active:neu-pressed transition-all"
+                  >
+                    {authMode === "signin" ? "Sign in" : "Create account"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode(authMode === "signin" ? "signup" : "signin");
+                      setAuthPassword(""); setAuthConfirm("");
+                    }}
+                    className="text-xs text-primary text-center font-semibold"
+                  >
+                    {authMode === "signin"
+                      ? "Don't have an account? Sign up"
+                      : "Already have an account? Sign in"}
+                  </button>
                 </div>
+
               </div>
             ) : (
               <ProfilePage userId={userId} tasks={tasks} completed={completed} />
