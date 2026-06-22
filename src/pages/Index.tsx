@@ -1,36 +1,6 @@
 import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft, User, Trophy } from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
-import { Capacitor } from "@capacitor/core";
-
-const DEPLOYED_WEB_URL = "https://dodi-productivelight.lovable.app/";
-
-async function startGoogleSignIn() {
-  if (Capacitor.isNativePlatform()) {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: DEPLOYED_WEB_URL,
-        skipBrowserRedirect: true,
-      },
-    });
-    if (error) {
-      toast.error("Sign-in failed. Please try again.");
-      return;
-    }
-    if (data?.url) {
-      console.log("[Dodi OAuth] Opening native OAuth URL:", data.url);
-      window.open(data.url, "_system");
-      toast("After signing in, return to this app to continue.", { position: "top-center", duration: 3500 });
-    }
-  } else {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) toast.error("Sign-in failed. Please try again.");
-  }
-}
 import { toast } from "sonner";
 
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
@@ -38,7 +8,6 @@ import IntroTour from "@/components/IntroTour";
 import Onboarding from "@/components/Onboarding";
 import ProfilePage from "@/components/ProfilePage";
 import MissionsPage from "@/components/MissionsPage";
-import { GoogleIcon } from "@/components/GoogleIcon";
 import FloatingAddButton from "@/components/FloatingAddButton";
 import {
   onAppOpen,
