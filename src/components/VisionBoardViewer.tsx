@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { X, Plus, Pencil, Trash2 } from "lucide-react";
 import { visionPath, visionSignedUrls } from "@/lib/visionImages";
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Capacitor } from "@capacitor/core";
 
 interface Props {
   userId: string;
