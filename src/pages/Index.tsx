@@ -400,11 +400,9 @@ const Index = () => {
         const next = guestCompletes + 1;
         setGuestCompletes(next);
         try { localStorage.setItem("dodi.guestCompletes", String(next)); } catch {}
-        // Only prompt sign-in on the very first guest completion
         if (next === 1) {
-          window.setTimeout(async () => {
-            toast("Sign in to save your wins ☀️", { position: "top-center", duration: 2500 });
-            await startGoogleSignIn();
+          window.setTimeout(() => {
+            toast("Sign in to save your progress ☀️", { position: "top-center", duration: 2500 });
           }, 1200);
         }
       } else {
