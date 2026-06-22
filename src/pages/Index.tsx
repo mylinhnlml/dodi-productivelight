@@ -400,11 +400,15 @@ const Index = () => {
         const next = guestCompletes + 1;
         setGuestCompletes(next);
         try { localStorage.setItem("dodi.guestCompletes", String(next)); } catch {}
-        if (next === 1) {
-          toast("Sign in to save your first completed task ☀️", { position: "top-center", duration: 2500 });
-          setActive("profile");
-          return;
-        }
+        // Revert the optimistic check so the task isn't marked done while guest
+        setCompleted((prev) => {
+          const n = new Set(prev);
+          n.delete(occKey);
+          return n;
+        });
+        toast("Sign in to save your completed task ☀️", { position: "top-center", duration: 2500 });
+        setActive("profile");
+        return;
       } else {
 
         // Award points server-side
