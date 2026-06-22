@@ -754,10 +754,53 @@ const Index = () => {
     : "Upcoming Tasks";
 
 
-  const handleGoogleSignIn = async () => {
-    await startGoogleSignIn();
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authConfirm, setAuthConfirm] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
+
+  const handleEmailSignIn = async () => {
+    if (authBusy) return;
+    setAuthBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: authEmail.trim(),
+      password: authPassword,
+    });
+    setAuthBusy(false);
+    if (error) {
+      toast.error("Incorrect email or password");
+    } else {
+      setAuthEmail(""); setAuthPassword("");
+    }
   };
-  const isNativePlatform = Capacitor.isNativePlatform();
+
+  const handleEmailSignUp = async () => {
+    if (authBusy) return;
+    if (authPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    if (authPassword !== authConfirm) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    setAuthBusy(true);
+    const { error } = await supabase.auth.signUp({
+      email: authEmail.trim(),
+      password: authPassword,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
+    setAuthBusy(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast("Account created! Please check your email to verify ☀️");
+      setAuthPassword(""); setAuthConfirm("");
+      setAuthMode("signin");
+    }
+  };
+
 
   if (showLoginWall && !userId) {
     return <Onboarding />;
