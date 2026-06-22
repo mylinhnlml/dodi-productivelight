@@ -116,7 +116,64 @@ export default function VisionBoardViewer({
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
   };
 
-  const onPickFile = () => fileRef.current?.click();
+  const onPickFile = async () => {
+    if (images.length >= MAX_IMAGES) return toast.error("Max 6 photos");
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const image = await Camera.getPhoto({
+          quality: 85,
+          allowEditing: false,
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Photos,
+        });
+        if (image.dataUrl) {
+          await uploadFromDataUrl(image.dataUrl);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (/cancel/i.test(msg)) return;
+        toast.error("Couldn't open photo library. Please try again.");
+      }
+      return;
+    }
+    fileRef.current?.click();
+  };
+
+  const dataUrlToBlob = (dataUrl: string): Blob => {
+    const [meta, b64] = dataUrl.split(",");
+    const mime = /data:([^;]+)/.exec(meta)?.[1] || "image/jpeg";
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  };
+
+  const persistUpload = async (blob: Blob) => {
+    const path = `${userId}/${Date.now()}.jpg`;
+    const { error: upErr } = await supabase.storage
+      .from("vision-board")
+      .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+    if (upErr) throw upErr;
+    const next = [...images, path];
+    onImagesChange(next);
+    await supabase.from("profiles").update({ vision_images: next }).eq("user_id", userId);
+    setTimeout(() => {
+      const s = scrollerRef.current;
+      if (s) s.scrollTo({ left: (next.length - 1) * s.clientWidth, behavior: "smooth" });
+    }, 50);
+  };
+
+  const uploadFromDataUrl = async (dataUrl: string) => {
+    setUploading(true);
+    try {
+      const blob = dataUrlToBlob(dataUrl);
+      await persistUpload(blob);
+    } catch {
+      toast.error("Upload failed, please try again ☀️");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -126,18 +183,7 @@ export default function VisionBoardViewer({
     setUploading(true);
     try {
       const blob = await compress(file);
-      const path = `${userId}/${Date.now()}.jpg`;
-      const { error: upErr } = await supabase.storage
-        .from("vision-board")
-        .upload(path, blob, { contentType: "image/jpeg", upsert: false });
-      if (upErr) throw upErr;
-      const next = [...images, path];
-      onImagesChange(next);
-      await supabase.from("profiles").update({ vision_images: next }).eq("user_id", userId);
-      setTimeout(() => {
-        const s = scrollerRef.current;
-        if (s) s.scrollTo({ left: (next.length - 1) * s.clientWidth, behavior: "smooth" });
-      }, 50);
+      await persistUpload(blob);
     } catch {
       toast.error("Upload failed, please try again ☀️");
     } finally { setUploading(false); }
