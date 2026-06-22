@@ -874,20 +874,54 @@ const Index = () => {
                   </p>
                 </div>
 
-                <div className="w-full max-w-[280px] mt-2">
-                  <button
-                    onClick={handleGoogleSignIn}
-                    className="w-full rounded-2xl neu-surface-sm py-3 flex items-center justify-center gap-2.5 font-bold text-sm text-foreground active:neu-pressed transition-all"
-                  >
-                    <GoogleIcon className="w-4 h-4" />
-                    Continue with Google
-                  </button>
-                  {isNativePlatform && (
-                    <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">
-                      After signing in, return to this app to continue.
-                    </p>
+                <div className="w-full max-w-[280px] mt-2 flex flex-col gap-3">
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    placeholder="Your email"
+                    className="neu-inset rounded-2xl px-4 py-3 text-sm font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  />
+                  <input
+                    type="password"
+                    autoComplete={authMode === "signin" ? "current-password" : "new-password"}
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    placeholder="Password"
+                    className="neu-inset rounded-2xl px-4 py-3 text-sm font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  />
+                  {authMode === "signup" && (
+                    <input
+                      type="password"
+                      autoComplete="new-password"
+                      value={authConfirm}
+                      onChange={(e) => setAuthConfirm(e.target.value)}
+                      placeholder="Confirm password"
+                      className="neu-inset rounded-2xl px-4 py-3 text-sm font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
+                    />
                   )}
+                  <button
+                    onClick={authMode === "signin" ? handleEmailSignIn : handleEmailSignUp}
+                    disabled={authBusy || !authEmail || !authPassword || (authMode === "signup" && !authConfirm)}
+                    className="w-full rounded-2xl bg-amber-400 hover:bg-amber-500 disabled:opacity-60 py-3 font-extrabold text-sm text-foreground active:neu-pressed transition-all"
+                  >
+                    {authMode === "signin" ? "Sign in" : "Create account"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode(authMode === "signin" ? "signup" : "signin");
+                      setAuthPassword(""); setAuthConfirm("");
+                    }}
+                    className="text-xs text-primary text-center font-semibold"
+                  >
+                    {authMode === "signin"
+                      ? "Don't have an account? Sign up"
+                      : "Already have an account? Sign in"}
+                  </button>
                 </div>
+
               </div>
             ) : (
               <ProfilePage userId={userId} tasks={tasks} completed={completed} />
