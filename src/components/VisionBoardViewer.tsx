@@ -125,7 +125,7 @@ export default function VisionBoardViewer({
           allowEditing: false,
           resultType: CameraResultType.DataUrl,
           source: CameraSource.Photos,
-          presentationStyle: 'fullScreen',
+          presentationStyle: 'fullscreen',
         });
         if (image.dataUrl) {
           await uploadFromDataUrl(image.dataUrl);
