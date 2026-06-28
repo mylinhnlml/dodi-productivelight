@@ -120,3 +120,10 @@
   60% { transform: scale(1.15); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* iOS native momentum scrolling for all scroll containers */
+.overflow-y-auto,
+.overflow-auto,
+.overflow-y-scroll {
+  -webkit-overflow-scrolling: touch;
+}
