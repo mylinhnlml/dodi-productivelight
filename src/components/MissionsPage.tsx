@@ -95,7 +95,6 @@ export default function MissionsPage({ userId, onUseStickers }: Props) {
           </div>
         </div>
 
-
       {/* Level progress */}
       <div className="rounded-2xl neu-surface-sm p-4 mb-3">
         <div className="flex items-baseline justify-between mb-2">
@@ -289,6 +288,7 @@ export default function MissionsPage({ userId, onUseStickers }: Props) {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
