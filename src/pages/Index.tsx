@@ -756,12 +756,14 @@ const Index = () => {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const displayName = dbProfile?.display_name || profile.name || "Friend";
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
     : active === "add" ? "Plant a new intention"
     : active === "profile" ? "Your soft little world"
     : active === "missions" ? "Earn XP, level up, stay glowing"
-    : `${greeting}, ${profile.name}`;
+    : `${greeting}, ${displayName}`;
+
   const headerTitle =
     active === "calendar" ? "Calendar"
     : active === "add" ? "New Reminder"
