@@ -439,6 +439,19 @@ const Index = () => {
         setActive("profile");
         return;
       } else {
+        // Persist completion to Supabase so it survives reinstall / new device
+        const { error: completionErr } = await supabase
+          .from("task_completions")
+          .upsert(
+            {
+              user_id: userId,
+              task_id: taskId,
+              due_date: dueIso,
+              completed_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,task_id,due_date" }
+          );
+        if (completionErr) console.warn("Completion not saved:", completionErr.message);
 
         // Award points server-side
         const { error: pointsError } = await supabase.functions.invoke("complete-task", {
