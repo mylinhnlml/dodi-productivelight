@@ -197,6 +197,8 @@ const Index = () => {
     avatar: "🌷",
   });
   const [profileTouched, setProfileTouched] = useState(false);
+  const [profileVersion, setProfileVersion] = useState(0);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
