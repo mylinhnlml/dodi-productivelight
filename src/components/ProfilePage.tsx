@@ -15,9 +15,11 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import VisionBoardViewer from "@/components/VisionBoardViewer";
 import { Switch } from "@/components/ui/switch";
 import { getShareMessage } from "@/lib/shareConfig";
+import { visionPath, visionSignedUrls } from "@/lib/visionImages";
+import { Camera as CapCamera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Capacitor } from "@capacitor/core";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -67,15 +69,16 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [editQuoteOpen, setEditQuoteOpen] = useState(false);
-  const [showVision, setShowVision] = useState(false);
+  const [showVisionEdit, setShowVisionEdit] = useState(false);
 
   // Drafts
   const [draftName, setDraftName] = useState("");
   const [draftSlogan, setDraftSlogan] = useState("");
-  const [draftQuote, setDraftQuote] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const visionFileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [visionUploading, setVisionUploading] = useState(false);
+  const [visionSigned, setVisionSigned] = useState<string[]>([]);
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifBusy, setNotifBusy] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
@@ -108,7 +111,6 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
       setProfile(p as Profile);
       setDraftName(p.display_name ?? "");
       setDraftSlogan(p.bio ?? "");
-      setDraftQuote(p.vision_quote ?? "");
 
       const { data: u } = await supabase.auth.getUser();
       setEmail(u.user?.email ?? "");
@@ -238,7 +240,7 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
     if (!profile) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("vision") === "1") {
-      setShowVision(true);
+      setShowVisionEdit(true);
       params.delete("vision");
       const qs = params.toString();
       window.history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : ""));
@@ -290,17 +292,88 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
     toast.success("Slogan updated ✨");
   };
 
-  const saveQuote = async () => {
+  // Load signed URLs whenever vision images change
+  useEffect(() => {
+    const imgs = profile?.vision_images || [];
+    let cancelled = false;
+    if (!imgs.length) { setVisionSigned([]); return; }
+    visionSignedUrls(imgs).then((u) => { if (!cancelled) setVisionSigned(u); });
+    return () => { cancelled = true; };
+  }, [profile?.vision_images]);
+
+  const persistVisionUpload = async (blob: Blob) => {
     if (!userId) return;
-    const next = draftQuote.trim().slice(0, 100) || null;
+    const path = `${userId}/${Date.now()}.jpg`;
+    const { error } = await supabase.storage
+      .from("vision-board")
+      .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+    if (error) throw error;
+    const next = [...(profile?.vision_images || []), path];
+    setProfile((p) => (p ? { ...p, vision_images: next } : p));
+    await supabase.from("profiles").update({ vision_images: next }).eq("user_id", userId);
+  };
+
+  const handlePickVisionImage = async () => {
+    if ((profile?.vision_images || []).length >= 6) return toast.error("Max 6 photos");
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const img = await CapCamera.getPhoto({
+          quality: 85,
+          allowEditing: false,
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Photos,
+          presentationStyle: "fullscreen",
+        });
+        if (!img.dataUrl) return;
+        setVisionUploading(true);
+        try {
+          const [meta, b64] = img.dataUrl.split(",");
+          const mime = /data:([^;]+)/.exec(meta)?.[1] || "image/jpeg";
+          const bin = atob(b64);
+          const arr = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+          await persistVisionUpload(new Blob([arr], { type: mime }));
+        } catch { toast.error("Upload failed"); }
+        finally { setVisionUploading(false); }
+      } catch (e: unknown) {
+        const m = e instanceof Error ? e.message : String(e);
+        if (!/cancel/i.test(m)) toast.error("Couldn't open photos");
+      }
+      return;
+    }
+    visionFileRef.current?.click();
+  };
+
+  const onVisionFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if ((profile?.vision_images || []).length >= 6) return toast.error("Max 6 photos");
+    setVisionUploading(true);
+    try { await persistVisionUpload(file); }
+    catch { toast.error("Upload failed"); }
+    finally { setVisionUploading(false); }
+  };
+
+  const handleDeleteVisionImage = async (path: string) => {
+    if (!userId) return;
+    const prev = profile?.vision_images || [];
+    const next = prev.filter((p) => p !== path);
+    setProfile((p) => (p ? { ...p, vision_images: next } : p));
     const { error } = await supabase
       .from("profiles")
-      .update({ vision_quote: next })
+      .update({ vision_images: next })
       .eq("user_id", userId);
-    if (error) return toast.error("Couldn't save");
-    setProfile((p) => (p ? { ...p, vision_quote: next } : p));
-    setEditQuoteOpen(false);
-    toast.success("Mantra saved ✨");
+    if (error) {
+      toast.error("Couldn't remove photo");
+      setProfile((p) => (p ? { ...p, vision_images: prev } : p));
+      return;
+    }
+    try {
+      const sp = visionPath(path);
+      if (sp) await supabase.storage.from("vision-board").remove([sp]);
+    } catch {}
+    if (next.length === 0) setShowVisionEdit(false);
   };
 
   const doLogout = async () => {
@@ -808,98 +881,116 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
       {/* SECTION 3 — Vision Board */}
       <div className="space-y-3 animate-[fade-in_0.4s_ease-out_both]" style={{ animationDelay: "200ms" }}>
         <p className={AMBER_LABEL}>Vision Board 🌅</p>
-        <div className="grid grid-cols-2 gap-3">
-          {/* Widget 1: Quote */}
-          <button
-            onClick={() => {
-              setDraftQuote(profile.vision_quote ?? "");
-              setEditQuoteOpen(true);
-            }}
-            className="rounded-3xl neu-surface-sm p-4 flex flex-col justify-between h-40 text-left transition-transform active:scale-[0.98]"
-          >
-            <span className="text-[10px] font-bold uppercase tracking-wide text-amber-400">
-              My mantra
-            </span>
-            <p
-              className={`text-sm font-extrabold leading-snug line-clamp-3 ${
-                profile.vision_quote ? "text-foreground" : "text-muted-foreground italic"
-              }`}
-            >
-              {profile.vision_quote || "Tap to add your mantra ✨"}
-            </p>
-            <div className="flex justify-end">
-              <Pencil className="w-3.5 h-3.5 text-amber-400" strokeWidth={2.6} />
-            </div>
-          </button>
 
-          {/* Widget 2: Image Catalogue */}
-          <button
-            onClick={() => setShowVision(true)}
-            className="rounded-3xl overflow-hidden h-40 relative transition-transform active:scale-[0.98]"
+        <input
+          ref={visionFileRef}
+          type="file"
+          accept="image/*"
+          onChange={onVisionFileChange}
+          className="hidden"
+        />
+
+        {visionImages.length === 0 ? (
+          <div className="flex items-center gap-3 px-1">
+            <button
+              onClick={handlePickVisionImage}
+              disabled={visionUploading}
+              className="w-20 h-20 rounded-full border-2 border-dashed border-amber-300 flex items-center justify-center neu-inset"
+              aria-label="Add first vision photo"
+            >
+              <span className="text-2xl text-amber-400">+</span>
+            </button>
+            <div>
+              <p className="text-sm font-extrabold text-foreground">Start your vision</p>
+              <p className="text-xs text-muted-foreground">Add photos of what you're working toward</p>
+            </div>
+          </div>
+        ) : (
+          <div
+            className="flex gap-3 overflow-x-auto pb-2 px-1"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" } as React.CSSProperties}
           >
-            {visionImages.length > 0 ? (
-              <>
-                <img
-                  src={visionImages[0]}
-                  alt="Vision board"
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)",
-                  }}
-                />
-                <div className="absolute bottom-3 left-3 text-[10px] font-bold text-white">
-                  {visionImages.length} {visionImages.length === 1 ? "photo" : "photos"}
+            {visionImages.map((path, i) => (
+              <div key={path} className="flex flex-col items-center gap-1.5 flex-shrink-0">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-amber-300 flex-shrink-0 bg-muted">
+                  {visionSigned[i] && (
+                    <img src={visionSigned[i]} alt="" className="w-full h-full object-cover" />
+                  )}
                 </div>
-                <div className="absolute bottom-3 right-3 text-[10px] font-bold text-white/80">
-                  View all →
-                </div>
-              </>
-            ) : (
-              <div className="neu-inset h-full w-full flex flex-col items-center justify-center gap-1">
-                <span className="text-3xl">🌅</span>
-                <span className="text-xs text-muted-foreground">Add photos</span>
+                <p className="text-[10px] font-semibold text-muted-foreground text-center max-w-[72px] truncate">
+                  &nbsp;
+                </p>
               </div>
-            )}
-          </button>
-        </div>
+            ))}
+            <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+              <button
+                onClick={() => setShowVisionEdit(true)}
+                className="w-20 h-20 rounded-full border-2 border-dashed border-amber-300 flex items-center justify-center neu-surface-sm"
+              >
+                <span className="text-xs font-bold text-amber-500">Edit</span>
+              </button>
+              <p className="text-[10px] font-semibold text-muted-foreground">Edit</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Quote edit bottom sheet */}
-      {editQuoteOpen && (
-        <BottomSheet onClose={() => setEditQuoteOpen(false)} title="My mantra">
-          <textarea
-            value={draftQuote}
-            onChange={(e) => setDraftQuote(e.target.value.slice(0, 100))}
-            placeholder="What keeps you going? ✨"
-            autoFocus
-            className="w-full text-sm font-bold bg-transparent neu-inset rounded-2xl px-4 py-3 min-h-20 outline-none resize-none"
+      {/* Edit bottom sheet */}
+      {showVisionEdit && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setShowVisionEdit(false)}
           />
-          <div className="mt-1 text-right text-[10px] font-bold text-muted-foreground">
-            {draftQuote.length}/100
-          </div>
-          <button
-            onClick={saveQuote}
-            className="mt-3 w-full rounded-2xl py-3 text-sm font-extrabold text-white"
-            style={{ background: "hsl(40, 100%, 55%)" }}
+          <div
+            className="relative w-full max-w-[400px] rounded-t-3xl bg-background p-5 pb-8"
+            style={{ animation: "vbSheetUp 280ms cubic-bezier(0.32,0.72,0,1) both" }}
           >
-            Save
-          </button>
-        </BottomSheet>
-      )}
+            <style>{`@keyframes vbSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
+            <div className="w-10 h-1 rounded-full bg-muted mx-auto mb-4" />
+            <h3 className="font-extrabold text-base text-foreground mb-4">Edit Vision Board</h3>
 
-      <VisionBoardViewer
-        userId={userId}
-        open={showVision}
-        onClose={() => setShowVision(false)}
-        images={visionImages}
-        quote={profile.vision_quote || ""}
-        onImagesChange={(imgs) => setProfile((p) => (p ? { ...p, vision_images: imgs } : p))}
-        onQuoteChange={(q) => setProfile((p) => (p ? { ...p, vision_quote: q } : p))}
-      />
+            <div className="grid grid-cols-3 gap-3">
+              {visionImages.map((path, i) => (
+                <div key={path} className="relative aspect-square">
+                  {visionSigned[i] && (
+                    <img
+                      src={visionSigned[i]}
+                      alt=""
+                      className="w-full h-full object-cover rounded-2xl"
+                    />
+                  )}
+                  <button
+                    onClick={() => handleDeleteVisionImage(path)}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive flex items-center justify-center shadow-md"
+                    aria-label="Remove photo"
+                  >
+                    <span className="text-white text-xs font-bold leading-none">×</span>
+                  </button>
+                </div>
+              ))}
+              {visionImages.length < 6 && (
+                <button
+                  onClick={handlePickVisionImage}
+                  disabled={visionUploading}
+                  className="aspect-square rounded-2xl border-2 border-dashed border-amber-300 flex items-center justify-center neu-inset"
+                >
+                  <span className="text-2xl text-amber-400">
+                    {visionUploading ? "…" : "+"}
+                  </span>
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => setShowVisionEdit(false)}
+              className="w-full mt-5 rounded-2xl py-3 font-extrabold text-sm neu-surface-sm text-muted-foreground"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
