@@ -760,8 +760,8 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set(),
 
   return (
     <section
-      className="flex-1 overflow-y-auto pb-6 px-5 space-y-4"
-      style={{ background: "hsl(45, 60%, 97%)" }}
+      className="flex-1 overflow-y-auto px-5 space-y-4"
+      style={{ background: "hsl(45, 60%, 97%)", paddingBottom: "var(--content-bottom-padding)" }}
     >
       {/* SECTION 1 — Account Center shortcut */}
       <button
