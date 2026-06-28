@@ -50,11 +50,13 @@ type Props = {
   userId: string | null;
   tasks?: TaskLite[];
   completed?: Set<string>;
+  onProfileUpdated?: () => void;
 };
+
 
 const AMBER_LABEL = "text-[10px] font-bold uppercase tracking-widest text-amber-400";
 
-export default function ProfilePage({ userId, tasks = [], completed = new Set() }: Props) {
+export default function ProfilePage({ userId, tasks = [], completed = new Set(), onProfileUpdated }: Props) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState<string>("");
   const [stickers, setStickers] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
