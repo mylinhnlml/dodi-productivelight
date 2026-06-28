@@ -1005,6 +1005,24 @@ function BottomSheet({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  const [kbOffset, setKbOffset] = useState(0);
+
+  useEffect(() => {
+    const vv = (window as any).visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const overlap = window.innerHeight - (vv.height + vv.offsetTop);
+      setKbOffset(overlap > 40 ? overlap : 0);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in"
@@ -1012,10 +1030,13 @@ function BottomSheet({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md mx-3 mb-3 rounded-3xl p-5"
+        className="w-full max-w-md mx-3 rounded-3xl p-5"
         style={{
           background: "hsl(45, 60%, 97%)",
           animation: "slide-in-bottom 280ms cubic-bezier(0.32, 0.72, 0, 1) both",
+          marginBottom: `calc(${kbOffset}px + max(env(safe-area-inset-bottom), 12px))`,
+          paddingBottom: "max(env(safe-area-inset-bottom), 20px)",
+          transition: "margin-bottom 200ms ease-out",
         }}
       >
         <div className="flex items-center justify-between mb-3">
@@ -1028,7 +1049,9 @@ function BottomSheet({
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
-        {children}
+        <div className="overflow-y-auto max-h-[60vh]">
+          {children}
+        </div>
       </div>
       <style>{`
         @keyframes slide-in-bottom {
