@@ -213,7 +213,7 @@ export default function VisionBoardViewer({
 
   return (
     <div
-      className="fixed inset-0 z-[60] bg-black"
+      className="fixed inset-0 z-[100] bg-black"
       style={{
         animation: closing ? "vbFadeOut 180ms ease-in forwards" : "vbFadeIn 300ms ease-out",
       }}

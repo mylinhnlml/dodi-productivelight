@@ -210,16 +210,17 @@ export default function DeepWorkMode({
 
       {/* Exit confirm sheet */}
       {showExitConfirm && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowExitConfirm(false)}
           />
           <div
-            className="relative w-full max-w-[400px] rounded-t-3xl p-6 pb-8"
+            className="relative w-full max-w-[400px] rounded-t-3xl p-6 z-[101]"
             style={{
               background: "#241808",
               animation: "slide-up 0.28s cubic-bezier(0.32,0.72,0,1) both",
+              paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
             }}
           >
             <div
@@ -265,13 +266,14 @@ export default function DeepWorkMode({
 
       {/* Completion celebration sheet */}
       {showCompleteSheet && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" />
           <div
-            className="relative w-full max-w-[400px] rounded-t-3xl p-6 pb-8"
+            className="relative w-full max-w-[400px] rounded-t-3xl p-6 z-[101]"
             style={{
               background: "#241808",
               animation: "slide-up 0.28s cubic-bezier(0.32,0.72,0,1) both",
+              paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
             }}
           >
             <div
