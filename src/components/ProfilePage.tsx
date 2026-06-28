@@ -240,7 +240,7 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
     if (!profile) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("vision") === "1") {
-      setShowVision(true);
+      setShowVisionEdit(true);
       params.delete("vision");
       const qs = params.toString();
       window.history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : ""));
