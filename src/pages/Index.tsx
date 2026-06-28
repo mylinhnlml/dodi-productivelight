@@ -197,6 +197,8 @@ const Index = () => {
     avatar: "🌷",
   });
   const [profileTouched, setProfileTouched] = useState(false);
+  const [profileVersion, setProfileVersion] = useState(0);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const u = data.user;
@@ -240,7 +242,7 @@ const Index = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepWorkRemaining, deepWorkRunning]);
 
-  // Load DB-backed profile (avatar_url + bio) so calendar header reflects edits made in Profile tab
+  // Load DB-backed profile (avatar_url + bio + display_name) so headers reflect edits made in Profile tab
   const [dbProfile, setDbProfile] = useState<{ display_name: string | null; avatar_url: string | null; bio: string | null } | null>(null);
   useEffect(() => {
     if (!userId) { setDbProfile(null); return; }
@@ -250,9 +252,15 @@ const Index = () => {
       .eq("user_id", userId)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setDbProfile(data as typeof dbProfile);
+        if (data) {
+          setDbProfile(data as typeof dbProfile);
+          if (data.display_name) {
+            setProfile((p) => ({ ...p, name: data.display_name as string }));
+          }
+        }
       });
-  }, [userId, active]);
+  }, [userId, active, profileVersion]);
+
 
   // Load sticker catalog + this user's unlocked stickers
   useEffect(() => {
@@ -748,12 +756,14 @@ const Index = () => {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const displayName = dbProfile?.display_name || profile.name || "Friend";
   const headerSubtitle =
     active === "calendar" ? "Your year at a glance"
     : active === "add" ? "Plant a new intention"
     : active === "profile" ? "Your soft little world"
     : active === "missions" ? "Earn XP, level up, stay glowing"
-    : `${greeting}, ${profile.name}`;
+    : `${greeting}, ${displayName}`;
+
   const headerTitle =
     active === "calendar" ? "Calendar"
     : active === "add" ? "New Reminder"
@@ -946,7 +956,7 @@ const Index = () => {
 
               </div>
             ) : (
-              <ProfilePage userId={userId} tasks={tasks} completed={completed} />
+              <ProfilePage userId={userId} tasks={tasks} completed={completed} onProfileUpdated={() => setProfileVersion((v) => v + 1)} />
             )
           ) : active === "missions" ? (
             <MissionsPage userId={userId} onUseStickers={handleUseStickers} />
