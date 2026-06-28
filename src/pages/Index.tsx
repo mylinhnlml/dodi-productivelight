@@ -492,6 +492,15 @@ const Index = () => {
     } else {
       setSettled((s) => s.filter((x) => x.id !== occKey));
       if (userId) {
+        // Remove persisted completion so reinstall reflects un-check
+        const { error: delErr } = await supabase
+          .from("task_completions")
+          .delete()
+          .eq("user_id", userId)
+          .eq("task_id", taskId)
+          .eq("due_date", dueIso);
+        if (delErr) console.warn("Completion not removed:", delErr.message);
+
         const { error: removeError } = await supabase.functions.invoke("remove-task-points", {
           body: { task_id: taskId }
         });
