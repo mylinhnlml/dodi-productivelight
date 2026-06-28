@@ -937,14 +937,17 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
 
       {/* Edit bottom sheet */}
       {showVisionEdit && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() => setShowVisionEdit(false)}
           />
           <div
-            className="relative w-full max-w-[400px] rounded-t-3xl bg-background p-5 pb-8"
-            style={{ animation: "vbSheetUp 280ms cubic-bezier(0.32,0.72,0,1) both" }}
+            className="relative w-full max-w-[400px] rounded-t-3xl bg-background p-5 z-[101]"
+            style={{
+              animation: "vbSheetUp 280ms cubic-bezier(0.32,0.72,0,1) both",
+              paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
+            }}
           >
             <style>{`@keyframes vbSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
             <div className="w-10 h-1 rounded-full bg-muted mx-auto mb-4" />
@@ -1025,17 +1028,17 @@ function BottomSheet({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md mx-3 rounded-3xl p-5"
+        className="relative w-full max-w-md rounded-t-3xl p-5 z-[101]"
         style={{
           background: "hsl(45, 60%, 97%)",
           animation: "slide-in-bottom 280ms cubic-bezier(0.32, 0.72, 0, 1) both",
-          marginBottom: `calc(${kbOffset}px + max(env(safe-area-inset-bottom), 12px))`,
-          paddingBottom: "max(env(safe-area-inset-bottom), 20px)",
+          marginBottom: kbOffset ? `${kbOffset}px` : 0,
+          paddingBottom: `max(env(safe-area-inset-bottom), 24px)`,
           transition: "margin-bottom 200ms ease-out",
         }}
       >

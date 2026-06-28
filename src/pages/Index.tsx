@@ -1344,7 +1344,7 @@ const Index = () => {
               {/* Feedback modal */}
               {showFeedback && (
                 <div
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6"
+                  className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-6"
                   onClick={() => setShowFeedback(false)}
                 >
                   <div
@@ -1686,7 +1686,7 @@ const Index = () => {
 
           {/* Bottom nav — 3 tabs */}
           <nav
-            className={`mx-5 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around ${isNative ? "flex-shrink-0" : "mb-5 mt-2"}`}
+            className={`mx-5 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around z-[50] ${isNative ? "flex-shrink-0" : "mb-5 mt-2"}`}
             style={isNative ? { marginBottom: 'max(env(safe-area-inset-bottom), 16px)' } : undefined}
           >
             {[

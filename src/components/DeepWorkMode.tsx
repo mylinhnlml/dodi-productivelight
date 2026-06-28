@@ -210,7 +210,7 @@ export default function DeepWorkMode({
 
       {/* Exit confirm sheet */}
       {showExitConfirm && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setShowExitConfirm(false)}
@@ -265,7 +265,7 @@ export default function DeepWorkMode({
 
       {/* Completion celebration sheet */}
       {showCompleteSheet && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
           <div className="absolute inset-0 bg-black/50" />
           <div
             className="relative w-full max-w-[400px] rounded-t-3xl p-6 pb-8"
