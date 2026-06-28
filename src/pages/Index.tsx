@@ -308,6 +308,7 @@ const Index = () => {
     const loadTasks = async (uid: string | null) => {
       if (!uid) {
         setTasks(initialTasks);
+        setCompleted(new Set());
         return;
       }
       const { data, error } = await supabase
@@ -326,13 +327,29 @@ const Index = () => {
         title: r.title as string,
         time: (r.time as string) ?? "",
         emoji: (r.emoji as string) ?? "🌸",
-        done: !!r.done,
+        done: false,
         dueDate: r.due_date as string,
         priority: ((r.priority as number) ?? 0) as Priority,
         createdAt: i + 1,
         repeat: (r.repeat as string) ?? undefined,
       }));
       setTasks(rows);
+
+      // Load completions from Supabase so they persist across devices/reinstalls
+      const { data: completionData, error: completionErr } = await supabase
+        .from("task_completions")
+        .select("task_id, due_date")
+        .eq("user_id", uid);
+      if (!mounted) return;
+      if (completionErr) {
+        console.error("Failed to load task completions", completionErr);
+        setCompleted(new Set());
+      } else {
+        const keys = new Set<string>(
+          (completionData ?? []).map((c: any) => `${c.task_id}|${c.due_date}`)
+        );
+        setCompleted(keys);
+      }
     };
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       const uid = session?.user?.id ?? null;
@@ -422,6 +439,19 @@ const Index = () => {
         setActive("profile");
         return;
       } else {
+        // Persist completion to Supabase so it survives reinstall / new device
+        const { error: completionErr } = await supabase
+          .from("task_completions")
+          .upsert(
+            {
+              user_id: userId,
+              task_id: taskId,
+              due_date: dueIso,
+              completed_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,task_id,due_date" }
+          );
+        if (completionErr) console.warn("Completion not saved:", completionErr.message);
 
         // Award points server-side
         const { error: pointsError } = await supabase.functions.invoke("complete-task", {
@@ -462,6 +492,15 @@ const Index = () => {
     } else {
       setSettled((s) => s.filter((x) => x.id !== occKey));
       if (userId) {
+        // Remove persisted completion so reinstall reflects un-check
+        const { error: delErr } = await supabase
+          .from("task_completions")
+          .delete()
+          .eq("user_id", userId)
+          .eq("task_id", taskId)
+          .eq("due_date", dueIso);
+        if (delErr) console.warn("Completion not removed:", delErr.message);
+
         const { error: removeError } = await supabase.functions.invoke("remove-task-points", {
           body: { task_id: taskId }
         });
