@@ -177,7 +177,7 @@ const CalendarView = ({ byDate, onSelectDate }: Props) => {
   }, []);
 
   return (
-    <section ref={scrollRef} className="flex-1 px-5 overflow-y-auto pb-4">
+    <section ref={scrollRef} className="flex-1 px-5 overflow-y-auto" style={{ paddingBottom: "var(--content-bottom-padding)" }}>
       <div className="flex items-baseline justify-between px-1 pb-3">
         <h2 className="text-2xl font-extrabold text-foreground">{year}</h2>
         <span className="text-xs font-semibold text-muted-foreground">Tap a date to view 🌿</span>
