@@ -1727,7 +1727,11 @@ const Index = () => {
 
 
           {/* Floating Add button — persists across screens */}
-          <FloatingAddButton onClick={() => setActive("add")} hidden={active === "add"} />
+          <FloatingAddButton
+            onClick={() => setActive("add")}
+            hidden={active === "add" || (active === "home" && deepWorkMode)}
+            style={isNative ? { bottom: 'calc(env(safe-area-inset-bottom) + 80px)' } : undefined}
+          />
 
           {/* Bottom nav — always visible on main app */}
           <nav 
