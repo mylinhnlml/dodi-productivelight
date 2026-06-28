@@ -886,38 +886,42 @@ const Index = () => {
             </div>
           )}
 
-          {/* Header */}
-          <header className="px-6 pt-4 pb-3 flex items-center justify-between">
+          {!showIntro && (
+            <>
+              {/* Header */}
+              <header className="px-6 pt-4 pb-3 flex items-center justify-between">
 
-            <div>
-              <p className="text-xs text-muted-foreground font-semibold tracking-wide">
-                {headerSubtitle}
-              </p>
-              <h1 className="text-2xl font-extrabold text-foreground mt-0.5 leading-tight">
-                {headerTitle}
-              </h1>
-            </div>
-            {active === "home" && (
-              <button
-                onClick={() => setDeepWorkMode((v) => !v)}
-                className={`flex items-center gap-2 rounded-full px-5 py-2.5 transition-all ${
-                  deepWorkMode
-                    ? "bg-[hsl(30,40%,20%)] ring-2 ring-amber-400/60"
-                    : "neu-surface-sm bg-amber-50 ring-2 ring-primary/40"
-                }`}
-                aria-label="Toggle focus mode"
-              >
-                <span className="text-sm">🧠</span>
-                <span
-                  className={`text-xs font-extrabold uppercase tracking-wide ${
-                    deepWorkMode ? "text-amber-300" : "text-foreground"
-                  }`}
-                >
-                  Focus
-                </span>
-              </button>
-            )}
-          </header>
+                <div>
+                  <p className="text-xs text-muted-foreground font-semibold tracking-wide">
+                    {headerSubtitle}
+                  </p>
+                  <h1 className="text-2xl font-extrabold text-foreground mt-0.5 leading-tight">
+                    {headerTitle}
+                  </h1>
+                </div>
+                {active === "home" && (
+                  <button
+                    onClick={() => setDeepWorkMode((v) => !v)}
+                    className={`flex items-center gap-2 rounded-full px-5 py-2.5 transition-all ${
+                      deepWorkMode
+                        ? "bg-[hsl(30,40%,20%)] ring-2 ring-amber-400/60"
+                        : "neu-surface-sm bg-amber-50 ring-2 ring-primary/40"
+                    }`}
+                    aria-label="Toggle focus mode"
+                  >
+                    <span className="text-sm">🧠</span>
+                    <span
+                      className={`text-xs font-extrabold uppercase tracking-wide ${
+                        deepWorkMode ? "text-amber-300" : "text-foreground"
+                      }`}
+                    >
+                      Focus
+                    </span>
+                  </button>
+                )}
+              </header>
+            </>
+          )}
 
           {active === "profile" ? (
             userId === null ? (
@@ -1727,41 +1731,45 @@ const Index = () => {
 
 
           {/* Floating Add button — persists across screens */}
-          <FloatingAddButton
-            onClick={() => setActive("add")}
-            hidden={active === "add" || (active === "home" && deepWorkMode)}
-            style={isNative ? { bottom: 'calc(env(safe-area-inset-bottom) + 80px)' } : undefined}
-          />
+          {!showIntro && userId && (
+            <FloatingAddButton
+              onClick={() => setActive("add")}
+              hidden={active === "add" || (active === "home" && deepWorkMode)}
+              style={isNative ? { bottom: 'calc(env(safe-area-inset-bottom) + 80px)' } : undefined}
+            />
+          )}
 
           {/* Bottom nav — 3 tabs */}
-          <nav
-            className={`mx-5 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around z-[50] ${isNative ? "flex-shrink-0" : "mb-5 mt-2"}`}
-            style={isNative ? { marginBottom: 'max(env(safe-area-inset-bottom), 16px)' } : undefined}
-          >
-            {[
-              { id: "home", icon: Bell, label: "Reminders" },
-              { id: "calendar", icon: Calendar, label: "Calendar" },
-              { id: "missions", icon: Trophy, label: "Missions" },
-              { id: "profile", icon: User, label: "Profile" },
-            ].map(({ id, icon: Icon }) => {
-              const isActive = active === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => setActive(id)}
-                  aria-label={id}
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                    isActive ? "neu-pressed" : ""
-                  }`}
-                >
-                  <Icon
-                    className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`}
-                    strokeWidth={2.2}
-                  />
-                </button>
-              );
-            })}
-          </nav>
+          {!showIntro && (userId || active === "profile") && (
+            <nav
+              className={`mx-5 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around z-[50] ${isNative ? "flex-shrink-0" : "mb-5 mt-2"}`}
+              style={isNative ? { marginBottom: 'max(env(safe-area-inset-bottom), 16px)' } : undefined}
+            >
+              {[
+                { id: "home", icon: Bell, label: "Reminders" },
+                { id: "calendar", icon: Calendar, label: "Calendar" },
+                { id: "missions", icon: Trophy, label: "Missions" },
+                { id: "profile", icon: User, label: "Profile" },
+              ].map(({ id, icon: Icon }) => {
+                const isActive = active === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActive(id)}
+                    aria-label={id}
+                    className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                      isActive ? "neu-pressed" : ""
+                    }`}
+                  >
+                    <Icon
+                      className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`}
+                      strokeWidth={2.2}
+                    />
+                  </button>
+                );
+              })}
+            </nav>
+          )}
         </div>
       </div>
     </main>
