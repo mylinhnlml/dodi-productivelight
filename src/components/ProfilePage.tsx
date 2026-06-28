@@ -500,8 +500,8 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set(),
   if (view === "account") {
     return (
       <section
-        className="flex-1 overflow-y-auto pb-6"
-        style={{ background: "hsl(45, 60%, 97%)" }}
+        className="flex-1 overflow-y-auto"
+        style={{ background: "hsl(45, 60%, 97%)", paddingBottom: "var(--content-bottom-padding)" }}
       >
         <div className="px-5 pt-2 flex items-center">
           <button
