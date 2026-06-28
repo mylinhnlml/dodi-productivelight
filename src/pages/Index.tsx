@@ -1078,7 +1078,10 @@ const Index = () => {
               )}
             </div>
           ) : active === "add" ? (
-            <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-4">
+            <section
+              className="flex-1 px-6 overflow-y-auto space-y-4"
+              style={{ paddingBottom: "max(calc(env(safe-area-inset-bottom) + 120px), 120px)" }}
+            >
               {/* Reminder name with chosen icon box */}
               <div>
                 <label className="text-xs font-bold text-muted-foreground px-1">Reminder name</label>
