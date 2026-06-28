@@ -15,9 +15,11 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import VisionBoardViewer from "@/components/VisionBoardViewer";
 import { Switch } from "@/components/ui/switch";
 import { getShareMessage } from "@/lib/shareConfig";
+import { visionPath, visionSignedUrls } from "@/lib/visionImages";
+import { Camera as CapCamera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { Capacitor } from "@capacitor/core";
 
 function urlBase64ToUint8Array(base64String: string) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
