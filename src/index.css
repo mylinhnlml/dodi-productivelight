@@ -4,6 +4,8 @@
 
 @layer base {
   :root {
+    --nav-height: 80px;
+    --content-bottom-padding: calc(var(--nav-height) + env(safe-area-inset-bottom) + 16px);
     /* Clean white + warm mustard yellow palette */
     --background: 0 0% 100%;
     --foreground: 45 25% 15%;

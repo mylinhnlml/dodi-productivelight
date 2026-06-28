@@ -84,7 +84,7 @@ export default function MissionsPage({ userId, onUseStickers }: Props) {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden" style={{ paddingTop: "8px" }}>
-      <div className="flex-1 overflow-y-auto px-4 pt-2 pb-32 relative">
+      <div className="flex-1 overflow-y-auto px-4 pt-2 relative" style={{ paddingBottom: "var(--content-bottom-padding)" }}>
         {/* XP pill */}
         <div className="flex items-center justify-end mb-3">
           <div
