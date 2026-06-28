@@ -83,16 +83,18 @@ export default function MissionsPage({ userId, onUseStickers }: Props) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-5 pb-32 relative">
-      {/* XP pill */}
-      <div className="flex items-center justify-end -mt-2 mb-3">
-        <div
-          className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1"
-          style={{ background: COLOR_STYLES.amber.bg, color: COLOR_STYLES.amber.text }}
-        >
-          <Sparkles className="w-3.5 h-3.5" /> {totalXp} XP
+    <div className="flex-1 flex flex-col overflow-hidden" style={{ paddingTop: "8px" }}>
+      <div className="flex-1 overflow-y-auto px-4 pt-2 pb-32 relative">
+        {/* XP pill */}
+        <div className="flex items-center justify-end mb-3">
+          <div
+            className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1"
+            style={{ background: COLOR_STYLES.amber.bg, color: COLOR_STYLES.amber.text }}
+          >
+            <Sparkles className="w-3.5 h-3.5" /> {totalXp} XP
+          </div>
         </div>
-      </div>
+
 
       {/* Level progress */}
       <div className="rounded-2xl neu-surface-sm p-4 mb-3">
