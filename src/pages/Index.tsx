@@ -956,7 +956,7 @@ const Index = () => {
 
               </div>
             ) : (
-              <ProfilePage userId={userId} tasks={tasks} completed={completed} />
+              <ProfilePage userId={userId} tasks={tasks} completed={completed} onProfileUpdated={() => setProfileVersion((v) => v + 1)} />
             )
           ) : active === "missions" ? (
             <MissionsPage userId={userId} onUseStickers={handleUseStickers} />
