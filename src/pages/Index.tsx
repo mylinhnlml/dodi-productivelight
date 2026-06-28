@@ -817,11 +817,13 @@ const Index = () => {
   return (
     <>
     {showIntro && <Onboarding onComplete={dismissIntro} />}
-    <main className={isNative ? "min-h-screen w-full" : "min-h-screen flex items-center justify-center p-4 md:p-8"}>
-      <div className={isNative ? "relative w-full min-h-screen" : "relative w-full max-w-[400px] aspect-[9/19] rounded-[3rem] neu-surface p-3"}>
+    <main
+      className={isNative ? "flex flex-col overflow-hidden" : "min-h-screen flex items-center justify-center p-4 md:p-8"}
+      style={isNative ? { height: '100dvh', paddingTop: 'env(safe-area-inset-top)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' } : undefined}
+    >
+      <div className={isNative ? "relative w-full flex flex-col flex-1 overflow-hidden" : "relative w-full max-w-[400px] aspect-[9/19] rounded-[3rem] neu-surface p-3"}>
         <div
-          className={isNative ? "min-h-screen flex flex-col" : "w-full h-full rounded-[2.5rem] neu-inset overflow-hidden flex flex-col"}
-          style={isNative ? { paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)", paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)" } : undefined}
+          className={isNative ? "flex flex-col flex-1 overflow-hidden" : "w-full h-full rounded-[2.5rem] neu-inset overflow-hidden flex flex-col"}
         >
           {/* Status bar (web mockup only) */}
           {!isNative && (
