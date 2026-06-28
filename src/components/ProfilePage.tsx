@@ -279,7 +279,9 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set(),
     setProfile((p) => (p ? { ...p, display_name: next } : p));
     setEditNameOpen(false);
     toast.success("Name updated ✨");
+    onProfileUpdated?.();
   };
+
 
   const saveSlogan = async () => {
     if (!userId) return;
