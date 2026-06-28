@@ -1669,10 +1669,17 @@ const Index = () => {
 
 
           {/* Floating Add button — persists across screens */}
-          <FloatingAddButton onClick={() => setActive("add")} hidden={active === "add" || (active === "home" && deepWorkMode)} />
+          <FloatingAddButton
+            onClick={() => setActive("add")}
+            hidden={active === "add" || (active === "home" && deepWorkMode)}
+            style={isNative ? { bottom: 'calc(env(safe-area-inset-bottom) + 80px)' } : undefined}
+          />
 
           {/* Bottom nav — 3 tabs */}
-          <nav className="mx-5 mb-5 mt-2 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around">
+          <nav
+            className={`mx-5 rounded-3xl neu-surface-sm px-5 py-2.5 flex items-center justify-around ${isNative ? "flex-shrink-0" : "mb-5 mt-2"}`}
+            style={isNative ? { marginBottom: 'max(env(safe-area-inset-bottom), 16px)' } : undefined}
+          >
             {[
               { id: "home", icon: Bell, label: "Reminders" },
               { id: "calendar", icon: Calendar, label: "Calendar" },
