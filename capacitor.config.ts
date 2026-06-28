@@ -14,6 +14,7 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: 'automatic',
+    keyboardDisplayRequiresUserAction: false,
   },
 };
 
