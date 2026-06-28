@@ -991,7 +991,7 @@ const Index = () => {
                 </button>
               </div>
               {selectedDate ? (
-                <section className="flex-1 px-5 overflow-y-auto pb-4">
+                <section className="flex-1 px-5 overflow-y-auto" style={{ paddingBottom: "var(--content-bottom-padding)" }}>
                   <div className="flex items-center justify-between px-1 pb-3">
                     <button
                       onClick={() => setSelectedDate(null)}
