@@ -1537,7 +1537,7 @@ const Index = () => {
           </div>
 
           {/* Task list */}
-          <section className="flex-1 px-6 overflow-y-auto pb-4 space-y-3">
+          <section className="flex-1 px-6 overflow-y-auto space-y-3" style={{ paddingBottom: "var(--content-bottom-padding)" }}>
             
 
             {(() => {
