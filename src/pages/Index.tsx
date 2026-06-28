@@ -1,7 +1,11 @@
 import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft, User, Trophy } from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const isNative = Capacitor.isNativePlatform();
+
 
 import CalendarView, { type CalendarTaskInfo } from "@/components/CalendarView";
 import IntroTour from "@/components/IntroTour";
@@ -813,21 +817,27 @@ const Index = () => {
   return (
     <>
     {showIntro && <Onboarding onComplete={dismissIntro} />}
-    <main className="min-h-screen flex items-center justify-center p-4 md:p-8">
-      <div className="relative w-full max-w-[400px] aspect-[9/19] rounded-[3rem] neu-surface p-3">
-        <div className="w-full h-full rounded-[2.5rem] neu-inset overflow-hidden flex flex-col">
-          {/* Status bar */}
-          <div className="flex items-center justify-between px-8 pt-5 pb-2 text-xs font-bold text-foreground/70">
-            <span>9:41</span>
-            <div className="flex gap-1.5 items-center">
-              <span className="w-1 h-1 rounded-full bg-foreground/60" />
-              <span className="w-1 h-1 rounded-full bg-foreground/60" />
-              <span className="w-1 h-1 rounded-full bg-foreground/60" />
+    <main className={isNative ? "min-h-screen w-full" : "min-h-screen flex items-center justify-center p-4 md:p-8"}>
+      <div className={isNative ? "relative w-full min-h-screen" : "relative w-full max-w-[400px] aspect-[9/19] rounded-[3rem] neu-surface p-3"}>
+        <div
+          className={isNative ? "w-full min-h-screen flex flex-col" : "w-full h-full rounded-[2.5rem] neu-inset overflow-hidden flex flex-col"}
+          style={isNative ? { paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" } : undefined}
+        >
+          {/* Status bar (web mockup only) */}
+          {!isNative && (
+            <div className="flex items-center justify-between px-8 pt-5 pb-2 text-xs font-bold text-foreground/70">
+              <span>9:41</span>
+              <div className="flex gap-1.5 items-center">
+                <span className="w-1 h-1 rounded-full bg-foreground/60" />
+                <span className="w-1 h-1 rounded-full bg-foreground/60" />
+                <span className="w-1 h-1 rounded-full bg-foreground/60" />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Header */}
           <header className="px-6 pt-4 pb-3 flex items-center justify-between">
+
             <div>
               <p className="text-xs text-muted-foreground font-semibold tracking-wide">
                 {headerSubtitle}
