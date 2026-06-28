@@ -292,17 +292,88 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
     toast.success("Slogan updated ✨");
   };
 
-  const saveQuote = async () => {
+  // Load signed URLs whenever vision images change
+  useEffect(() => {
+    const imgs = profile?.vision_images || [];
+    let cancelled = false;
+    if (!imgs.length) { setVisionSigned([]); return; }
+    visionSignedUrls(imgs).then((u) => { if (!cancelled) setVisionSigned(u); });
+    return () => { cancelled = true; };
+  }, [profile?.vision_images]);
+
+  const persistVisionUpload = async (blob: Blob) => {
     if (!userId) return;
-    const next = draftQuote.trim().slice(0, 100) || null;
+    const path = `${userId}/${Date.now()}.jpg`;
+    const { error } = await supabase.storage
+      .from("vision-board")
+      .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+    if (error) throw error;
+    const next = [...(profile?.vision_images || []), path];
+    setProfile((p) => (p ? { ...p, vision_images: next } : p));
+    await supabase.from("profiles").update({ vision_images: next }).eq("user_id", userId);
+  };
+
+  const handlePickVisionImage = async () => {
+    if ((profile?.vision_images || []).length >= 6) return toast.error("Max 6 photos");
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const img = await CapCamera.getPhoto({
+          quality: 85,
+          allowEditing: false,
+          resultType: CameraResultType.DataUrl,
+          source: CameraSource.Photos,
+          presentationStyle: "fullscreen",
+        });
+        if (!img.dataUrl) return;
+        setVisionUploading(true);
+        try {
+          const [meta, b64] = img.dataUrl.split(",");
+          const mime = /data:([^;]+)/.exec(meta)?.[1] || "image/jpeg";
+          const bin = atob(b64);
+          const arr = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+          await persistVisionUpload(new Blob([arr], { type: mime }));
+        } catch { toast.error("Upload failed"); }
+        finally { setVisionUploading(false); }
+      } catch (e: unknown) {
+        const m = e instanceof Error ? e.message : String(e);
+        if (!/cancel/i.test(m)) toast.error("Couldn't open photos");
+      }
+      return;
+    }
+    visionFileRef.current?.click();
+  };
+
+  const onVisionFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if ((profile?.vision_images || []).length >= 6) return toast.error("Max 6 photos");
+    setVisionUploading(true);
+    try { await persistVisionUpload(file); }
+    catch { toast.error("Upload failed"); }
+    finally { setVisionUploading(false); }
+  };
+
+  const handleDeleteVisionImage = async (path: string) => {
+    if (!userId) return;
+    const prev = profile?.vision_images || [];
+    const next = prev.filter((p) => p !== path);
+    setProfile((p) => (p ? { ...p, vision_images: next } : p));
     const { error } = await supabase
       .from("profiles")
-      .update({ vision_quote: next })
+      .update({ vision_images: next })
       .eq("user_id", userId);
-    if (error) return toast.error("Couldn't save");
-    setProfile((p) => (p ? { ...p, vision_quote: next } : p));
-    setEditQuoteOpen(false);
-    toast.success("Mantra saved ✨");
+    if (error) {
+      toast.error("Couldn't remove photo");
+      setProfile((p) => (p ? { ...p, vision_images: prev } : p));
+      return;
+    }
+    try {
+      const sp = visionPath(path);
+      if (sp) await supabase.storage.from("vision-board").remove([sp]);
+    } catch {}
+    if (next.length === 0) setShowVisionEdit(false);
   };
 
   const doLogout = async () => {
