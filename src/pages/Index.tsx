@@ -242,7 +242,7 @@ const Index = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepWorkRemaining, deepWorkRunning]);
 
-  // Load DB-backed profile (avatar_url + bio) so calendar header reflects edits made in Profile tab
+  // Load DB-backed profile (avatar_url + bio + display_name) so headers reflect edits made in Profile tab
   const [dbProfile, setDbProfile] = useState<{ display_name: string | null; avatar_url: string | null; bio: string | null } | null>(null);
   useEffect(() => {
     if (!userId) { setDbProfile(null); return; }
@@ -252,9 +252,15 @@ const Index = () => {
       .eq("user_id", userId)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setDbProfile(data as typeof dbProfile);
+        if (data) {
+          setDbProfile(data as typeof dbProfile);
+          if (data.display_name) {
+            setProfile((p) => ({ ...p, name: data.display_name as string }));
+          }
+        }
       });
-  }, [userId, active]);
+  }, [userId, active, profileVersion]);
+
 
   // Load sticker catalog + this user's unlocked stickers
   useEffect(() => {
