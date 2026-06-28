@@ -872,7 +872,10 @@ const Index = () => {
 
           {active === "profile" ? (
             userId === null ? (
-              <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 gap-5">
+              <div
+                className="flex-1 flex flex-col items-center justify-center px-6 py-8 gap-5 overflow-y-auto"
+                style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
+              >
                 <div
                   className="text-[56px] leading-none"
                   style={{ animation: "float-gentle 3s ease-in-out infinite" }}
@@ -896,6 +899,7 @@ const Index = () => {
                     autoComplete="email"
                     value={authEmail}
                     onChange={(e) => setAuthEmail(e.target.value)}
+                    onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
                     placeholder="Your email"
                     className="neu-inset rounded-2xl px-4 py-3 text-sm font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
                   />
@@ -904,6 +908,7 @@ const Index = () => {
                     autoComplete={authMode === "signin" ? "current-password" : "new-password"}
                     value={authPassword}
                     onChange={(e) => setAuthPassword(e.target.value)}
+                    onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
                     placeholder="Password"
                     className="neu-inset rounded-2xl px-4 py-3 text-sm font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
                   />
@@ -913,6 +918,7 @@ const Index = () => {
                       autoComplete="new-password"
                       value={authConfirm}
                       onChange={(e) => setAuthConfirm(e.target.value)}
+                      onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 300)}
                       placeholder="Confirm password"
                       className="neu-inset rounded-2xl px-4 py-3 text-sm font-bold bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
                     />
