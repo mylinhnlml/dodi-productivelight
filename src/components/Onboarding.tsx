@@ -117,7 +117,12 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-hidden"
+      className="fixed inset-0 z-[200] flex flex-col"
+      style={{
+        background: 'linear-gradient(160deg, #FFF8EE 0%, #FFF3DC 100%)',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
