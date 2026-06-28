@@ -69,15 +69,16 @@ export default function ProfilePage({ userId, tasks = [], completed = new Set() 
   const [logoutOpen, setLogoutOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [editQuoteOpen, setEditQuoteOpen] = useState(false);
-  const [showVision, setShowVision] = useState(false);
+  const [showVisionEdit, setShowVisionEdit] = useState(false);
 
   // Drafts
   const [draftName, setDraftName] = useState("");
   const [draftSlogan, setDraftSlogan] = useState("");
-  const [draftQuote, setDraftQuote] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const visionFileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [visionUploading, setVisionUploading] = useState(false);
+  const [visionSigned, setVisionSigned] = useState<string[]>([]);
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifBusy, setNotifBusy] = useState(false);
   const [referralCode, setReferralCode] = useState<string | null>(null);
