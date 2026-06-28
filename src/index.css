@@ -127,3 +127,20 @@
 .overflow-y-scroll {
   -webkit-overflow-scrolling: touch;
 }
+
+/* iOS viewport / scaling guards */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+input, textarea, select {
+  font-size: 16px;
+}
