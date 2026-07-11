@@ -24,7 +24,6 @@ import {
 import { MISSIONS_BY_ID } from "@/lib/missions";
 import { useSwipeToDelete } from "@/hooks/useSwipeToDelete";
 import DeepWorkMode from "@/components/DeepWorkMode";
-import { EmojiRain, type Rainfall } from "@/components/EmojiRain";
 
 const POINTS_PER_TASK = 5;
 
@@ -116,7 +115,6 @@ const Index = () => {
       }))
   );
   const [drops, setDrops] = useState<Drop[]>([]);
-  const [rainfalls, setRainfalls] = useState<Rainfall[]>([]);
   const dropKey = useRef(0);
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
@@ -413,26 +411,11 @@ const Index = () => {
     if (total > 0) onProgressUpdate(userId, { totalTasks: total, completedTasks: done });
   }, [userId, tasks, completed]);
 
-  const toggle = async (taskId: string, dueIso: string, startX?: number) => {
+  const toggle = async (taskId: string, dueIso: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
     const occKey = `${taskId}|${dueIso}`;
     const becomingDone = !completed.has(occKey);
-
-    if (becomingDone) {
-      const sx = startX ?? (typeof window !== "undefined" ? window.innerWidth / 2 : 180);
-      const rf: Rainfall = {
-        id: `rf-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        emoji: task.emoji,
-        startX: sx,
-        createdAt: Date.now(),
-      };
-      setRainfalls((prev) => [...prev, rf].slice(-5));
-      window.setTimeout(() => {
-        setRainfalls((prev) => prev.filter((r) => r.id !== rf.id));
-      }, 1000);
-    }
-
 
     setCompleted((prev) => {
       const next = new Set(prev);
@@ -883,9 +866,6 @@ const Index = () => {
   return (
     <>
     {showIntro && <Onboarding onComplete={dismissIntro} />}
-    {rainfalls.map((rf) => (
-      <EmojiRain key={rf.id} rainfall={rf} />
-    ))}
     <main
       className={isNative ? "w-full max-w-full overflow-x-hidden flex flex-col overflow-hidden" : "min-h-screen flex items-center justify-center p-4 md:p-8"}
       style={isNative ? { height: '100dvh', paddingTop: 'env(safe-area-inset-top)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' } : undefined}
@@ -1088,7 +1068,7 @@ const Index = () => {
                             <article
                               ref={swipeRef(task.occKey)}
                               onPointerDown={(e) => swipePointerDown(e, task.occKey)}
-                              onClick={(e) => { if (getOffset(task.occKey) !== 0) return; const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); toggle(task.id, task.dueDate, r.left + r.width / 2); }}
+                              onClick={() => { if (getOffset(task.occKey) !== 0) return; toggle(task.id, task.dueDate); }}
                               style={{
                                 animationDelay: `${i * 60}ms`,
                                 transform: `translateX(${offset}px)`,
@@ -1560,11 +1540,40 @@ const Index = () => {
                 </div>
               </div>
 
-              {settled.map((s) => null)}
-              {drops.map((d) => null)}
+              {settled.map((s) => (
+                <span
+                  key={`s-${s.id}`}
+                  onPointerDown={(e) => startDrag(e, s.id)}
+                  className={`absolute text-3xl select-none animate-settle-pop touch-none ${
+                    draggingId === s.id ? "cursor-grabbing z-20 scale-110" : "cursor-grab"
+                  }`}
+                  style={{
+                    left: `${s.x}%`,
+                    top: `${s.y}%`,
+                    ["--settle-rot" as any]: `${s.rot}deg`,
+                    filter: "drop-shadow(2px 2px 3px hsl(var(--neu-dark) / 0.4))",
+                    transition: draggingId === s.id ? "none" : "left 0.2s, top 0.2s",
+                  }}
+                >
+                  {s.emoji}
+                </span>
+              ))}
+
+              {drops.map((d) => (
+                <span
+                  key={d.key}
+                  className="absolute -top-6 text-3xl select-none pointer-events-none animate-emoji-rain"
+                  style={{
+                    left: `${d.x}%`,
+                    animationDelay: `${d.delay}s`,
+                    ["--rain-rot" as any]: `${d.rot}deg`,
+                  }}
+                >
+                  {d.emoji}
+                </span>
+              ))}
             </div>
           </div>
-
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto space-y-3" style={{ paddingBottom: "var(--content-bottom-padding)" }}>
@@ -1649,7 +1658,7 @@ const Index = () => {
                 <article
                   ref={swipeRef(task.occKey)}
                   onPointerDown={(e) => swipePointerDown(e, task.occKey)}
-                  onClick={(e) => { if (getOffset(task.occKey) !== 0) return; const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); toggle(task.id, task.dueDate, r.left + r.width / 2); }}
+                  onClick={() => { if (getOffset(task.occKey) !== 0) return; toggle(task.id, task.dueDate); }}
                   style={{
                     animationDelay: `${i * 60}ms`,
                     transform: `translateX(${offset}px)`,
