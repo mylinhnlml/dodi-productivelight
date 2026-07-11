@@ -413,11 +413,26 @@ const Index = () => {
     if (total > 0) onProgressUpdate(userId, { totalTasks: total, completedTasks: done });
   }, [userId, tasks, completed]);
 
-  const toggle = async (taskId: string, dueIso: string) => {
+  const toggle = async (taskId: string, dueIso: string, startX?: number) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
     const occKey = `${taskId}|${dueIso}`;
     const becomingDone = !completed.has(occKey);
+
+    if (becomingDone) {
+      const sx = startX ?? (typeof window !== "undefined" ? window.innerWidth / 2 : 180);
+      const rf: Rainfall = {
+        id: `rf-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        emoji: task.emoji,
+        startX: sx,
+        createdAt: Date.now(),
+      };
+      setRainfalls((prev) => [...prev, rf].slice(-5));
+      window.setTimeout(() => {
+        setRainfalls((prev) => prev.filter((r) => r.id !== rf.id));
+      }, 1000);
+    }
+
 
     setCompleted((prev) => {
       const next = new Set(prev);
