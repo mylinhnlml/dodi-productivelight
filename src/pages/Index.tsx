@@ -24,6 +24,7 @@ import {
 import { MISSIONS_BY_ID } from "@/lib/missions";
 import { useSwipeToDelete } from "@/hooks/useSwipeToDelete";
 import DeepWorkMode from "@/components/DeepWorkMode";
+import { EmojiRain, type Rainfall } from "@/components/EmojiRain";
 
 const POINTS_PER_TASK = 5;
 
