@@ -122,6 +122,16 @@
   60% { transform: scale(1.15); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
+@keyframes emoji-fall {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(100vh) translateX(var(--drift, 0px)) rotate(var(--spin, 0deg)); opacity: 0; }
+}
+@keyframes hero-fall {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); }
+  50% { transform: translateY(45vh) translateX(6px) rotate(8deg); }
+  100% { transform: translateY(calc(100vh - 100px)) translateX(0) rotate(0deg); }
+}
 
 /* iOS native momentum scrolling for all scroll containers */
 .overflow-y-auto,
