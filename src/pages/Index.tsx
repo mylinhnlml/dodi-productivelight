@@ -438,35 +438,9 @@ const Index = () => {
         toast("Sign in to save your completed task ☀️", { position: "top-center", duration: 2500 });
         setActive("profile");
         return;
-      } else {
-        // Persist completion to Supabase so it survives reinstall / new device
-        const { error: completionErr } = await supabase
-          .from("task_completions")
-          .upsert(
-            {
-              user_id: userId,
-              task_id: taskId,
-              due_date: dueIso,
-              completed_at: new Date().toISOString(),
-            },
-            { onConflict: "user_id,task_id,due_date" }
-          );
-        if (completionErr) console.warn("Completion not saved:", completionErr.message);
-
-        // Award points server-side
-        const { error: pointsError } = await supabase.functions.invoke("complete-task", {
-          body: { task_id: taskId }
-        });
-        if (pointsError) console.warn("Points not awarded:", pointsError.message);
-        // Mission triggers
-        const hasScheduledTime = !!task.time;
-        let isOnTime = false;
-        if (hasScheduledTime) {
-          const scheduled = new Date(`${dueIso} ${task.time}`);
-          isOnTime = Math.abs(Date.now() - scheduled.getTime()) <= 15 * 60 * 1000;
-        }
-        onReminderCompleted(userId, { completedAt: new Date(), isOnTime, hasScheduledTime });
       }
+
+      // Kick off the emoji rain IMMEDIATELY (before any awaits) so there's no perceived delay
       const newDrops: Drop[] = Array.from({ length: 7 }).map(() => ({
         key: `d${dropKey.current++}`,
         emoji: task.emoji,
@@ -489,6 +463,35 @@ const Index = () => {
       window.setTimeout(() => {
         setDrops((d) => d.filter((dd) => !newDrops.some((n) => n.key === dd.key)));
       }, 900);
+
+      // Persist completion + points in the background (does not block the animation)
+      (async () => {
+        const { error: completionErr } = await supabase
+          .from("task_completions")
+          .upsert(
+            {
+              user_id: userId,
+              task_id: taskId,
+              due_date: dueIso,
+              completed_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,task_id,due_date" }
+          );
+        if (completionErr) console.warn("Completion not saved:", completionErr.message);
+
+        const { error: pointsError } = await supabase.functions.invoke("complete-task", {
+          body: { task_id: taskId }
+        });
+        if (pointsError) console.warn("Points not awarded:", pointsError.message);
+
+        const hasScheduledTime = !!task.time;
+        let isOnTime = false;
+        if (hasScheduledTime) {
+          const scheduled = new Date(`${dueIso} ${task.time}`);
+          isOnTime = Math.abs(Date.now() - scheduled.getTime()) <= 15 * 60 * 1000;
+        }
+        onReminderCompleted(userId, { completedAt: new Date(), isOnTime, hasScheduledTime });
+      })();
     } else {
       setSettled((s) => s.filter((x) => x.id !== occKey));
       if (userId) {
