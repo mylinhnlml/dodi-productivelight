@@ -116,6 +116,7 @@ const Index = () => {
       }))
   );
   const [drops, setDrops] = useState<Drop[]>([]);
+  const [rainfalls, setRainfalls] = useState<Rainfall[]>([]);
   const dropKey = useRef(0);
   const createdSeq = useRef(initialTasks.length + 1);
   const progressRef = useRef<HTMLDivElement>(null);
