@@ -1032,17 +1032,17 @@ function BottomSheet({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[200] flex items-end justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md rounded-t-3xl p-5 z-[101]"
+        className="relative w-full max-w-md rounded-t-3xl p-5 z-[201]"
         style={{
           background: "hsl(45, 60%, 97%)",
           animation: "slide-in-bottom 280ms cubic-bezier(0.32, 0.72, 0, 1) both",
           marginBottom: kbOffset ? `${kbOffset}px` : 0,
-          paddingBottom: `max(env(safe-area-inset-bottom), 24px)`,
+          paddingBottom: `calc(env(safe-area-inset-bottom) + 90px)`,
           transition: "margin-bottom 200ms ease-out",
         }}
       >
