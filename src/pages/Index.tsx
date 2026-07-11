@@ -653,6 +653,7 @@ const Index = () => {
       {
         position: "top-center",
         className: "dodi-center-toast",
+        duration: 1500,
       }
     );
   };
