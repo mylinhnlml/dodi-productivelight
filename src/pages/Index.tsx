@@ -471,7 +471,7 @@ const Index = () => {
         key: `d${dropKey.current++}`,
         emoji: task.emoji,
         x: rand(4, 86),
-        delay: rand(0, 0.45),
+        delay: 0,
         rot: rand(-40, 40),
       }));
       setDrops((d) => [...d, ...newDrops]);
@@ -485,10 +485,10 @@ const Index = () => {
       };
       window.setTimeout(() => {
         setSettled((s) => [...s.filter((x) => x.id !== occKey), newSettled].slice(-8));
-      }, 1000);
+      }, 900);
       window.setTimeout(() => {
         setDrops((d) => d.filter((dd) => !newDrops.some((n) => n.key === dd.key)));
-      }, 1700);
+      }, 900);
     } else {
       setSettled((s) => s.filter((x) => x.id !== occKey));
       if (userId) {

@@ -86,7 +86,7 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out",
-        "emoji-rain": "emoji-rain 1.1s ease-in forwards",
+        "emoji-rain": "emoji-rain 0.9s ease-in forwards",
         "settle-pop": "settle-pop 0.5s ease-out forwards",
       },
     },
