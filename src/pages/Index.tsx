@@ -1085,7 +1085,7 @@ const Index = () => {
                             <article
                               ref={swipeRef(task.occKey)}
                               onPointerDown={(e) => swipePointerDown(e, task.occKey)}
-                              onClick={() => { if (getOffset(task.occKey) !== 0) return; toggle(task.id, task.dueDate); }}
+                              onClick={(e) => { if (getOffset(task.occKey) !== 0) return; const r = (e.currentTarget as HTMLElement).getBoundingClientRect(); toggle(task.id, task.dueDate, r.left + r.width / 2); }}
                               style={{
                                 animationDelay: `${i * 60}ms`,
                                 transform: `translateX(${offset}px)`,
