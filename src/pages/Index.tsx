@@ -1557,40 +1557,11 @@ const Index = () => {
                 </div>
               </div>
 
-              {settled.map((s) => (
-                <span
-                  key={`s-${s.id}`}
-                  onPointerDown={(e) => startDrag(e, s.id)}
-                  className={`absolute text-3xl select-none animate-settle-pop touch-none ${
-                    draggingId === s.id ? "cursor-grabbing z-20 scale-110" : "cursor-grab"
-                  }`}
-                  style={{
-                    left: `${s.x}%`,
-                    top: `${s.y}%`,
-                    ["--settle-rot" as any]: `${s.rot}deg`,
-                    filter: "drop-shadow(2px 2px 3px hsl(var(--neu-dark) / 0.4))",
-                    transition: draggingId === s.id ? "none" : "left 0.2s, top 0.2s",
-                  }}
-                >
-                  {s.emoji}
-                </span>
-              ))}
-
-              {drops.map((d) => (
-                <span
-                  key={d.key}
-                  className="absolute -top-6 text-3xl select-none pointer-events-none animate-emoji-rain"
-                  style={{
-                    left: `${d.x}%`,
-                    animationDelay: `${d.delay}s`,
-                    ["--rain-rot" as any]: `${d.rot}deg`,
-                  }}
-                >
-                  {d.emoji}
-                </span>
-              ))}
+              {settled.map((s) => null)}
+              {drops.map((d) => null)}
             </div>
           </div>
+
 
           {/* Task list */}
           <section className="flex-1 px-6 overflow-y-auto space-y-3" style={{ paddingBottom: "var(--content-bottom-padding)" }}>
