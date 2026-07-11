@@ -883,6 +883,9 @@ const Index = () => {
   return (
     <>
     {showIntro && <Onboarding onComplete={dismissIntro} />}
+    {rainfalls.map((rf) => (
+      <EmojiRain key={rf.id} rainfall={rf} />
+    ))}
     <main
       className={isNative ? "w-full max-w-full overflow-x-hidden flex flex-col overflow-hidden" : "min-h-screen flex items-center justify-center p-4 md:p-8"}
       style={isNative ? { height: '100dvh', paddingTop: 'env(safe-area-inset-top)', paddingLeft: 'env(safe-area-inset-left)', paddingRight: 'env(safe-area-inset-right)' } : undefined}
