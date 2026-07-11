@@ -103,8 +103,19 @@ const Index = () => {
     for (const t of initialTasks) if (t.done) s.add(`${t.id}|${t.dueDate}`);
     return s;
   });
-  const [settled, setSettled] = useState<Settled[]>(() =>
-    initialTasks
+  const [settled, setSettled] = useState<Settled[]>(() => {
+    // Try to restore today's settled emojis from localStorage so they persist
+    // across logout / reload as long as it's still the same day.
+    try {
+      const raw = localStorage.getItem("dodi.settled.v1");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { date: string; items: Settled[] };
+        if (parsed?.date === todayStr() && Array.isArray(parsed.items)) {
+          return parsed.items.slice(-8);
+        }
+      }
+    } catch {}
+    return initialTasks
       .filter((t) => t.done)
       .map((t) => ({
         id: `${t.id}|${t.dueDate}`,
@@ -112,8 +123,17 @@ const Index = () => {
         x: rand(8, 78),
         y: rand(45, 70),
         rot: rand(-18, 18),
-      }))
-  );
+      }));
+  });
+  // Persist settled emojis for today so they survive logout / reload.
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "dodi.settled.v1",
+        JSON.stringify({ date: todayStr(), items: settled })
+      );
+    } catch {}
+  }, [settled]);
   const [drops, setDrops] = useState<Drop[]>([]);
   const dropKey = useRef(0);
   const createdSeq = useRef(initialTasks.length + 1);
