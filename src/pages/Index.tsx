@@ -1,6 +1,7 @@
 import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft, User, Trophy } from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
+import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -840,6 +841,33 @@ const Index = () => {
   const [authPassword, setAuthPassword] = useState("");
   const [authConfirm, setAuthConfirm] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
+
+  useEffect(() => {
+    if (!isNative && typeof window !== "undefined") {
+      // Initialize web SDK (no-op on native, native uses config)
+      try { GoogleAuth.initialize?.({ clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', scopes: ['profile', 'email'] }); } catch {}
+    }
+  }, []);
+
+  const handleGoogleSignIn = async () => {
+    if (authBusy) return;
+    setAuthBusy(true);
+    try {
+      const googleUser = await GoogleAuth.signIn();
+      const idToken = googleUser?.authentication?.idToken;
+      if (!idToken) throw new Error("No ID token from Google");
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: idToken,
+      });
+      if (error) throw error;
+    } catch (e: any) {
+      toast.error(e?.message || "Google sign-in failed");
+    } finally {
+      setAuthBusy(false);
+    }
+  };
+
 
   const handleEmailSignIn = async () => {
     if (authBusy) return;
