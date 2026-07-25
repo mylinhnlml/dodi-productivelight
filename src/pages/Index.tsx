@@ -166,26 +166,32 @@ const Index = () => {
     const el = progressRef.current;
     if (!el) return;
     setDraggingId(id);
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    const move = (ev: PointerEvent) => {
-      const rect = el.getBoundingClientRect();
+    const target = e.target as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+
+    const handleMove = (ev: PointerEvent) => {
+      if (!progressRef.current) return;
+      const rect = progressRef.current.getBoundingClientRect();
       const x = ((ev.clientX - rect.left) / rect.width) * 100;
       const y = ((ev.clientY - rect.top) / rect.height) * 100;
       setSettled((s) =>
         s.map((it) =>
           it.id === id
-            ? { ...it, x: Math.max(2, Math.min(92, x)), y: Math.max(10, Math.min(85, y)) }
+            ? { ...it, x: Math.max(2, Math.min(90, x)), y: Math.max(8, Math.min(82, y)) }
             : it
         )
       );
     };
-    const up = () => {
+    const handleUp = () => {
       setDraggingId(null);
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
+      target.removeEventListener("pointermove", handleMove);
+      target.removeEventListener("pointerup", handleUp);
+      target.removeEventListener("pointercancel", handleUp);
     };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+
+    target.addEventListener("pointermove", handleMove);
+    target.addEventListener("pointerup", handleUp);
+    target.addEventListener("pointercancel", handleUp);
   };
 
   // Add-form state
