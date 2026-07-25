@@ -166,26 +166,32 @@ const Index = () => {
     const el = progressRef.current;
     if (!el) return;
     setDraggingId(id);
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    const move = (ev: PointerEvent) => {
-      const rect = el.getBoundingClientRect();
+    const target = e.target as HTMLElement;
+    target.setPointerCapture(e.pointerId);
+
+    const handleMove = (ev: PointerEvent) => {
+      if (!progressRef.current) return;
+      const rect = progressRef.current.getBoundingClientRect();
       const x = ((ev.clientX - rect.left) / rect.width) * 100;
       const y = ((ev.clientY - rect.top) / rect.height) * 100;
       setSettled((s) =>
         s.map((it) =>
           it.id === id
-            ? { ...it, x: Math.max(2, Math.min(92, x)), y: Math.max(10, Math.min(85, y)) }
+            ? { ...it, x: Math.max(2, Math.min(90, x)), y: Math.max(8, Math.min(82, y)) }
             : it
         )
       );
     };
-    const up = () => {
+    const handleUp = () => {
       setDraggingId(null);
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
+      target.removeEventListener("pointermove", handleMove);
+      target.removeEventListener("pointerup", handleUp);
+      target.removeEventListener("pointercancel", handleUp);
     };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+
+    target.addEventListener("pointermove", handleMove);
+    target.addEventListener("pointerup", handleUp);
+    target.addEventListener("pointercancel", handleUp);
   };
 
   // Add-form state
@@ -1569,7 +1575,8 @@ const Index = () => {
           <div className="px-6 pb-4">
             <div
               ref={progressRef}
-              className="relative rounded-3xl neu-surface-sm p-5 h-32 overflow-hidden touch-none"
+              className="relative rounded-3xl neu-surface-sm p-5 h-32 overflow-hidden"
+              style={{ touchAction: "none" }}
             >
               <div className="flex items-start justify-between relative z-10 pointer-events-none">
                 <div>
@@ -1615,7 +1622,7 @@ const Index = () => {
                 <span
                   key={`s-${s.id}`}
                   onPointerDown={(e) => startDrag(e, s.id)}
-                  className={`absolute text-3xl select-none animate-settle-pop touch-none ${
+                  className={`absolute text-3xl select-none touch-none animate-settle-pop ${
                     draggingId === s.id ? "cursor-grabbing z-20 scale-110" : "cursor-grab"
                   }`}
                   style={{
@@ -1623,7 +1630,10 @@ const Index = () => {
                     top: `${s.y}%`,
                     ["--settle-rot" as any]: `${s.rot}deg`,
                     filter: "drop-shadow(2px 2px 3px hsl(var(--neu-dark) / 0.4))",
-                    transition: draggingId === s.id ? "none" : "left 0.2s, top 0.2s",
+                    transition: draggingId === s.id ? "none" : "left 0.15s, top 0.15s",
+                    touchAction: "none",
+                    userSelect: "none",
+                    WebkitUserSelect: "none",
                   }}
                 >
                   {s.emoji}
