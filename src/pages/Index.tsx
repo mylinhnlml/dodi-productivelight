@@ -1575,7 +1575,8 @@ const Index = () => {
           <div className="px-6 pb-4">
             <div
               ref={progressRef}
-              className="relative rounded-3xl neu-surface-sm p-5 h-32 overflow-hidden touch-none"
+              className="relative rounded-3xl neu-surface-sm p-5 h-32 overflow-hidden"
+              style={{ touchAction: "none" }}
             >
               <div className="flex items-start justify-between relative z-10 pointer-events-none">
                 <div>
