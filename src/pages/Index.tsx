@@ -1622,7 +1622,7 @@ const Index = () => {
                 <span
                   key={`s-${s.id}`}
                   onPointerDown={(e) => startDrag(e, s.id)}
-                  className={`absolute text-3xl select-none animate-settle-pop touch-none ${
+                  className={`absolute text-3xl select-none touch-none animate-settle-pop ${
                     draggingId === s.id ? "cursor-grabbing z-20 scale-110" : "cursor-grab"
                   }`}
                   style={{
@@ -1630,7 +1630,10 @@ const Index = () => {
                     top: `${s.y}%`,
                     ["--settle-rot" as any]: `${s.rot}deg`,
                     filter: "drop-shadow(2px 2px 3px hsl(var(--neu-dark) / 0.4))",
-                    transition: draggingId === s.id ? "none" : "left 0.2s, top 0.2s",
+                    transition: draggingId === s.id ? "none" : "left 0.15s, top 0.15s",
+                    touchAction: "none",
+                    userSelect: "none",
+                    WebkitUserSelect: "none",
                   }}
                 >
                   {s.emoji}
