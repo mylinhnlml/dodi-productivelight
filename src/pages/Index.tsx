@@ -851,7 +851,7 @@ const Index = () => {
   useEffect(() => {
     if (!isNative && typeof window !== "undefined") {
       // Initialize web SDK (no-op on native, native uses config)
-      try { GoogleAuth.initialize?.({ clientId: 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com', scopes: ['profile', 'email'] }); } catch {}
+      try { GoogleAuth.initialize?.({ clientId: '182880052939-g1e03pf3mvjjb87ffkrvu8uf9ib628fm.apps.googleusercontent.com', scopes: ['profile', 'email'] }); } catch {}
     }
   }, []);
 
