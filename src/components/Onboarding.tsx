@@ -2,23 +2,17 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 type SlideKey =
-  | "hook"
-  | "reminders"
-  | "vision"
-  | "missions"
-  | "calendar"
-  | "deepwork"
+  | "lazy"
+  | "monster"
+  | "brain"
+  | "personal"
   | "survey_age"
   | "survey_goal_rate"
   | "survey_life_goal"
   | "cta";
+const INTRO_SLIDES: SlideKey[] = ["lazy", "monster", "brain", "personal"];
 const SLIDES: SlideKey[] = [
-  "hook",
-  "reminders",
-  "vision",
-  "missions",
-  "calendar",
-  "deepwork",
+  ...INTRO_SLIDES,
   "survey_age",
   "survey_goal_rate",
   "survey_life_goal",
@@ -113,7 +107,8 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
   const current = SLIDES[index];
   const isLast = current === "cta";
   const isSurvey = current.startsWith("survey_");
-  const darkBg = current === "vision" || current === "deepwork";
+  const isIntro = (INTRO_SLIDES as string[]).includes(current);
+  const darkBg = current === "monster";
 
   return (
     <div
@@ -154,13 +149,14 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
           lifeGoalOtherText={lifeGoalOtherText}
           setLifeGoalOtherText={setLifeGoalOtherText}
           onSelectOther={handleSelectOther}
+          onNext={next}
         />
       </div>
 
       {/* Bottom nav */}
       <div className="absolute bottom-0 left-0 right-0 z-20 pb-6 px-6">
         <div className="flex items-center justify-center gap-1.5 mb-4">
-          {SLIDES.map((s, i) => (
+          {(isIntro ? INTRO_SLIDES : SLIDES).map((s, i) => (
             <span
               key={s}
               className="h-1.5 rounded-full transition-all duration-200"
@@ -173,7 +169,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
             />
           ))}
         </div>
-        {!isLast && !isSurvey && (
+        {!isLast && !isSurvey && current !== "personal" && (
           <div className="flex justify-end">
             <button
               onClick={next}
@@ -203,6 +199,7 @@ function SlideContent({
   lifeGoalOtherText,
   setLifeGoalOtherText,
   onSelectOther,
+  onNext,
 }: {
   slide: SlideKey;
   keyId: string;
@@ -214,6 +211,7 @@ function SlideContent({
   lifeGoalOtherText: string;
   setLifeGoalOtherText: (v: string) => void;
   onSelectOther: (text: string) => void;
+  onNext: () => void;
 }) {
   const enterAnim = direction === 1 ? "slide-from-right" : "slide-from-left";
   return (
@@ -224,12 +222,10 @@ function SlideContent({
         .slide-from-right { animation: onb-from-right 350ms ease-in-out both; }
         .slide-from-left { animation: onb-from-left 350ms ease-in-out both; }
       `}</style>
-      {slide === "hook" && <HookSlide />}
-      {slide === "reminders" && <RemindersSlide />}
-      {slide === "vision" && <VisionSlide />}
-      {slide === "missions" && <MissionsSlide />}
-      {slide === "calendar" && <CalendarSlide />}
-      {slide === "deepwork" && <DeepWorkSlide />}
+      {slide === "lazy" && <LazySlide />}
+      {slide === "monster" && <MonsterSlide />}
+      {slide === "brain" && <BrainSlide />}
+      {slide === "personal" && <PersonalSlide onStart={onNext} />}
       {slide === "survey_age" && (
         <SurveySlide
           question="How old are you?"
@@ -381,321 +377,382 @@ function SurveySlide({
 
 /* ============ Slides ============ */
 
-function HookSlide() {
+function LazySlide() {
   return (
     <div
-      className="w-full h-full flex flex-col items-center justify-center px-6"
-      style={{ background: "linear-gradient(160deg, #FFF8EE 0%, #FFF3DC 100%)" }}
+      className="w-full h-full flex flex-col px-6 pt-16 pb-40"
+      style={{ background: "linear-gradient(180deg, #FFF8EE 0%, #FFF0D6 100%)" }}
     >
-      <div className="text-[80px] leading-none" style={{ animation: "float-gentle 3s ease-in-out infinite" }}>
-        ☀️
-      </div>
-      <h1
-        className="font-extrabold text-center mt-8"
-        style={{ fontSize: 26, color: "#1A1A1A", maxWidth: 280, animation: "slide-up-fade 600ms ease-out 400ms both" }}
-      >
-        Your softest, most productive life starts here.
-      </h1>
-      <p
-        className="text-center mt-4"
-        style={{ fontSize: 14, color: "#888780", lineHeight: 1.7, maxWidth: 260, animation: "slide-up-fade 600ms ease-out 700ms both" }}
-      >
-        Dodi is your gentle companion — helping you remember what matters, celebrate what you finish, and dream about what's coming.
-      </p>
-      <div
-        className="rounded-full px-3 py-1 mt-6 font-semibold"
-        style={{ background: "#FAEEDA", color: "#633806", fontSize: 11, animation: "slide-up-fade 600ms ease-out 1000ms both" }}
-      >
-        Used by 10,000+ gentle planners 🌸
-      </div>
-    </div>
-  );
-}
+      <style>{`
+        @keyframes strike-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      `}</style>
 
-function RemindersSlide() {
-  return (
-    <div
-      className="w-full h-full flex flex-col px-6 pt-20"
-      style={{ background: "linear-gradient(160deg, #FFF8EE 0%, #FFF3DC 100%)" }}
-    >
-      <div className="relative flex items-center justify-center" style={{ height: "45%" }}>
+      {/* Illustration half */}
+      <div className="flex-1 flex items-center justify-center">
         <div
-          className="absolute text-2xl"
-          style={{ top: "10%", left: "12%", animation: "float-gentle 2.5s ease-in-out infinite" }}
-        >🌸</div>
-        <div
-          className="absolute text-2xl"
-          style={{ top: "8%", right: "14%", animation: "float-gentle 3s ease-in-out infinite" }}
-        >⭐</div>
-        <div
-          className="absolute text-2xl"
-          style={{ bottom: "10%", right: "12%", animation: "float-gentle 3.5s ease-in-out infinite" }}
-        >✨</div>
-
-        <div
-          className="rounded-2xl bg-white shadow-lg p-4"
-          style={{ width: 200, animation: "slide-up-fade 500ms ease-out both" }}
+          className="relative w-full max-w-[290px] rounded-3xl px-5 pt-7 pb-6 flex flex-col items-center"
+          style={{ background: "#FFFFFF", boxShadow: "0 12px 30px rgba(26,18,8,0.08)" }}
         >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: "#FAEEDA" }}>🌿</div>
-            <div className="flex-1">
-              <div className="font-extrabold text-sm text-stone-800">Evening walk</div>
-              <div className="text-[11px] text-stone-500">7:00 PM</div>
-            </div>
-          </div>
-          <div className="flex items-center justify-between mt-3">
-            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ background: "#FAEEDA", color: "#633806" }}>Low</span>
-            <span className="text-[10px] text-stone-500">🔁 Every Day</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 px-2">
-        <div className="text-xs font-bold uppercase tracking-wider" style={{ color: "#B45309" }}>Step 1</div>
-        <h2 className="font-extrabold mt-1" style={{ fontSize: 22, color: "#1A1A1A" }}>Plant your daily intentions</h2>
-        <p className="mt-3" style={{ fontSize: 13, color: "#888780", lineHeight: 1.7 }}>
-          Add reminders for anything — morning routines, habits, self-care, goals. Pick a cute sticker, set the time, and let Dodi remind you gently.
-        </p>
-        <p className="mt-3 italic" style={{ fontSize: 11, color: "#B45309" }}>
-          💡 Tip: Use repeat for habits you're building daily
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function VisionSlide() {
-  const tiles = [
-    "linear-gradient(135deg, #FFB347, #FF6B6B)",
-    "linear-gradient(135deg, #A8E6CF, #3D9970)",
-    "linear-gradient(135deg, #DDA0DD, #9B59B6)",
-    "linear-gradient(135deg, #87CEEB, #3498DB)",
-  ];
-  return (
-    <div
-      className="w-full h-full flex flex-col px-6 pt-20"
-      style={{ background: "linear-gradient(160deg, #1A1208 0%, #2D1F0A 100%)" }}
-    >
-      <div className="relative flex items-center justify-center" style={{ height: "50%" }}>
-        <div
-          className="relative grid grid-cols-2 gap-3"
-          style={{ animation: "bounce-in 600ms ease-out both" }}
-        >
-          {tiles.map((bg, i) => (
-            <div
-              key={i}
-              className="rounded-2xl"
-              style={{ width: 85, height: 85, background: bg, boxShadow: "inset 0 0 20px rgba(255,255,255,0.15)" }}
-            />
-          ))}
-          <div
-            className="absolute inset-0 flex items-center justify-center text-white font-extrabold"
-            style={{ fontSize: 15, textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}
+          <span
+            className="absolute top-3 right-3 rounded-full px-2 py-1 font-extrabold"
+            style={{ background: "#E8A325", color: "#1A1208", fontSize: 11 }}
           >
-            Soft days, real wins ✨
+            Stanford Research
+          </span>
+
+          {/* Scientist avatar */}
+          <svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
+            {/* lab coat */}
+            <path d="M28 118c0-22 14-34 32-34s32 12 32 34z" fill="#FDFCF8" stroke="#E5DAC6" strokeWidth="2" />
+            <path d="M60 84v34" stroke="#E5DAC6" strokeWidth="2" />
+            <path d="M52 86l8 10 8-10" fill="#E8A325" opacity="0.9" />
+            {/* neck */}
+            <rect x="53" y="70" width="14" height="16" rx="6" fill="#E0A874" />
+            {/* head */}
+            <circle cx="60" cy="48" r="26" fill="#F0BE8C" />
+            {/* hair */}
+            <path d="M34 44c2-18 14-26 26-26s24 8 26 26c-6-8-14-12-26-12s-20 4-26 12z" fill="#4A3521" />
+            {/* glasses */}
+            <circle cx="50" cy="49" r="9" fill="#FFFFFF" opacity="0.85" stroke="#1A1208" strokeWidth="2.5" />
+            <circle cx="71" cy="49" r="9" fill="#FFFFFF" opacity="0.85" stroke="#1A1208" strokeWidth="2.5" />
+            <path d="M59 49h3" stroke="#1A1208" strokeWidth="2.5" />
+            {/* eyes */}
+            <circle cx="50" cy="49" r="2.6" fill="#1A1208" />
+            <circle cx="71" cy="49" r="2.6" fill="#1A1208" />
+            {/* smile */}
+            <path d="M52 61c3 3.5 13 3.5 16 0" stroke="#1A1208" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+          </svg>
+
+          {/* Struck-through tags */}
+          <div className="mt-4 w-full flex flex-col items-center gap-2.5">
+            <StruckTag label="LAZINESS" delay={200} />
+            <StruckTag label="UNPRODUCTIVE" delay={700} />
           </div>
         </div>
       </div>
 
-      <div className="mt-6 px-2">
-        <div className="text-xs font-bold uppercase tracking-wider" style={{ color: "#FFD24D" }}>Step 2</div>
-        <h2 className="font-extrabold mt-1 text-white" style={{ fontSize: 22 }}>See your dreams every day</h2>
-        <p className="mt-3 text-white/70" style={{ fontSize: 13, lineHeight: 1.7 }}>
-          Add photos of your goals — travel, health, home, love. Your Vision Board reminds you why you're showing up each day.
-        </p>
-        <p className="mt-3 italic" style={{ fontSize: 11, color: "#FFD24D" }}>
-          💡 Your vision + daily reminders = unstoppable
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function MissionsSlide() {
-  const stickers = ["🌻", "🌈", "👑", "🦋", "💫"];
-  return (
-    <div
-      className="w-full h-full flex flex-col px-6 pt-20"
-      style={{ background: "linear-gradient(160deg, #F5F3FF 0%, #EDE9FE 100%)" }}
-    >
-      <div className="flex flex-col items-center justify-center" style={{ height: "45%" }}>
-        <div className="flex items-end gap-2">
-          <MissionCard icon="🌱" label="First step" xp="+20 XP" />
-          <MissionCard icon="🔥" label="3-day streak" xp="+50 XP" elevated />
-          <MissionCard icon="💎" label="30-day legend" xp="+300 XP" locked />
-        </div>
-        <div className="flex gap-2 mt-6">
-          {stickers.map((s, i) => (
-            <span
-              key={s}
-              className="text-[28px] leading-none"
-              style={{ animation: `bounce-in 500ms ease-out ${i * 100}ms both` }}
-            >{s}</span>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 px-2">
-        <div className="text-xs font-bold uppercase tracking-wider" style={{ color: "#7F77DD" }}>Step 3</div>
-        <h2 className="font-extrabold mt-1" style={{ fontSize: 22, color: "#1A1A1A" }}>Earn stickers by showing up</h2>
-        <p className="mt-3" style={{ fontSize: 13, color: "#888780", lineHeight: 1.7 }}>
-          Complete missions to unlock exclusive stickers for your reminders. The more consistent you are, the more beautiful your app becomes.
-        </p>
-        <p className="mt-3 italic" style={{ fontSize: 11, color: "#7F77DD" }}>
-          💡 Your stickers are proof of your progress
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function MissionCard({ icon, label, xp, elevated, locked }: { icon: string; label: string; xp: string; elevated?: boolean; locked?: boolean }) {
-  return (
-    <div
-      className="relative rounded-2xl bg-white shadow-sm p-3 flex flex-col items-center"
-      style={{ width: 100, transform: elevated ? "translateY(-8px)" : undefined, opacity: locked ? 0.55 : 1 }}
-    >
-      <div className="text-2xl">{icon}</div>
-      <div className="text-[11px] font-extrabold text-center mt-1 text-stone-800">{label}</div>
-      <div className="rounded-full px-2 py-0.5 text-[10px] font-bold mt-2" style={{ background: "#FAEEDA", color: "#633806" }}>{xp}</div>
-      {locked && (
-        <div className="absolute top-1 right-1 text-xs">🔒</div>
-      )}
-    </div>
-  );
-}
-
-function CalendarSlide() {
-  const cells: Array<{ pct?: string; dot?: boolean; today?: boolean }> = [
-    {}, {}, { pct: "100%" }, {}, { dot: true }, {}, {},
-    {}, { pct: "80%" }, {}, { dot: true }, {}, {}, { pct: "100%" },
-    {}, {}, { pct: "60%" }, {}, { today: true }, {}, {},
-  ];
-  return (
-    <div
-      className="w-full h-full flex flex-col px-6 pt-20"
-      style={{ background: "linear-gradient(160deg, #FFF8EE 0%, #FFF3DC 100%)" }}
-    >
-      <div className="flex items-center justify-center" style={{ height: "45%" }}>
-        <div
-          className="rounded-2xl bg-white shadow-md p-4"
-          style={{ width: 220, animation: "onb-from-right 500ms ease-out both" }}
+      {/* Text half */}
+      <div className="flex flex-col items-center justify-start pt-6">
+        <h1
+          className="font-extrabold text-center"
+          style={{ fontSize: 26, color: "#1A1208", maxWidth: 300, lineHeight: 1.2 }}
         >
-          <div className="font-extrabold text-sm text-stone-800 mb-2">May 2026</div>
-          <div className="grid grid-cols-7 gap-1">
-            {cells.map((c, i) => (
-              <div
-                key={i}
-                className="aspect-square rounded-md flex items-center justify-center relative"
-                style={{
-                  background: c.pct ? "#FAEEDA" : "#F5F0E6",
-                  outline: c.today ? "2px solid hsl(45 95% 58%)" : undefined,
-                  boxShadow: c.today ? "0 0 10px hsl(45 95% 58% / 0.6)" : undefined,
-                }}
-              >
-                {c.pct && <span className="text-[8px] font-bold" style={{ color: "#633806" }}>{c.pct}</span>}
-                {c.dot && <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500" />}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 px-2">
-        <div className="text-xs font-bold uppercase tracking-wider" style={{ color: "#1D9E75" }}>Step 4</div>
-        <h2 className="font-extrabold mt-1" style={{ fontSize: 22, color: "#1A1A1A" }}>Watch your consistency bloom</h2>
-        <p className="mt-3" style={{ fontSize: 13, color: "#888780", lineHeight: 1.7 }}>
-          Your calendar fills with color as you complete each day. See your streaks, your wins, and how far you've come — one gentle day at a time.
+          There's no such thing as laziness.
+        </h1>
+        <p className="text-center mt-3" style={{ fontSize: 13, color: "#B8895A" }}>
+          Your brain just never learned the right system.
         </p>
-        <p className="mt-3 italic" style={{ fontSize: 11, color: "#1D9E75" }}>
-          💡 Even 60% is a win. Progress over perfection.
+        <p className="text-center mt-4 italic" style={{ fontSize: 11, color: "rgba(184,137,90,0.7)" }}>
+          — BJ Fogg, Stanford Behavior Design Lab
         </p>
       </div>
     </div>
   );
 }
 
-function DeepWorkSlide() {
+function StruckTag({ label, delay }: { label: string; delay: number }) {
   return (
     <div
-      className="w-full h-full flex flex-col px-6 pt-20"
-      style={{ background: "linear-gradient(165deg, #1A1208 0%, #2A1D0E 60%, #1F1509 100%)" }}
+      className="relative rounded-full px-4 py-2"
+      style={{ background: "#F4F1EA" }}
     >
-      <div
-        className="flex flex-col items-center justify-center"
-        style={{ height: "45%", animation: "onb-dw-in 500ms ease-out both" }}
-      >
-        <style>{`
-          @keyframes onb-dw-in { from{transform:scale(0.92);opacity:0} to{transform:scale(1);opacity:1} }
-        `}</style>
-        <div className="relative" style={{ width: 130, height: 130 }}>
-          <div className="absolute inset-0 pointer-events-none">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="absolute left-1/2 top-1/2"
+      <span className="font-extrabold tracking-wide" style={{ fontSize: 13, color: "#8C8577" }}>
+        {label}
+      </span>
+      <span
+        className="absolute left-3 right-3 top-1/2 rounded-full"
+        style={{
+          height: 3,
+          marginTop: -1.5,
+          background: "#E85D24",
+          transformOrigin: "left center",
+          animation: `strike-draw 400ms ease-out ${delay}ms both`,
+        }}
+      />
+    </div>
+  );
+}
+
+function MonsterSlide() {
+  return (
+    <div
+      className="w-full h-full flex flex-col px-6 pt-16 pb-40"
+      style={{ background: "linear-gradient(180deg, #1A1208 0%, #2A1D0E 100%)" }}
+    >
+      <style>{`
+        @keyframes egg-beat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        @keyframes egg-orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes egg-blink { 0%, 92%, 100% { opacity: 1; } 95% { opacity: 0; } }
+      `}</style>
+
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="relative" style={{ width: 220, height: 220 }}>
+          {/* glow */}
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: "radial-gradient(circle, #E8A325 0%, rgba(232,163,37,0) 70%)",
+              opacity: 0.3,
+              filter: "blur(20px)",
+            }}
+          />
+          {/* orbiting sparkles */}
+          <div
+            className="absolute inset-0"
+            style={{ animation: "egg-orbit 6s linear infinite" }}
+          >
+            {[0, 90, 180, 270].map((deg) => (
+              <span
+                key={deg}
+                className="absolute rounded-full"
                 style={{
-                  width: 0,
-                  height: 0,
-                  borderLeft: "3px solid transparent",
-                  borderRight: "3px solid transparent",
-                  borderBottom: "6px solid hsl(40,80%,45%)",
-                  transform: `translate(-50%, -50%) rotate(${i * 30}deg) translateY(-70px)`,
+                  width: 6,
+                  height: 6,
+                  background: "#FFD24D",
+                  top: "50%",
+                  left: "50%",
+                  transform: `rotate(${deg}deg) translateX(100px)`,
                 }}
               />
             ))}
           </div>
+          {/* egg */}
           <div
-            className="absolute inset-0 rounded-full"
+            className="absolute left-1/2 top-1/2 flex items-center justify-center"
             style={{
-              background: `conic-gradient(hsl(40,90%,55%) 180deg, rgba(255,255,255,0.06) 0)`,
-              padding: 5,
+              width: 124,
+              height: 160,
+              marginLeft: -62,
+              marginTop: -80,
+              background: "#FFF3DC",
+              border: "3px solid #E8A325",
+              borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%",
+              animation: "egg-beat 1.8s ease-in-out infinite",
             }}
           >
-            <div className="w-full h-full rounded-full" style={{ background: "#1A1208" }} />
-          </div>
-          <div
-            className="absolute rounded-full flex items-center justify-center"
-            style={{
-              inset: 14,
-              background: "radial-gradient(circle at 35% 35%, #FFD580, #E8A325)",
-              boxShadow: "0 0 30px rgba(232,163,37,0.4)",
-            }}
-          >
-            <div className="flex items-center gap-1.5 mt-1">
-              <div style={{ width: 12, height: 2.5, borderRadius: 99, background: "#5C3A0E", transform: "rotate(-8deg)" }} />
-              <div style={{ width: 12, height: 2.5, borderRadius: 99, background: "#5C3A0E", transform: "rotate(8deg)" }} />
+            <div className="flex gap-5" style={{ marginTop: 14 }}>
+              <span
+                className="rounded-full"
+                style={{ width: 10, height: 10, background: "#1A1208", animation: "egg-blink 3s ease-in-out infinite" }}
+              />
+              <span
+                className="rounded-full"
+                style={{ width: 10, height: 10, background: "#1A1208", animation: "egg-blink 3s ease-in-out infinite" }}
+              />
             </div>
-            <div className="absolute" style={{ bottom: "32%", width: 16, height: 2, borderRadius: 99, background: "#5C3A0E" }} />
           </div>
         </div>
-        <p
-          className="mt-4 text-3xl font-extrabold tabular-nums tracking-wider"
-          style={{ color: "#FFE9C2" }}
-        >
-          13:42
-        </p>
+
         <div
-          className="mt-3 flex items-center gap-1.5 rounded-full px-3 py-1.5"
-          style={{ background: "hsl(40,90%,55%)" }}
+          className="font-extrabold text-center mt-2"
+          style={{ fontSize: 14, color: "#E8A325", letterSpacing: "0.25em" }}
         >
-          <span className="text-xs">🧠</span>
-          <span className="text-[10px] font-extrabold uppercase tracking-wide" style={{ color: "#1A1208" }}>
-            Focus
-          </span>
+          ???
         </div>
       </div>
 
-      <div className="mt-6 px-2">
-        <div className="text-xs font-bold uppercase tracking-wider" style={{ color: "#FAEEDA" }}>Step 5</div>
-        <h2 className="font-extrabold mt-1 text-white" style={{ fontSize: 22 }}>Lock in when it counts</h2>
-        <p className="mt-3 text-white/70" style={{ fontSize: 13, lineHeight: 1.7 }}>
-          Flip on Focus mode for a 28-minute deep work session. No distractions — just you, a quiet timer, and a sun that's working as hard as you are ☀️
+      <div className="flex flex-col items-center pt-6">
+        <h1
+          className="font-extrabold text-center"
+          style={{ fontSize: 24, color: "#FFF8EE", maxWidth: 280, lineHeight: 1.25 }}
+        >
+          What if your goals had a face?
+        </h1>
+        <p className="text-center mt-3" style={{ fontSize: 13, color: "#B8895A" }}>
+          Complete tasks → they grow 🌱
         </p>
-        <p className="mt-3 italic" style={{ fontSize: 11, color: "#FFD24D" }}>
-          💡 Find the Focus toggle right on your Reminders screen
+        <p className="text-center mt-1" style={{ fontSize: 13, color: "#B8895A" }}>
+          Miss a day → they get sad 🌧️
         </p>
       </div>
+    </div>
+  );
+}
+
+function BrainSlide() {
+  return (
+    <div
+      className="w-full h-full flex flex-col px-6 pt-14 pb-40"
+      style={{ background: "linear-gradient(180deg, #F0F8FF 0%, #FFF8EE 100%)" }}
+    >
+      <style>{`
+        @keyframes zone-in { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+      `}</style>
+
+      {/* Brain graphic */}
+      <div className="flex-1 flex flex-col items-center justify-center">
+        <svg width="180" height="140" viewBox="0 0 180 140" aria-hidden="true">
+          <path
+            d="M52 22c-16 0-28 11-28 24 0 6 2 10 5 14-5 4-7 10-7 16 0 16 15 28 34 28h68c19 0 34-12 34-28 0-6-2-12-7-16 3-4 5-8 5-14 0-13-12-24-28-24-6-8-16-12-28-12s-22 4-28 12z"
+            fill="#FFE9C6"
+            stroke="#E8A325"
+            strokeWidth="3"
+            strokeLinejoin="round"
+          />
+          <path d="M90 18v86" stroke="#E8A325" strokeWidth="2" opacity="0.35" fill="none" />
+          <ellipse cx="56" cy="52" rx="18" ry="13" fill="#E8A325" opacity="0.55" style={{ animation: "zone-in 500ms ease-out 200ms both" }} />
+          <ellipse cx="112" cy="46" rx="18" ry="13" fill="#1D9E75" opacity="0.5" style={{ animation: "zone-in 500ms ease-out 400ms both" }} />
+          <ellipse cx="88" cy="84" rx="20" ry="13" fill="#E85D24" opacity="0.45" style={{ animation: "zone-in 500ms ease-out 600ms both" }} />
+        </svg>
+
+        <div className="flex items-center justify-center gap-4 mt-3">
+          <span className="font-bold" style={{ fontSize: 11, color: "#E8A325" }}>Habit stacking</span>
+          <span className="font-bold" style={{ fontSize: 11, color: "#1D9E75" }}>Rewards</span>
+          <span className="font-bold" style={{ fontSize: 11, color: "#E85D24" }}>Streaks</span>
+        </div>
+
+        {/* Stat cards */}
+        <div className="flex items-stretch justify-center gap-3 mt-6 w-full max-w-[300px]">
+          <StatCard glyph="⛓️" label="Stack" color="#E8A325" />
+          <StatCard glyph="⭐" label="Reward" color="#1D9E75" />
+          <StatCard glyph="🔥" label="Streak" color="#E85D24" />
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center pt-6">
+        <h1 className="font-extrabold text-center" style={{ fontSize: 24, color: "#1A1208" }}>
+          Science, not guilt.
+        </h1>
+        <p className="text-center mt-3 italic" style={{ fontSize: 13, color: "#B8895A", maxWidth: 280 }}>
+          Designed to feel like a game. Built to change your life.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ glyph, label, color }: { glyph: string; label: string; color: string }) {
+  return (
+    <div
+      className="flex-1 rounded-2xl flex flex-col items-center justify-center"
+      style={{ background: "#FFFFFF", padding: 12, boxShadow: "0 4px 12px rgba(26,18,8,0.06)" }}
+    >
+      <span style={{ fontSize: 24, lineHeight: 1 }}>{glyph}</span>
+      <span className="font-bold mt-2" style={{ fontSize: 11, color }}>{label}</span>
+    </div>
+  );
+}
+
+function PersonalSlide({ onStart }: { onStart: () => void }) {
+  return (
+    <div
+      className="w-full h-full flex flex-col px-6 pt-16 pb-32"
+      style={{ background: "linear-gradient(180deg, #FFF8EE 0%, #FFF0D6 100%)" }}
+    >
+      <style>{`
+        @keyframes card-rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes cta-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+      `}</style>
+
+      <div className="flex justify-center">
+        <span
+          className="rounded-full px-3 py-1.5 font-extrabold"
+          style={{ background: "#E8A325", color: "#1A1208", fontSize: 11 }}
+        >
+          Made for you ✨
+        </span>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center">
+        <div className="flex items-end justify-center gap-3 w-full max-w-[320px]">
+          <MonsterCard color="#E8A325" size={60} eyes="dots" name="The Achiever" sub="Driven" delay={0} />
+          <MonsterCard color="#1D9E75" size={70} eyes="wide" name="The Explorer" sub="Curious" delay={100} />
+          <MonsterCard color="#7F77DD" size={60} eyes="happy" name="The Dreamer" sub="Creative" delay={200} />
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center pt-2">
+        <h1 className="font-extrabold text-center" style={{ fontSize: 22, color: "#1A1208" }}>
+          No two Dodis are the same.
+        </h1>
+        <p className="text-center mt-3" style={{ fontSize: 13, color: "#B8895A", maxWidth: 280 }}>
+          Your monster matches your goals and personality.
+        </p>
+
+        <button
+          onClick={onStart}
+          className="w-full max-w-[320px] rounded-2xl py-4 font-extrabold mt-6"
+          style={{
+            background: "#E8A325",
+            color: "#1A1208",
+            fontSize: 16,
+            animation: "cta-pulse 2s ease-in-out infinite",
+          }}
+        >
+          Start my journey →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MonsterCard({
+  color,
+  size,
+  eyes,
+  name,
+  sub,
+  delay,
+}: {
+  color: string;
+  size: number;
+  eyes: "dots" | "wide" | "happy";
+  name: string;
+  sub: string;
+  delay: number;
+}) {
+  const eyeGap = eyes === "wide" ? 22 : 12;
+  return (
+    <div
+      className="flex-1 rounded-3xl flex flex-col items-center"
+      style={{
+        background: "#FFFFFF",
+        padding: 16,
+        border: `2px solid ${color}33`,
+        boxShadow: "0 8px 20px rgba(26,18,8,0.06)",
+        animation: `card-rise 450ms ease-out ${delay}ms both`,
+      }}
+    >
+      <div
+        className="rounded-full relative flex items-start justify-center"
+        style={{ width: size, height: size, background: color }}
+      >
+        <div className="flex" style={{ gap: eyeGap, marginTop: size * 0.28 }}>
+          {[0, 1].map((i) =>
+            eyes === "happy" ? (
+              <span
+                key={i}
+                style={{
+                  width: 12,
+                  height: 6,
+                  background: "#FFFFFF",
+                  borderRadius: "12px 12px 0 0",
+                  display: "block",
+                }}
+              />
+            ) : (
+              <span
+                key={i}
+                className="rounded-full flex items-center justify-center"
+                style={{ width: 12, height: 12, background: "#FFFFFF" }}
+              >
+                <span className="rounded-full" style={{ width: 5, height: 5, background: "#1A1208" }} />
+              </span>
+            )
+          )}
+        </div>
+        <svg
+          className="absolute"
+          width={size * 0.5}
+          height={size * 0.25}
+          viewBox="0 0 20 10"
+          style={{ bottom: size * 0.18, left: size * 0.25 }}
+        >
+          <path d="M2 2c3 5 13 5 16 0" stroke="#FFFFFF" strokeWidth="2" fill="none" strokeLinecap="round" />
+        </svg>
+      </div>
+      <span className="font-bold mt-3 text-center" style={{ fontSize: 11, color }}>{name}</span>
+      <span className="text-center" style={{ fontSize: 11, color: "#B8895A" }}>{sub}</span>
     </div>
   );
 }
