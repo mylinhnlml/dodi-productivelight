@@ -384,7 +384,7 @@ function LazySlide() {
       style={{ background: "linear-gradient(180deg, #FFF8EE 0%, #FFF0D6 100%)" }}
     >
       <style>{`
-        @keyframes strike-draw { from { width: 0%; } to { width: 100%; } }
+        @keyframes strike-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
       `}</style>
 
       {/* Illustration half */}
@@ -463,8 +463,9 @@ function StruckTag({ label, delay }: { label: string; delay: number }) {
         className="absolute left-3 right-3 top-1/2 rounded-full"
         style={{
           height: 3,
+          marginTop: -1.5,
           background: "#E85D24",
-          transform: "translateY(-50%)",
+          transformOrigin: "left center",
           animation: `strike-draw 400ms ease-out ${delay}ms both`,
         }}
       />
