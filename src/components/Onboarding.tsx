@@ -107,7 +107,8 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
   const current = SLIDES[index];
   const isLast = current === "cta";
   const isSurvey = current.startsWith("survey_");
-  const darkBg = current === "vision" || current === "deepwork";
+  const isIntro = (INTRO_SLIDES as string[]).includes(current);
+  const darkBg = current === "monster";
 
   return (
     <div
