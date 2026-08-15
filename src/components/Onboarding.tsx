@@ -199,6 +199,7 @@ function SlideContent({
   lifeGoalOtherText,
   setLifeGoalOtherText,
   onSelectOther,
+  onNext,
 }: {
   slide: SlideKey;
   keyId: string;
