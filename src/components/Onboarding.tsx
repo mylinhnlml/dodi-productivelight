@@ -149,6 +149,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
           lifeGoalOtherText={lifeGoalOtherText}
           setLifeGoalOtherText={setLifeGoalOtherText}
           onSelectOther={handleSelectOther}
+          onNext={next}
         />
       </div>
 
