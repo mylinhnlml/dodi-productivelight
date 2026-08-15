@@ -211,6 +211,7 @@ function SlideContent({
   lifeGoalOtherText: string;
   setLifeGoalOtherText: (v: string) => void;
   onSelectOther: (text: string) => void;
+  onNext: () => void;
 }) {
   const enterAnim = direction === 1 ? "slide-from-right" : "slide-from-left";
   return (
