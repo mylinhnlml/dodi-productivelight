@@ -222,12 +222,10 @@ function SlideContent({
         .slide-from-right { animation: onb-from-right 350ms ease-in-out both; }
         .slide-from-left { animation: onb-from-left 350ms ease-in-out both; }
       `}</style>
-      {slide === "hook" && <HookSlide />}
-      {slide === "reminders" && <RemindersSlide />}
-      {slide === "vision" && <VisionSlide />}
-      {slide === "missions" && <MissionsSlide />}
-      {slide === "calendar" && <CalendarSlide />}
-      {slide === "deepwork" && <DeepWorkSlide />}
+      {slide === "lazy" && <LazySlide />}
+      {slide === "monster" && <MonsterSlide />}
+      {slide === "brain" && <BrainSlide />}
+      {slide === "personal" && <PersonalSlide onStart={onNext} />}
       {slide === "survey_age" && (
         <SurveySlide
           question="How old are you?"
