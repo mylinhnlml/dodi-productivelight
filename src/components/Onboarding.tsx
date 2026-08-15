@@ -2,23 +2,17 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 type SlideKey =
-  | "hook"
-  | "reminders"
-  | "vision"
-  | "missions"
-  | "calendar"
-  | "deepwork"
+  | "lazy"
+  | "monster"
+  | "brain"
+  | "personal"
   | "survey_age"
   | "survey_goal_rate"
   | "survey_life_goal"
   | "cta";
+const INTRO_SLIDES: SlideKey[] = ["lazy", "monster", "brain", "personal"];
 const SLIDES: SlideKey[] = [
-  "hook",
-  "reminders",
-  "vision",
-  "missions",
-  "calendar",
-  "deepwork",
+  ...INTRO_SLIDES,
   "survey_age",
   "survey_goal_rate",
   "survey_life_goal",
