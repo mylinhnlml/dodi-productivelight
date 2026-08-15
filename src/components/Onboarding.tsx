@@ -155,7 +155,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
       {/* Bottom nav */}
       <div className="absolute bottom-0 left-0 right-0 z-20 pb-6 px-6">
         <div className="flex items-center justify-center gap-1.5 mb-4">
-          {SLIDES.map((s, i) => (
+          {(isIntro ? INTRO_SLIDES : SLIDES).map((s, i) => (
             <span
               key={s}
               className="h-1.5 rounded-full transition-all duration-200"
