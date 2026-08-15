@@ -168,7 +168,7 @@ export default function Onboarding({ onComplete }: OnboardingProps = {}) {
             />
           ))}
         </div>
-        {!isLast && !isSurvey && (
+        {!isLast && !isSurvey && current !== "personal" && (
           <div className="flex justify-end">
             <button
               onClick={next}
