@@ -4,7 +4,7 @@ import { MISSIONS, COLOR_STYLES, levelForXp, type MissionDef } from "@/lib/missi
 import { claimMission, loadMissionState, missionStatus } from "@/lib/missionEngine";
 import type { Sticker } from "@/lib/stickers";
 
-type Tab = "daily" | "journey" | "special";
+type Tab = "daily" | "journey";
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -144,7 +144,7 @@ export default function MissionsPage({ userId, onUseStickers }: Props) {
 
       {/* Tabs */}
       <div className="flex gap-1 p-1 rounded-2xl neu-pressed mb-4">
-        {(["daily", "journey", "special"] as Tab[]).map((t) => (
+        {(["daily", "journey"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}

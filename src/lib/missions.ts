@@ -1,6 +1,6 @@
 // Mission definitions, level system, and brand colors for the Dodi missions/achievements system.
 
-export type MissionCategory = "daily" | "journey" | "special";
+export type MissionCategory = "daily" | "journey";
 export type MissionColor = "amber" | "teal" | "purple" | "pink" | "green";
 
 export type MissionDef = {
