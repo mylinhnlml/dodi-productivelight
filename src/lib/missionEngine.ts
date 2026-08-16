@@ -3,7 +3,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { MISSIONS, MISSIONS_BY_ID, type MissionDef } from "@/lib/missions";
-import { unlockStickersForMission, type Sticker } from "@/lib/stickers";
 import { toast } from "sonner";
 
 type ProgressRow = {
@@ -124,16 +123,16 @@ async function addXp(userId: string, amount: number) {
 export async function claimMission(
   userId: string,
   missionId: string
-): Promise<{ xp: number; stickers: Sticker[] }> {
+): Promise<{ xp: number }> {
   const def = MISSIONS_BY_ID[missionId];
-  if (!def) return { xp: 0, stickers: [] };
+  if (!def) return { xp: 0 };
   const p = await getProgress(userId, missionId);
-  if (!p?.completed_at || p.claimed_at) return { xp: 0, stickers: [] };
+  if (!p?.completed_at || p.claimed_at) return { xp: 0 };
 
   // Lock check: prerequisite must be claimed
   if (def.unlocksAfter) {
     const pre = await getProgress(userId, def.unlocksAfter);
-    if (!pre?.claimed_at) return { xp: 0, stickers: [] };
+    if (!pre?.claimed_at) return { xp: 0 };
   }
 
   await supabase
@@ -150,8 +149,7 @@ export async function claimMission(
     duration: 2500,
   });
 
-  const stickers = await unlockStickersForMission(userId, missionId);
-  return { xp: def.xp, stickers };
+  return { xp: def.xp };
 }
 
 // ============ TRIGGERS ============
