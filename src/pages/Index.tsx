@@ -502,18 +502,16 @@ const Index = () => {
           );
         if (completionErr) console.warn("Completion not saved:", completionErr.message);
 
+        const todayKey = todayStr();
+        const alreadyCompletedToday = Array.from(completed).some(
+          (k) => k !== occKey && k.endsWith(`|${todayKey}`)
+        );
         const { error: pointsError } = await supabase.functions.invoke("complete-task", {
-          body: { task_id: taskId }
+          body: { task_id: taskId, award_xp: !alreadyCompletedToday }
         });
         if (pointsError) console.warn("Points not awarded:", pointsError.message);
 
-        const hasScheduledTime = !!task.time;
-        let isOnTime = false;
-        if (hasScheduledTime) {
-          const scheduled = new Date(`${dueIso} ${task.time}`);
-          isOnTime = Math.abs(Date.now() - scheduled.getTime()) <= 15 * 60 * 1000;
-        }
-        onReminderCompleted(userId, { completedAt: new Date(), isOnTime, hasScheduledTime });
+        onReminderCompleted(userId, { completedAt: new Date() });
       })();
     } else {
       setSettled((s) => s.filter((x) => x.id !== occKey));
@@ -527,8 +525,13 @@ const Index = () => {
           .eq("due_date", dueIso);
         if (delErr) console.warn("Completion not removed:", delErr.message);
 
+        const todayKey = todayStr();
+        const otherCompletionsToday = Array.from(completed).filter(
+          (k) => k !== occKey && k.endsWith(`|${todayKey}`)
+        );
+        const wasFirstToday = otherCompletionsToday.length === 0;
         const { error: removeError } = await supabase.functions.invoke("remove-task-points", {
-          body: { task_id: taskId }
+          body: { task_id: taskId, deduct_xp: wasFirstToday }
         });
         if (removeError) console.warn("Points not removed:", removeError.message);
       }

@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
     }
 
     const today = new Date().toISOString().slice(0, 10);
+    const deductXp = body?.deduct_xp !== false;
 
     const { data: existing } = await admin
       .from("point_events")
@@ -78,7 +79,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
     const current = (profile?.points as number | undefined) ?? 0;
 
-    if (!existing) {
+    if (!existing || !deductXp) {
       return new Response(JSON.stringify({ success: true, new_total: current }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
