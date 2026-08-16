@@ -1,4 +1,4 @@
-import { Bell, Plus, Search, Calendar, Check, Pencil, Smile, MessageSquare, Star, Trash2, ChevronLeft, User, Trophy } from "lucide-react";
+import { Bell, Plus, Search, Calendar, Check, Pencil, MessageSquare, Star, Trash2, ChevronLeft, User, Trophy } from "lucide-react";
 import { useRef, useState, useMemo, useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
@@ -1237,13 +1237,6 @@ const Index = () => {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => setActive("missions")}
-                      className="w-full py-2.5 rounded-2xl neu-surface-sm text-xs font-extrabold text-primary flex items-center justify-center gap-1.5 transition-transform active:scale-95"
-                    >
-                      <Smile className="w-3.5 h-3.5" strokeWidth={2.4} />
-                      More stickers — see missions
-                    </button>
                   </div>
                 );
               })()}
