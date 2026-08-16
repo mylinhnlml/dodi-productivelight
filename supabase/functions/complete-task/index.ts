@@ -62,6 +62,8 @@ Deno.serve(async (req) => {
     }
 
     const today = new Date().toISOString().slice(0, 10);
+    const awardXp = body?.award_xp !== false;
+
     const { data: existing } = await admin
       .from("point_events")
       .select("id")
@@ -77,7 +79,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
     const current = (profile?.points as number | undefined) ?? 0;
 
-    if (existing) {
+    if (existing || !awardXp) {
       return new Response(
         JSON.stringify({ success: true, already_awarded: true, new_total: current }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
