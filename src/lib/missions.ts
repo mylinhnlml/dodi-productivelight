@@ -14,7 +14,6 @@ export type MissionDef = {
   target: number; // progress target for completion
   unlocksAfter?: string; // mission id that must be claimed first
   expiresAfterDays?: number; // for limited specials (e.g. founding star)
-  rewardStickers?: string[]; // emoji stickers unlocked when claimed
 };
 
 export const COLOR_STYLES: Record<MissionColor, { bg: string; text: string; bar: string }> = {
@@ -27,40 +26,44 @@ export const COLOR_STYLES: Record<MissionColor, { bg: string; text: string; bar:
 
 export const MISSIONS: MissionDef[] = [
   // ---------- DAILY ----------
-  { id: "daily_deepwork",        category: "daily", title: "Deep work",        description: "Finish 1 deep work session",         xp: 10, emoji: "🧠", color: "purple", target: 1 },
-  { id: "daily_first_complete",  category: "daily", title: "First check-off",  description: "Complete 1 reminder today",         xp: 15, emoji: "🌸", color: "pink",   target: 1, rewardStickers: ["🎵","🎶","🎸","🎹"] },
-  { id: "daily_half_day",        category: "daily", title: "Halfway bloom",    description: "Complete 50% of today's tasks",     xp: 20, emoji: "🌿", color: "green",  target: 50 },
-  { id: "daily_perfect",         category: "daily", title: "100% club",        description: "Complete 100% of today's tasks",    xp: 40, emoji: "🌞", color: "amber",  target: 100, rewardStickers: ["🌈","🎉","🎊","🦋"] },
-  { id: "daily_new_reminder",    category: "daily", title: "Plant a seed",     description: "Create at least 1 new reminder",    xp: 10, emoji: "🌱", color: "teal",   target: 1 },
+  { id: "daily_first_complete", category: "daily", title: "First check-off", description: "Complete your first reminder today", xp: 5, emoji: "🌸", color: "pink", target: 1 },
+  { id: "daily_deepwork",       category: "daily", title: "Deep work",       description: "Finish 1 deep work session today",   xp: 15, emoji: "🧠", color: "purple", target: 1 },
 
   // ---------- JOURNEY ----------
-  { id: "journey_first_reminder", category: "journey", title: "First step",          description: "Create your first reminder",                    xp: 20,  emoji: "🐣", color: "amber",  target: 1, rewardStickers: ["🌻","🌼","🍀"] },
-  { id: "journey_5_reminders",    category: "journey", title: "Getting started",     description: "Create 5 reminders",                            xp: 30,  emoji: "🌼", color: "green",  target: 5, rewardStickers: ["🥗","🥕","🌽","🍓"] },
-  { id: "journey_20_reminders",   category: "journey", title: "Habit builder",       description: "Create 20 reminders",                           xp: 60,  emoji: "🌳", color: "green",  target: 20, unlocksAfter: "journey_5_reminders", rewardStickers: ["🧬","🏃","🚴","🧗"] },
-  { id: "journey_streak_3",       category: "journey", title: "3-day streak",        description: "Stay active 3 days in a row",                   xp: 50,  emoji: "🔥", color: "pink",   target: 3, rewardStickers: ["🔥","⚡","💫","🌙"] },
-  { id: "journey_streak_7",       category: "journey", title: "7-day warrior",       description: "Stay active 7 days in a row",                   xp: 100, emoji: "🔥", color: "pink",   target: 7,  unlocksAfter: "journey_streak_3", rewardStickers: ["🏆","🥇","👑","💎"] },
-  { id: "journey_streak_30",      category: "journey", title: "30-day legend",       description: "Stay active 30 days in a row",                  xp: 300, emoji: "🏆", color: "amber",  target: 30, unlocksAfter: "journey_streak_7", rewardStickers: ["🌞","🦁","🦋","🤩","🔮"] },
-  { id: "journey_on_time_10",     category: "journey", title: "On-time hero",        description: "Complete 10 reminders within 15 min of due time", xp: 80,  emoji: "⏰", color: "teal",   target: 10 },
-  { id: "journey_perfect_3days",  category: "journey", title: "Triple sunshine",     description: "Reach 100% completion on 3 different days",     xp: 120, emoji: "☀️", color: "amber",  target: 3 },
-  { id: "journey_recurring_5",    category: "journey", title: "Rhythm keeper",       description: "Set 5 recurring reminders",                     xp: 70,  emoji: "🔁", color: "purple", target: 5 },
+  { id: "journey_first_reminder", category: "journey", title: "First step",      description: "Create your very first reminder",            xp: 15, emoji: "🐣", color: "amber", target: 1 },
 
-  // ---------- SPECIAL ----------
-  { id: "special_early_bird",     category: "special", title: "Early bird",      description: "Complete a task before 8:00 AM",                xp: 25,  emoji: "🐦", color: "teal",   target: 1, rewardStickers: ["🌅","☕","🥐","🐦"] },
-  { id: "special_night_owl",      category: "special", title: "Night owl",       description: "Set a reminder after 10:00 PM",                 xp: 25,  emoji: "🦉", color: "purple", target: 1, rewardStickers: ["🦉","🌃","🌟","🍵"] },
-  { id: "special_sticker_10",     category: "special", title: "Sticker artist",  description: "Use 10 different stickers",                     xp: 40,  emoji: "🎨", color: "pink",   target: 10 },
-  { id: "special_founding_star",  category: "special", title: "Founding star",   description: "Use Dodi every day for your first 7 days",      xp: 150, emoji: "⭐", color: "amber",  target: 7, expiresAfterDays: 7, rewardStickers: ["👑","🌠","🎖️","🕊️"] },
-  { id: "special_rate",           category: "special", title: "Spread the love", description: "Rate the app",                                  xp: 80,  emoji: "💌", color: "pink",   target: 1 },
+  { id: "journey_deepwork_10",  category: "journey", title: "Focus rookie",  description: "Complete 10 deep work sessions total", xp: 20, emoji: "🧠", color: "purple", target: 10 },
+  { id: "journey_deepwork_30",  category: "journey", title: "Focus builder", description: "Complete 30 deep work sessions total", xp: 20, emoji: "💜", color: "purple", target: 30, unlocksAfter: "journey_deepwork_10" },
+  { id: "journey_deepwork_70",  category: "journey", title: "Focus master",  description: "Complete 70 deep work sessions total", xp: 20, emoji: "🔮", color: "purple", target: 70, unlocksAfter: "journey_deepwork_30" },
+  { id: "journey_deepwork_100", category: "journey", title: "Focus legend",  description: "Complete 100 deep work sessions total", xp: 20, emoji: "🏆", color: "amber", target: 100, unlocksAfter: "journey_deepwork_70" },
+
+  { id: "journey_streak_3",   category: "journey", title: "3-day streak",   description: "Complete at least 1 task for 3 days in a row",   xp: 5, emoji: "🔥", color: "pink", target: 3 },
+  { id: "journey_streak_7",   category: "journey", title: "7-day streak",   description: "Complete at least 1 task for 7 days in a row",   xp: 5, emoji: "🔥", color: "pink", target: 7, unlocksAfter: "journey_streak_3" },
+  { id: "journey_streak_15",  category: "journey", title: "15-day streak",  description: "Complete at least 1 task for 15 days in a row",  xp: 5, emoji: "⚡", color: "amber", target: 15, unlocksAfter: "journey_streak_7" },
+  { id: "journey_streak_30",  category: "journey", title: "30-day streak",  description: "Complete at least 1 task for 30 days in a row",  xp: 5, emoji: "💫", color: "amber", target: 30, unlocksAfter: "journey_streak_15" },
+  { id: "journey_streak_45",  category: "journey", title: "45-day streak",  description: "Complete at least 1 task for 45 days in a row",  xp: 5, emoji: "🌙", color: "teal", target: 45, unlocksAfter: "journey_streak_30" },
+  { id: "journey_streak_60",  category: "journey", title: "60-day streak",  description: "Complete at least 1 task for 60 days in a row",  xp: 5, emoji: "✨", color: "teal", target: 60, unlocksAfter: "journey_streak_45" },
+  { id: "journey_streak_75",  category: "journey", title: "75-day streak",  description: "Complete at least 1 task for 75 days in a row",  xp: 5, emoji: "🌟", color: "teal", target: 75, unlocksAfter: "journey_streak_60" },
+  { id: "journey_streak_90",  category: "journey", title: "90-day streak",  description: "Complete at least 1 task for 90 days in a row",  xp: 5, emoji: "👑", color: "purple", target: 90, unlocksAfter: "journey_streak_75" },
+  { id: "journey_streak_100", category: "journey", title: "100-day legend", description: "Complete at least 1 task for 100 days in a row", xp: 5, emoji: "🏆", color: "amber", target: 100, unlocksAfter: "journey_streak_90" },
+
+  { id: "journey_rate_app", category: "journey", title: "Spread the love", description: "Rate Dodi on the App Store", xp: 50, emoji: "💌", color: "pink", target: 1 },
 ];
 
 export const MISSIONS_BY_ID: Record<string, MissionDef> = Object.fromEntries(MISSIONS.map(m => [m.id, m]));
 
 export type Level = { level: number; name: string; minXp: number };
 export const LEVELS: Level[] = [
-  { level: 1, name: "Sunshine Seed",    minXp: 0 },
-  { level: 2, name: "Sunshine Seeker",  minXp: 100 },
-  { level: 3, name: "Golden Planner",   minXp: 300 },
-  { level: 4, name: "Habit Guardian",   minXp: 600 },
-  { level: 5, name: "Dodi Champion",    minXp: 1000 },
+  { level: 1,  name: "Egg",         minXp: 0 },
+  { level: 2,  name: "Hatchling",   minXp: 50 },
+  { level: 3,  name: "Baby",        minXp: 150 },
+  { level: 4,  name: "Toddler",     minXp: 300 },
+  { level: 5,  name: "Kid",         minXp: 500 },
+  { level: 6,  name: "Teen",        minXp: 750 },
+  { level: 7,  name: "Young Adult", minXp: 1050 },
+  { level: 8,  name: "Adult",       minXp: 1400 },
+  { level: 9,  name: "Elder",       minXp: 1800 },
+  { level: 10, name: "Legend",      minXp: 2500 },
 ];
 
 export function levelForXp(xp: number) {
