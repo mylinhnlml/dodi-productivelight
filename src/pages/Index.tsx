@@ -204,9 +204,7 @@ const Index = () => {
   // Sticker collection state (from DB)
   const [stickerCatalog, setStickerCatalog] = useState<Array<{ id: string; emoji: string; name: string; mission_id: string | null }>>([]);
   const [unlockedStickerIds, setUnlockedStickerIds] = useState<Set<string>>(new Set());
-  const [highlightedStickers, setHighlightedStickers] = useState<Set<string>>(new Set());
   const [showStickerGallery, setShowStickerGallery] = useState(false);
-  const [lockedTip, setLockedTip] = useState<{ emoji: string; mission: string } | null>(null);
   const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
   const [customDate, setCustomDate] = useState(todayStr());
   const [newPriority, setNewPriority] = useState<Priority>(0);
