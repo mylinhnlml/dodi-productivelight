@@ -22,7 +22,7 @@ import {
   onStickerUsed,
   onDeepWorkCompleted,
 } from "@/lib/missionEngine";
-import { MISSIONS_BY_ID } from "@/lib/missions";
+
 import { useSwipeToDelete } from "@/hooks/useSwipeToDelete";
 import DeepWorkMode from "@/components/DeepWorkMode";
 
@@ -204,9 +204,7 @@ const Index = () => {
   // Sticker collection state (from DB)
   const [stickerCatalog, setStickerCatalog] = useState<Array<{ id: string; emoji: string; name: string; mission_id: string | null }>>([]);
   const [unlockedStickerIds, setUnlockedStickerIds] = useState<Set<string>>(new Set());
-  const [highlightedStickers, setHighlightedStickers] = useState<Set<string>>(new Set());
   const [showStickerGallery, setShowStickerGallery] = useState(false);
-  const [lockedTip, setLockedTip] = useState<{ emoji: string; mission: string } | null>(null);
   const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
   const [customDate, setCustomDate] = useState(todayStr());
   const [newPriority, setNewPriority] = useState<Priority>(0);
@@ -314,11 +312,9 @@ const Index = () => {
   const handleUseStickers = (emojis: string[]) => {
     setActive("add");
     setShowStickers(false);
-    setHighlightedStickers(new Set(emojis));
     if (emojis[0]) setNewEmoji(emojis[0]);
     // refresh unlocked list to pick up just-claimed stickers
     refreshUnlocked(userId);
-    window.setTimeout(() => setHighlightedStickers(new Set()), 4000);
   };
 
   // Capture ?ref= param on app load and stash it for after sign-in
@@ -1230,85 +1226,39 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Sticker picker: Your stickers / Locked / More */}
+              {/* Sticker picker */}
               {(() => {
-                const unlocked = stickerCatalog.filter((s) => unlockedStickerIds.has(s.id));
-                const locked = stickerCatalog.filter((s) => !unlockedStickerIds.has(s.id) && s.mission_id);
-                const renderTile = (s: { id: string; emoji: string; mission_id: string | null }, isLocked = false) => {
-                  const highlight = highlightedStickers.has(s.emoji);
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => {
-                        if (isLocked) {
-                          const m = s.mission_id ? MISSIONS_BY_ID[s.mission_id] : null;
-                          setLockedTip({ emoji: s.emoji, mission: m?.title ?? "a mission" });
-                          window.setTimeout(() => setLockedTip(null), 2400);
-                          return;
-                        }
-                        setNewEmoji(s.emoji);
-                      }}
-                      className={`relative aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
-                        isLocked
-                          ? "neu-inset opacity-40"
-                          : newEmoji === s.emoji
-                          ? "neu-pressed scale-95"
-                          : "neu-surface-sm hover:scale-105"
-                      } ${highlight ? "ring-2 ring-primary animate-pulse" : ""}`}
-                      aria-label={isLocked ? "Locked sticker" : s.emoji}
-                    >
-                      <span className={isLocked ? "grayscale opacity-60" : ""}>{s.emoji}</span>
-                    </button>
-                  );
-                };
+                const renderTile = (s: { id: string; emoji: string }) => (
+                  <button
+                    key={s.id}
+                    onClick={() => setNewEmoji(s.emoji)}
+                    className={`aspect-square rounded-xl text-lg flex items-center justify-center transition-all ${
+                      newEmoji === s.emoji
+                        ? "neu-pressed scale-95"
+                        : "neu-surface-sm hover:scale-105"
+                    }`}
+                    aria-label={s.emoji}
+                  >
+                    {s.emoji}
+                  </button>
+                );
                 return (
                   <div className="space-y-3">
-                    {/* Your stickers */}
                     <div>
-                      <div className="flex items-center justify-between px-1 mb-1.5">
-                        <label className="text-xs font-bold text-muted-foreground">Your stickers</label>
-                        <span className="text-[10px] font-bold text-muted-foreground">
-                          {unlocked.length}/{stickerCatalog.length}
-                        </span>
-                      </div>
+                      <label className="text-xs font-bold text-muted-foreground px-1 mb-1.5 block">Your stickers</label>
                       <div className="neu-surface-sm rounded-2xl p-3 grid grid-cols-8 gap-1.5 max-h-28 overflow-y-auto">
-                        {unlocked.length === 0 ? (
+                        {stickerCatalog.length === 0 ? (
                           <p className="col-span-8 text-center text-[11px] font-semibold text-muted-foreground py-3">
                             No stickers yet
                           </p>
                         ) : (
-                          unlocked.map((s) => renderTile(s, false))
+                          stickerCatalog.map((s) => renderTile(s))
                         )}
                       </div>
                     </div>
 
-                    {/* Locked */}
-                    {locked.length > 0 && (
-                      <div>
-                        <label className="text-xs font-bold text-muted-foreground px-1 mb-1.5 block">
-                          Locked
-                        </label>
-                        <div className="neu-inset rounded-2xl p-3 grid grid-cols-8 gap-1.5 max-h-28 overflow-y-auto">
-                          {locked.map((s) => renderTile(s, true))}
-                        </div>
-                        {lockedTip && (
-                          <p className="text-[11px] font-semibold text-primary mt-1.5 px-1">
-                            {lockedTip.emoji} Unlock by completing "{lockedTip.mission}"
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* More stickers → Missions */}
                     <button
-                      onClick={() => {
-                        if (!userId) {
-                          toast("Sign in to unlock more stickers ☀️", { position: "top-center", duration: 2500 });
-                          setActive("profile");
-                          return;
-                        }
-                        setActive("missions");
-                      }}
+                      onClick={() => setActive("missions")}
                       className="w-full py-2.5 rounded-2xl neu-surface-sm text-xs font-extrabold text-primary flex items-center justify-center gap-1.5 transition-transform active:scale-95"
                     >
                       <Smile className="w-3.5 h-3.5" strokeWidth={2.4} />
