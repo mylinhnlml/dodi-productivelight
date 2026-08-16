@@ -200,11 +200,8 @@ const Index = () => {
   const [newTime, setNewTime] = useState("");
   const [showStickers, setShowStickers] = useState(false);
   const [recentEmojis, setRecentEmojis] = useState<string[]>(EMOJI_BASIC);
-  const [customStickers, setCustomStickers] = useState<string[]>([]);
   // Sticker collection state (from DB)
   const [stickerCatalog, setStickerCatalog] = useState<Array<{ id: string; emoji: string; name: string; mission_id: string | null }>>([]);
-  const [unlockedStickerIds, setUnlockedStickerIds] = useState<Set<string>>(new Set());
-  const [showStickerGallery, setShowStickerGallery] = useState(false);
   const [dateMode, setDateMode] = useState<"today" | "tomorrow" | "other">("today");
   const [customDate, setCustomDate] = useState(todayStr());
   const [newPriority, setNewPriority] = useState<Priority>(0);
@@ -297,18 +294,6 @@ const Index = () => {
         if (data) setStickerCatalog(data as any);
       });
   }, []);
-  const refreshUnlocked = (uid: string | null) => {
-    if (!uid) { setUnlockedStickerIds(new Set()); return; }
-    supabase
-      .from("user_unlocked_stickers")
-      .select("sticker_id")
-      .eq("user_id", uid)
-      .then(({ data }) => {
-        setUnlockedStickerIds(new Set((data ?? []).map((r: any) => r.sticker_id)));
-      });
-  };
-  useEffect(() => { refreshUnlocked(userId); }, [userId, active]);
-
   // Capture ?ref= param on app load and stash it for after sign-in
   useEffect(() => {
     try {
