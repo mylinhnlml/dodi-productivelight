@@ -163,8 +163,6 @@ export default function MissionsPage({ userId, onUseStickers }: Props) {
           const s = missionStatus(m, progress);
           const color = COLOR_STYLES[m.color];
           const faded = s.claimed || s.locked;
-          const rewardShown = (m.rewardStickers ?? []).slice(0, 4);
-          const extraCount = (m.rewardStickers?.length ?? 0) - rewardShown.length;
           return (
             <div
               key={m.id}
@@ -190,19 +188,6 @@ export default function MissionsPage({ userId, onUseStickers }: Props) {
                       +{m.xp} XP
                     </span>
                   </div>
-
-                  {/* Sticker rewards */}
-                  {rewardShown.length > 0 && (
-                    <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-                      <span className="text-[10px] font-semibold text-muted-foreground">Unlocks:</span>
-                      {rewardShown.map((e, i) => (
-                        <span key={i} className="text-sm leading-none">{e}</span>
-                      ))}
-                      {extraCount > 0 && (
-                        <span className="text-[10px] font-bold text-muted-foreground">+{extraCount} more</span>
-                      )}
-                    </div>
-                  )}
 
                   {m.target > 1 && !s.claimed && !s.locked && (
                     <div className="mt-2.5">
