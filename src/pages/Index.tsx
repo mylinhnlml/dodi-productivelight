@@ -312,11 +312,9 @@ const Index = () => {
   const handleUseStickers = (emojis: string[]) => {
     setActive("add");
     setShowStickers(false);
-    setHighlightedStickers(new Set(emojis));
     if (emojis[0]) setNewEmoji(emojis[0]);
     // refresh unlocked list to pick up just-claimed stickers
     refreshUnlocked(userId);
-    window.setTimeout(() => setHighlightedStickers(new Set()), 4000);
   };
 
   // Capture ?ref= param on app load and stash it for after sign-in
