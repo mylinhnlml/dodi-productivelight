@@ -262,7 +262,7 @@ const Index = () => {
       setDeepWorkRunning(false);
       setShowCompleteSheet(true);
       if (userId) onDeepWorkCompleted(userId);
-      toast("Deep work session complete ☀️ +15 XP", { position: "top-center" });
+      toast("Deep work session complete ☀️ +10 XP", { position: "top-center" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deepWorkRemaining, deepWorkRunning]);
