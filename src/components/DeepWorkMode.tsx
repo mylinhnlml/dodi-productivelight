@@ -20,6 +20,7 @@ export default function DeepWorkMode({
   setRunning,
   showCompleteSheet,
   setShowCompleteSheet,
+  category,
   onExit,
 }: Props) {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
