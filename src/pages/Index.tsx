@@ -935,7 +935,17 @@ const Index = () => {
             </div>
             {active === "home" && (
               <button
-                onClick={() => setDeepWorkMode((v) => !v)}
+                onClick={() => {
+                  if (deepWorkMode) {
+                    setDeepWorkMode(false);
+                    setDeepWorkRunning(false);
+                    setDeepWorkRemaining(28 * 60);
+                    setDeepWorkCategory(null);
+                    setShowCategoryPicker(false);
+                  } else {
+                    setShowCategoryPicker(true);
+                  }
+                }}
                 className={`flex items-center gap-2 rounded-full px-5 py-2.5 transition-all ${
                   deepWorkMode
                     ? "bg-[hsl(30,40%,20%)] ring-2 ring-amber-400/60"
