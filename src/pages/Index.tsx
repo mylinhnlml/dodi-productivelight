@@ -241,6 +241,8 @@ const Index = () => {
   const [deepWorkRemaining, setDeepWorkRemaining] = useState(28 * 60);
   const [deepWorkRunning, setDeepWorkRunning] = useState(false);
   const [showCompleteSheet, setShowCompleteSheet] = useState(false);
+  const [deepWorkCategory, setDeepWorkCategory] = useState<"eat" | "sleep" | "play" | null>(null);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const deepWorkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -933,7 +935,17 @@ const Index = () => {
             </div>
             {active === "home" && (
               <button
-                onClick={() => setDeepWorkMode((v) => !v)}
+                onClick={() => {
+                  if (deepWorkMode) {
+                    setDeepWorkMode(false);
+                    setDeepWorkRunning(false);
+                    setDeepWorkRemaining(28 * 60);
+                    setDeepWorkCategory(null);
+                    setShowCategoryPicker(false);
+                  } else {
+                    setShowCategoryPicker(true);
+                  }
+                }}
                 className={`flex items-center gap-2 rounded-full px-5 py-2.5 transition-all ${
                   deepWorkMode
                     ? "bg-[hsl(30,40%,20%)] ring-2 ring-amber-400/60"
@@ -1473,10 +1485,12 @@ const Index = () => {
               setRunning={setDeepWorkRunning}
               showCompleteSheet={showCompleteSheet}
               setShowCompleteSheet={setShowCompleteSheet}
+              category={deepWorkCategory}
               onExit={() => {
                 setDeepWorkMode(false);
                 setDeepWorkRunning(false);
                 setDeepWorkRemaining(28 * 60);
+                setDeepWorkCategory(null);
               }}
             />
           ) : (
@@ -1736,6 +1750,55 @@ const Index = () => {
             hidden={active === "add" || (active === "home" && deepWorkMode)}
             style={isNative ? { bottom: 'calc(env(safe-area-inset-bottom) + 80px)' } : undefined}
           />
+
+          {/* Focus category picker */}
+          {showCategoryPicker && !deepWorkMode && (
+            <div className="fixed inset-0 z-[100] flex items-end justify-center">
+              <div
+                className="absolute inset-0 bg-black/40"
+                onClick={() => setShowCategoryPicker(false)}
+              />
+              <div
+                className="relative w-full max-w-[400px] rounded-t-3xl p-6 pb-8 animate-[slide-up_0.28s_cubic-bezier(0.32,0.72,0,1)_both]"
+                style={{
+                  background: "#1A1208",
+                  paddingBottom: 'max(env(safe-area-inset-bottom), 32px)'
+                }}
+              >
+                <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: "rgba(255,255,255,0.15)" }} />
+                <p className="text-center text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#B8895A" }}>
+                  Focus mode
+                </p>
+                <h3 className="text-center font-extrabold text-lg mb-6" style={{ color: "#FFE9C2" }}>
+                  What are you focusing on?
+                </h3>
+                <div className="flex flex-col gap-3">
+                  {[
+                    { id: "eat", emoji: "🍽️", label: "Eat", sub: "Mindful eating time" },
+                    { id: "sleep", emoji: "😴", label: "Sleep", sub: "Rest and recharge" },
+                    { id: "play", emoji: "🎮", label: "Play", sub: "Fun and creativity" },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setDeepWorkCategory(cat.id as "eat" | "sleep" | "play");
+                        setShowCategoryPicker(false);
+                        setDeepWorkMode(true);
+                      }}
+                      className="w-full rounded-2xl p-4 flex items-center gap-4 transition-all active:scale-[0.98]"
+                      style={{ background: "rgba(255,233,194,0.08)", border: "1px solid rgba(255,233,194,0.12)" }}
+                    >
+                      <span className="text-3xl">{cat.emoji}</span>
+                      <div className="text-left">
+                        <p className="font-extrabold text-sm" style={{ color: "#FFE9C2" }}>{cat.label}</p>
+                        <p className="text-xs" style={{ color: "#B8895A" }}>{cat.sub}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Bottom nav — always visible on main app */}
           <nav 
