@@ -9,6 +9,7 @@ type Props = {
   setRunning: (b: boolean) => void;
   showCompleteSheet: boolean;
   setShowCompleteSheet: (b: boolean) => void;
+  category: "eat" | "sleep" | "play" | null;
   onExit: () => void;
 };
 
