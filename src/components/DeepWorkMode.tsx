@@ -175,6 +175,11 @@ export default function DeepWorkMode({
         >
           {running ? "Locked in ✨" : remaining === SESSION ? "Ready to focus" : "Paused"}
         </p>
+        {category && (
+          <p className="text-xs font-bold uppercase tracking-widest mt-1" style={{ color: "#B8895A" }}>
+            {category === "eat" ? "🍽️ Eat" : category === "sleep" ? "😴 Sleep" : "🎮 Play"}
+          </p>
+        )}
       </div>
 
       {/* Controls */}
