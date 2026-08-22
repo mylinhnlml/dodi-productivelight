@@ -1485,10 +1485,12 @@ const Index = () => {
               setRunning={setDeepWorkRunning}
               showCompleteSheet={showCompleteSheet}
               setShowCompleteSheet={setShowCompleteSheet}
+              category={deepWorkCategory}
               onExit={() => {
                 setDeepWorkMode(false);
                 setDeepWorkRunning(false);
                 setDeepWorkRemaining(28 * 60);
+                setDeepWorkCategory(null);
               }}
             />
           ) : (
