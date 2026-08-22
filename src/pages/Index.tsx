@@ -241,6 +241,8 @@ const Index = () => {
   const [deepWorkRemaining, setDeepWorkRemaining] = useState(28 * 60);
   const [deepWorkRunning, setDeepWorkRunning] = useState(false);
   const [showCompleteSheet, setShowCompleteSheet] = useState(false);
+  const [deepWorkCategory, setDeepWorkCategory] = useState<"eat" | "sleep" | "play" | null>(null);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const deepWorkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
